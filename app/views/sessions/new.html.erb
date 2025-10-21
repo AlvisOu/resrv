@@ -1,2 +1,18 @@
-<h1>Sessions#new</h1>
-<p>Find me in app/views/sessions/new.html.erb</p>
+<h1>Log In</h1>
+
+<%= form_with(scope: :session, url: login_path) do |form| %>
+
+  <div class="field">
+    <%= form.label :email %><br>
+    <%= form.email_field :email %>
+  </div>
+
+  <div class="field">
+    <%= form.label :password %><br>
+    <%= form.password_field :password %>
+  </div>
+
+  <div class="actions">
+    <%= form.submit "Log In" %>
+  </div>
+<% end %>
