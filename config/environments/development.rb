@@ -1,4 +1,4 @@
-Rottenpotatoes::Application.configure do
+Resrv::Application.configure do
   # Settings specified here will take precedence over those in config/application.rb
   config.hosts << /.*\.codio\.io/
   # In the development environment your application's code is reloaded on

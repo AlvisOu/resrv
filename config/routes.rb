@@ -1,4 +1,4 @@
-Rottenpotatoes::Application.routes.draw do
+Resrv::Application.routes.draw do
   resources :movies
   # Add new routes here
 

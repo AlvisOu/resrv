@@ -298,6 +298,10 @@ GEM
     regexp_parser (2.11.3)
     reline (0.6.2)
       io-console (~> 0.5)
+    rename (1.1.0)
+      activesupport
+      rails (>= 3.0.0)
+      thor (>= 0.19.1)
     rspec (3.13.1)
       rspec-core (~> 3.13.0)
       rspec-expectations (~> 3.13.0)
@@ -395,6 +399,7 @@ DEPENDENCIES
   pg (~> 1.1)
   rails (= 8.0)
   rails_12factor
+  rename
   rspec-rails
   sass-rails (~> 5.0)
   simplecov
