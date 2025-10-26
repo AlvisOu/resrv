@@ -1,5 +1,5 @@
 Resrv::Application.routes.draw do
-  # Root Route
+  # == Root Route ==
   root "workspaces#index"
   
   # == User Routes ==
@@ -11,6 +11,6 @@ Resrv::Application.routes.draw do
   post "login", to: "sessions#create"
   delete "logout", to: "sessions#destroy", as: "logout"
 
-
-  resources :workspaces, only: [:index, :show]
+  # == Workspace Routes ==
+  resources :workspaces, only: [:index, :new, :create, :show]
 end

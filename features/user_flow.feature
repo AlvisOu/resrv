@@ -4,7 +4,7 @@ Background:
   Given I am logged in as a standard user of "Lerner Auditorium"
 
 Scenario: Make a microphone reservation
-  When I go to my owned/bookmarked Workspaces
+  When I go to my owned/bookmarked workspaces
   And  I press "Lerner Auditorium"
   Then I should see "Mic" and its availabilities
   When I adjust the quantity for "Mic"

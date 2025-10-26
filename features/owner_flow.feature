@@ -1,12 +1,12 @@
 Feature: Owner Workflow for Workspace Management
 
   Background:
-    Given I am logged in as a workspace owner
+    Given I am logged in as a workspace owner of "Lerner Auditorium"
 
 Scenario: Create a new workspace
   When I go to my owned/bookmarked workspaces
-  And  I press "Create Workspace"
-  Then I should see a "Create Workspace Form"
+  And  I press "Create New Workspace"
+  Then I should see a "Create a New Workspace"
   When I fill in the workspace information
   And  I click the "create workspace" button
   Then the new workspace should appear in my list of workspaces

@@ -1,13 +1,16 @@
 <h1>My Workspaces</h1>
+<button>
+  <%= link_to "Create New Workspace", new_workspace_path, class: "button" %>
+</button>
 
 <% if @workspaces.any? %>
-  <ul>
-    <% @workspaces.each do |workspace| %>
-      <li>
-        <%= link_to workspace.name, workspace_path(workspace) %>
-      </li>
-    <% end %>
-  </ul>
+
+  <% @workspaces.each do |workspace| %>
+    <button>
+      <%= link_to workspace.name, workspace_path(workspace) %>
+    </button>
+  <% end %>
+
 <% else %>
   <p>You are not a member of any workspaces.</p>
 <% end %>

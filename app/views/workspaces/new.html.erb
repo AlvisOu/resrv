@@ -1,0 +1,24 @@
+<h1>Create a New Workspace</h1>
+
+<%= form_with model: @workspace do |form| %>
+
+  <% if @workspace.errors.any? %>
+    <div style="color: red;">
+      <h2><%= pluralize(@workspace.errors.count, "error") %> prohibited this workspace from being saved:</h2>
+      <ul>
+        <% @workspace.errors.full_messages.each do |message| %>
+          <li><%= message %></li>
+        <% end %>
+      </ul>
+    </div>
+  <% end %>
+
+  <div class="field">
+    <%= form.label :name %><br>
+    <%= form.text_field :name %>
+  </div>
+
+  <div class="actions">
+    <%= form.submit "Create Workspace" %>
+  </div>
+<% end %>

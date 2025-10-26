@@ -10,7 +10,7 @@ module NavigationHelpers
 
     when /^the home\s?page$/ then root_path
 
-    when /^my owned\/bookmarked Workspaces$/ then root_path
+    when /^my owned\/bookmarked workspaces$/ then root_path
 
     when /^the edit page for "(.*)"$/
       movie = Movie.find_by!(title: $1)

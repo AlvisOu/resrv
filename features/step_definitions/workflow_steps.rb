@@ -268,14 +268,6 @@ Given /^(?:|I )have an existing reservation$/ do
    )
 end
 
-When /^(?:|I )go to my owned\/bookmarked workspaces$/ do
-  visit path_to('my workspaces page')
-end
-
-When /^(?:|I )go to my "([^"]*)" workspace$/ do |workspace_name|
-  click_link(workspace_name)
-end
-
 When /^(?:|I )fill in the workspace information$/ do
   # This is a declarative step. We fill in concrete data for the test.
   @workspace_name = "My New Test Workspace" # Store for later assertion
