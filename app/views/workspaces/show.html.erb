@@ -13,5 +13,20 @@
   Owner: <%= @workspace.owner&.name %>
 </p>
 
+<hr>
+<% if @current_join %>
+  <%= button_to "Leave Workspace", 
+                workspace_user_to_workspace_path(@workspace), 
+                method: :delete,
+                data: { confirm: "Are you sure you want to leave this workspace?" } %>
+<% else %>
+  <%= button_to "Join Workspace as User", 
+                workspace_user_to_workspace_path(@workspace), 
+                method: :post %>
+<% end %>
+<hr>
+
+
+
 <br>
 <%= link_to "Back to all workspaces", root_path %>

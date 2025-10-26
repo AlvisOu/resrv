@@ -12,5 +12,7 @@ Resrv::Application.routes.draw do
   delete "logout", to: "sessions#destroy", as: "logout"
 
   # == Workspace Routes ==
-  resources :workspaces, only: [:index, :new, :create, :show]
+  resources :workspaces, only: [:index, :new, :create, :show] do
+    resource :user_to_workspace, only: [:create, :destroy]
+  end
 end

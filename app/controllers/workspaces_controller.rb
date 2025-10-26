@@ -26,6 +26,7 @@ class WorkspacesController < ApplicationController
   
   def show
     @workspace = Workspace.find(params[:id])
+    @current_join = @workspace.user_to_workspaces.find_by(user: current_user)
   end
 
   private
