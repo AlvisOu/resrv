@@ -4,5 +4,4 @@ class Workspace < ApplicationRecord
     has_many :users, through: :user_to_workspaces
 
     validates :name, presence: true
-    validates :location, presence: true
 end

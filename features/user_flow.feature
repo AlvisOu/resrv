@@ -1,7 +1,7 @@
 Feature: User Workflow for Workspace Reservations
 
 Background:
-    Given I am logged in as a standard user
+    Given I am logged in as a standard user of "Lerner Auditorium"
 
 Scenario: Make a microphone reservation
   When I go to my owned/bookmarked Workspaces

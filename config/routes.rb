@@ -1,12 +1,7 @@
 Resrv::Application.routes.draw do
   # Root Route
-  # root "home#index"
-  resources :movies do
-    get :similar, on: :member
-  end
-  root to: redirect('/movies')
-
-
+  root "workspaces#index"
+  
   # == User Routes ==
   get "signup", to: "users#new", as: "signup"
   resources :users, only: [:create]
