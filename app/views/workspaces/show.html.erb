@@ -1,5 +1,12 @@
 <h1><%= @workspace.name %></h1>
 
+<% flash.each do |message_type, message| %>
+  <%# message_type will be 'notice' or 'alert' %>
+  <div class="flash flash-<%= message_type %>">
+    <%= message %>
+  </div>
+<% end %>
+
 <p>
   <strong>Description:</strong>
   <%= @workspace.name %>
@@ -15,14 +22,26 @@
 
 <hr>
 <% if @current_join %>
-  <%= button_to "Leave Workspace", 
-                workspace_user_to_workspace_path(@workspace), 
-                method: :delete,
-                data: { confirm: "Are you sure you want to leave this workspace?" } %>
+  <% if @current_join.role == 'owner' %>
+    <%= button_to "Delete This Workspace", 
+                  workspace_user_to_workspace_path(@workspace), 
+                  method: :delete,
+                  class: "button-danger",
+                  data: { confirm: "OWNER: Are you sure? This will permanently delete this workspace for ALL members." } %>
+  <% else %>
+    <%= button_to "Leave This Workspace", 
+                  workspace_user_to_workspace_path(@workspace), 
+                  method: :delete,
+                  data: { confirm: "Are you sure you want to leave this workspace?" } %>
+  <% end %>
+
 <% else %>
+  
+  <%# User is not a member, so show the "Join" button %>
   <%= button_to "Join Workspace as User", 
                 workspace_user_to_workspace_path(@workspace), 
                 method: :post %>
+
 <% end %>
 <hr>
 
