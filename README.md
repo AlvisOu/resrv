@@ -4,10 +4,10 @@
 `resrv` is a cloud-based equipment reservation and usage tracking platform. It's designed for shared spaces like university labs, gyms, and clubs to introduce accountability, fairness, and data-driven insights into resource management.
 
 ## Team
-* Alvis Ou (role)
-* Francis Deng (role)
-* Sky Sun (role)
-* Weijie Jiang (role)
+* Alvis Ou
+* Francis Deng
+* Sky Sun
+* Weijie Jiang
 
 ## Core Features
 * **User Reservations:** Book equipment for defined time slots.
