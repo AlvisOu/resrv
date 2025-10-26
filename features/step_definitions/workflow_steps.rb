@@ -269,12 +269,10 @@ Given /^(?:|I )have an existing reservation$/ do
 end
 
 When /^(?:|I )go to my owned\/bookmarked workspaces$/ do
-  visit path_to('my workspaces page') # Define in paths.rb
+  visit path_to('my workspaces page')
 end
 
 When /^(?:|I )go to my "([^"]*)" workspace$/ do |workspace_name|
-  # This could visit a path directly or click a link from the list.
-  # This implementation assumes clicking a link.
   click_link(workspace_name)
 end
 
