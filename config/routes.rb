@@ -11,4 +11,6 @@ Resrv::Application.routes.draw do
   post "login", to: "sessions#create"
   delete "logout", to: "sessions#destroy", as: "logout"
 
+
+  resources :workspaces, only: [:index, :show]
 end
