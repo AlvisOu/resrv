@@ -25,16 +25,34 @@
   <h1>My Workspaces</h1>
   <%= link_to "Create New Workspace", new_workspace_path, class: "button" %>
   
+  <h2>Workspaces I Own</h2>
   <div class="my-workspaces-list">
-    <% if @workspaces.any? %>
-      <% @workspaces.each do |workspace| %>
+    <% if @owned_workspaces.any? %>
+      <% @owned_workspaces.each do |workspace| %>
         <div>
           <%= link_to workspace.name, workspace_path(workspace), class: "button" %>
         </div>
       <% end %>
     <% else %>
-      <p>You are not a member of any workspaces yet.</p>
+      <p>You do not own any workspaces.</p>
     <% end %>
   </div>
+
+  <h2>Workspaces I Joined</h2>
+  <div class="my-workspaces-list">
+    <% if @joined_workspaces.any? %>
+      <% @joined_workspaces.each do |workspace| %>
+        <div>
+          <%= link_to workspace.name, workspace_path(workspace), class: "button" %>
+        </div>
+      <% end %>
+    <% else %>
+      <p>You have not joined any other workspaces.</p>
+    <% end %>
+  </div>
+
+  <% if @owned_workspaces.none? && @joined_workspaces.none? %>
+    <p>You are not a member of any workspaces yet.</p>
+  <% end %>
   
 <% end %>

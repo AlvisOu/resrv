@@ -5,7 +5,8 @@ class WorkspacesController < ApplicationController
       @workspaces = Workspace.where(id: query.to_i)
                              .or(Workspace.where("LOWER(name) LIKE ?", "%#{query.downcase}%"))
     else
-      @workspaces = current_user.workspaces
+      @owned_workspaces = current_user.owned_workspaces
+      @joined_workspaces = current_user.joined_workspaces
     end
   end
 
