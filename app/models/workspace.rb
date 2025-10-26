@@ -4,4 +4,7 @@ class Workspace < ApplicationRecord
     has_many :users, through: :user_to_workspaces
 
     validates :name, presence: true
+
+    has_one :owner_join, -> { where(role: 'owner') }, class_name: 'UserToWorkspace'
+    has_one :owner, through: :owner_join, source: :user
 end

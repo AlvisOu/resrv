@@ -1,10 +1,12 @@
 class WorkspacesController < ApplicationController
   def index
-    @workspaces = current_user.workspaces
-  end
-
-  def new
-    @workspace = Workspace.new
+    if params[:query].present?
+      query = params[:query]
+      @workspaces = Workspace.where(id: query.to_i)
+                             .or(Workspace.where("LOWER(name) LIKE ?", "%#{query.downcase}%"))
+    else
+      @workspaces = current_user.workspaces
+    end
   end
 
   def create
@@ -18,8 +20,12 @@ class WorkspacesController < ApplicationController
     end
   end
 
+  def new
+    @workspace = Workspace.new
+  end
+  
   def show
-    @workspace = current_user.workspaces.find(params[:id])
+    @workspace = Workspace.find(params[:id])
   end
 
   private

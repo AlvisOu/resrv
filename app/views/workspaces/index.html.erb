@@ -1,16 +1,40 @@
-<h1>My Workspaces</h1>
-<button>
-  <%= link_to "Create New Workspace", new_workspace_path, class: "button" %>
-</button>
+<h2>Search All Workspaces</h2>
+<%= form_with(url: workspaces_path, method: :get) do |form| %>
+  <%= form.label :query, "Find a workspace by name or ID:" %>
+  <%= form.text_field :query, value: params[:query] %>
+  <%= form.submit "Search" %>
+<% end %>
 
-<% if @workspaces.any? %>
-
-  <% @workspaces.each do |workspace| %>
-    <button>
-      <%= link_to workspace.name, workspace_path(workspace) %>
-    </button>
+<% if params[:query].present? %>
+  
+  <h2>Search Results</h2>
+  <% if @workspaces.any? %>
+    <ul>
+      <% @workspaces.each do |workspace| %>
+        <li>
+          <%= link_to workspace.name, workspace_path(workspace) %>
+        </li>
+      <% end %>
+    </ul>
+  <% else %>
+    <p>No workspaces found matching "<%= params[:query] %>".</p>
   <% end %>
 
 <% else %>
-  <p>You are not a member of any workspaces.</p>
+
+  <h1>My Workspaces</h1>
+  <%= link_to "Create New Workspace", new_workspace_path, class: "button" %>
+  
+  <div class="my-workspaces-list">
+    <% if @workspaces.any? %>
+      <% @workspaces.each do |workspace| %>
+        <div>
+          <%= link_to workspace.name, workspace_path(workspace), class: "button" %>
+        </div>
+      <% end %>
+    <% else %>
+      <p>You are not a member of any workspaces yet.</p>
+    <% end %>
+  </div>
+  
 <% end %>

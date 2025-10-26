@@ -5,5 +5,13 @@
   <%= @workspace.name %>
   ===> Edit later
 </p>
+<p>
+  ID: <%= @workspace.id %>
+</p>
 
+<p>
+  Owner: <%= @workspace.owner&.name %>
+</p>
+
+<br>
 <%= link_to "Back to all workspaces", root_path %>
