@@ -1,0 +1,29 @@
+<h1>My Reservations</h1>
+
+<% if @reservations.any? %>
+  <table class="table table-bordered">
+    <thead>
+      <tr>
+        <th>Item</th>
+        <th>Workspace</th>
+        <th>Start Time</th>
+        <th>End Time</th>
+        <th>Quantity</th>
+      </tr>
+    </thead>
+    <tbody>
+      <% @reservations.each do |(start_time, end_time, item_id), res_group| %>
+        <% item = res_group.first.item %>
+        <tr>
+          <td><%= item.name %></td>
+          <td><%= item.workspace.name %></td>
+          <td><%= start_time.in_time_zone.strftime("%b %d, %I:%M %p") %></td>
+          <td><%= end_time.in_time_zone.strftime("%b %d, %I:%M %p") %></td>
+          <td><%= res_group.size %></td>
+        </tr>
+      <% end %>
+    </tbody>
+  </table>
+<% else %>
+  <p>You have no reservations yet.</p>
+<% end %>

@@ -14,6 +14,7 @@
         <% if logged_in? %>
           Logged in as <%= current_user.name %> |
           <%= link_to "My Profile", profile_path, class: "button" %> | 
+          <%= link_to "My Reservations", reservations_path, class: "button" %> |
           <%= link_to "Log Out", logout_path, method: :delete %>
         <% end %>
       </nav>

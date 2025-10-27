@@ -19,7 +19,7 @@ Resrv::Application.routes.draw do
   end
 
   # == Reservation Routes ==
-  resources :reservations, only: [:create, :destroy] do
+  resources :reservations, only: [:index, :create, :destroy] do
     get :availability, on: :collection
   end
 end
