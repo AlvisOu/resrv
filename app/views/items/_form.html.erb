@@ -1,0 +1,24 @@
+<%= form_with model: [@workspace, @item], local: true do |f| %>
+  <div>
+    <%= f.label :name, "Item Name" %><br>
+    <%= f.text_field :name, required: true %>
+  </div>
+
+  <div>
+    <%= f.label :quantity, "Quantity" %><br>
+    <%= f.number_field :quantity, min: 0, required: true %>
+  </div>
+
+  <div>
+    <%= f.label :start_time, "Available From" %><br>
+    <%= f.time_select :start_time, minute_step: 15 %>
+  </div>
+
+  <div>
+    <%= f.label :end_time, "Available Until" %><br>
+    <%= f.time_select :end_time, minute_step: 15 %>
+  </div>
+
+  <br>
+  <%= f.submit "Confirm", class: "btn-primary" %>
+<% end %>

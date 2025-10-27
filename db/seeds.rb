@@ -72,13 +72,19 @@ reservations = [
   {
     user: member,
     item: projector,
-    start_time: today.noon,               # 12:00 PM today
-    end_time:   today.noon + 2.hours      # 2:00 PM today
+    start_time: today.noon,
+    end_time:   today.noon + 2.hours
+  },
+  {
+    user: member,
+    item: podium,
+    start_time: today.noon + 2.hours,
+    end_time:   today.noon + 3.hours
   },
   {
     user: member,
     item: lat_pulldown_machine,
-    start_time: today.noon, # 9:00 AM tomorrow (fixed)
+    start_time: today.noon,
     end_time:   today.noon + 1.hour
   }
 ]

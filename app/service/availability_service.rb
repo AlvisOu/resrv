@@ -1,4 +1,3 @@
-# frozen_string_literal: true
 class AvailabilityService
   SLOT_INTERVAL = 15.minutes
 
@@ -31,8 +30,6 @@ class AvailabilityService
       available = false
 
       if within_window
-        # NOTE: You currently don't store a per-reservation quantity.
-        # This counts *reservations*, not units. See section 4 below to add quantity column.
         overlapping = @item.reservations.where("(start_time < ?) AND (end_time > ?)", slot_end, t)
         used_quantity = overlapping.count
         total_quantity = @item.quantity.to_i
@@ -47,7 +44,7 @@ class AvailabilityService
   end
 
   private
-
+  # To ensure consistent slot alignment across days without DST or UTC offset drift.
   def align_to_day(time)
     time.in_time_zone(@tz).change(year: @day.year, month: @day.month, day: @day.day)
   end
