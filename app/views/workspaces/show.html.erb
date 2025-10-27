@@ -1,51 +1,280 @@
 <h1><%= @workspace.name %></h1>
 
 <% flash.each do |message_type, message| %>
-  <%# message_type will be 'notice' or 'alert' %>
-  <div class="flash flash-<%= message_type %>">
-    <%= message %>
-  </div>
+  <div class="flash flash-<%= message_type %>"><%= message %></div>
 <% end %>
 
-<p>
-  <strong>Description:</strong>
-  <%= @workspace.name %>
-  ===> Edit later
-</p>
-<p>
-  ID: <%= @workspace.id %>
-</p>
-
-<p>
-  Owner: <%= @workspace.owner&.name %>
-</p>
+<p style="font-size:16px;"><strong>Description:</strong> <%= @workspace.name %> ===> Edit later</p>
+<p style="font-size:16px;">ID: <%= @workspace.id %></p>
+<p style="font-size:16px;">Owner: <%= @workspace.owner&.name %></p>
 
 <hr>
+
+<%
+  # ---------- 24h TIME SLOTS (today 00:00 → tomorrow 00:00) in 15-min intervals ----------
+  day = Date.current
+  tz  = Time.zone || ActiveSupport::TimeZone["UTC"]
+
+  start_of_day = tz.local(day.year, day.month, day.day, 0, 0, 0)
+  end_of_day   = start_of_day + 24.hours
+
+  slots = []
+  t = start_of_day
+  while t < end_of_day
+    slots << t
+    t += 15.minutes
+  end
+%>
+
+<style>
+  .legend { display:flex; gap:1.25rem; align-items:center; margin: 0.5rem 0 1rem; font-size:14px; }
+  .legend .key { display:inline-flex; align-items:center; gap:0.5rem; }
+  .legend .swatch { width:16px; height:16px; border-radius:3px; border:1px solid #bbb; }
+
+  .schedule-wrapper {
+    margin-top: 1rem;
+    border: 1px solid #e5e7eb;
+    border-radius: 12px;
+    overflow: auto;          /* scrollable both ways */
+    max-height: 70vh;        /* vertical scroll bound */
+    max-width: 100%;
+    position: relative;
+  }
+  .schedule-grid {
+    display: grid;
+    grid-template-columns:
+      260px   /* sticky item name */
+      140px   /* sticky quantity controls */
+      repeat(<%= slots.size %>, 90px); /* each slot width */
+    min-width: calc(260px + 140px + <%= slots.size %> * 90px);
+  }
+  .cell {
+    padding: 10px;
+    border-right: 1px solid #f0f0f0;
+    border-bottom: 1px solid #f0f0f0;
+    background: #fff;
+    font-size: 14px;         /* bigger text */
+    line-height: 1.25;
+    box-sizing: border-box;
+  }
+  .cell.sticky-1 {
+    position: sticky; left: 0;
+    background: #fafafa; font-weight: 600; z-index: 3;
+  }
+  .cell.sticky-2 {
+    position: sticky; left: 260px;  /* width of first sticky column */
+    background: #fafafa; font-weight: 600; z-index: 3;
+    border-left: 1px solid #e5e7eb;
+  }
+  .time-cell {
+    text-align: center; font-weight: 700; background: #fafafa;
+    position: sticky; top: 0; z-index: 2;
+    font-size: 13px;
+  }
+  .corner {
+    position: sticky; top: 0; left: 0; z-index: 4; background: #fafafa; font-weight:700;
+  }
+  .corner-2 {
+    position: sticky; top: 0; left: 260px; z-index: 4; background: #fafafa; font-weight:700;
+  }
+
+  .slot {
+    cursor: pointer;
+    height: 34px;            /* taller boxes */
+    border-radius: 6px;
+    margin: 8px;
+    transition: transform 0.02s ease-in-out, background-color 0.15s ease-in-out;
+    border: 1px solid #d1d5db;
+  }
+  .slot.available   { background: #22c55e33; }  /* green-ish */
+  .slot.selected    { background: #ef444466; }  /* red-ish */
+  .slot.unavailable { background: #9ca3af55; cursor: not-allowed; } /* gray */
+  .slot:hover { transform: scale(1.02); }
+  .item-name { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-size: 15px; }
+
+  .qty-wrap { display:flex; align-items:center; gap:10px; }
+  .qty-controls { display:inline-flex; flex-direction:column; gap:6px; }
+  .qty-btn {
+    width:30px; height:22px; line-height:20px; text-align:center;
+    border:1px solid #d1d5db; border-radius:6px; background:#fff; cursor:pointer;
+    user-select:none; font-size:14px;
+  }
+  .qty-btn:disabled { opacity: 0.45; cursor: not-allowed; }
+  .qty-display { font-weight:700; min-width: 1.8rem; text-align:center; font-size:15px; }
+  .qty-cap { color:#6b7280; font-size: 12px; }
+
+  .actions-bar {
+    margin-top: 14px;
+    display: flex;
+    justify-content: flex-end;
+  }
+  .btn-primary {
+    background: #111827; color: #fff; border: none;
+    padding: 10px 16px; font-size: 15px; border-radius: 8px; cursor: pointer;
+  }
+  .btn-primary:hover { filter: brightness(1.05); }
+</style>
+<div class="legend">
+  <span class="key"><span class="swatch" style="background:#22c55e33;"></span>Available</span>
+  <span class="key"><span class="swatch" style="background:#ef444466;"></span>Selected</span>
+  <span class="key"><span class="swatch" style="background:#9ca3af55;"></span>Unavailable</span>
+</div>
+
+<div class="schedule-wrapper">
+  <div class="schedule-grid" id="schedule-grid">
+    <!-- Header -->
+    <div class="cell corner sticky-1">Item</div>
+    <div class="cell corner-2 sticky-2">Quantity</div>
+    <% @slots.each do |slot| %>
+      <div class="cell time-cell"><%= slot.strftime("%-I:%M%P") %></div>
+    <% end %>
+
+    <!-- Rows from backend availability -->
+    <% @availability_data.each do |row| %>
+      <% item = row[:item] %>
+      <div class="cell sticky-1 item-name"><%= item.name %></div>
+
+      <div class="cell sticky-2">
+        <div class="qty-wrap" data-item-id="<%= item.id %>">
+          <div class="qty-controls">
+            <button class="qty-btn qty-up" type="button" aria-label="Increase">▲</button>
+            <button class="qty-btn qty-down" type="button" aria-label="Decrease">▼</button>
+          </div>
+          <span class="qty-display" data-count="0">0</span>
+          <span class="qty-cap">/ <%= item.quantity || 0 %></span>
+        </div>
+      </div>
+
+      <% row[:slots].each do |s| %>
+        <% klass =
+            if !s[:within_window]
+              'unavailable'
+            else
+              s[:available] ? 'available' : 'unavailable' # you can separate "booked" later if needed
+            end
+        %>
+        <div class="cell" style="padding:0;">
+          <div
+            class="slot <%= klass %>"
+            data-item-id="<%= item.id %>"
+            data-start="<%= s[:start].iso8601 %>"
+            data-end="<%= s[:end].iso8601 %>"
+            data-within-window="<%= s[:within_window] %>"
+            title="<%= "#{item.name} — #{s[:start].strftime('%-I:%M %p')}–#{s[:end].strftime('%-I:%M %p')}" %>"
+          ></div>
+        </div>
+      <% end %>
+    <% end %>
+  </div>
+</div>
+
+<div class="actions-bar">
+  <button type="button" class="btn-primary" id="add-to-cart">Add to Cart</button>
+</div>
+
+<hr>
+
 <% if @current_join %>
   <% if @current_join.role == 'owner' %>
-    <%= button_to "Delete This Workspace", 
-                  workspace_user_to_workspace_path(@workspace), 
+    <%= button_to "Delete This Workspace",
+                  workspace_user_to_workspace_path(@workspace),
                   method: :delete,
                   class: "button-danger",
                   data: { confirm: "OWNER: Are you sure? This will permanently delete this workspace for ALL members." } %>
   <% else %>
-    <%= button_to "Leave This Workspace", 
-                  workspace_user_to_workspace_path(@workspace), 
+    <%= button_to "Leave This Workspace",
+                  workspace_user_to_workspace_path(@workspace),
                   method: :delete,
                   data: { confirm: "Are you sure you want to leave this workspace?" } %>
   <% end %>
-
 <% else %>
-  
-  <%# User is not a member, so show the "Join" button %>
-  <%= button_to "Join Workspace as User", 
-                workspace_user_to_workspace_path(@workspace), 
+  <%= button_to "Join Workspace as User",
+                workspace_user_to_workspace_path(@workspace),
                 method: :post %>
-
 <% end %>
-<hr>
-
-
 
 <br>
 <%= link_to "Back to all workspaces", root_path %>
+
+<script>
+  (function () {
+    // Toggle client-selected (UI only) but only if backend said slot is available within window
+    document.addEventListener('click', function (e) {
+      const slot = e.target.closest('.slot');
+      if (slot) {
+        if (!slot.classList.contains('available') && !slot.classList.contains('selected')) return; // gray or blocked -> ignore
+        if (slot.classList.contains('available')) {
+          slot.classList.remove('available');
+          slot.classList.add('selected');
+        } else if (slot.classList.contains('selected')) {
+          slot.classList.remove('selected');
+          slot.classList.add('available');
+        }
+        return;
+      }
+
+      // Quantity controls: request fresh availability for that item from backend
+      const up = e.target.closest('.qty-up');
+      const down = e.target.closest('.qty-down');
+      if (up || down) {
+        const wrap = e.target.closest('.qty-wrap');
+        if (!wrap) return;
+        const itemId = wrap.dataset.itemId;
+        const display = wrap.querySelector('.qty-display');
+        const capText = wrap.querySelector('.qty-cap')?.textContent || "/ 0";
+        const cap = parseInt(capText.replace("/","").trim(), 10) || 0;
+
+        let count = parseInt(display.dataset.count || "0", 10);
+        if (up && count < cap) count += 1;
+        if (down && count > 0) count -= 1;
+
+        display.dataset.count = String(count);
+        display.textContent = String(count);
+
+        const upBtn = wrap.querySelector('.qty-up');
+        const downBtn = wrap.querySelector('.qty-down');
+        if (upBtn) upBtn.disabled = (count >= cap);
+        if (downBtn) downBtn.disabled = (count <= 0);
+
+        // Repaint this item's row based on backend availability for selected quantity
+        fetch(`/reservations/availability?item_id=${encodeURIComponent(itemId)}&quantity=${encodeURIComponent(count)}`, {
+          headers: { 'Accept': 'application/json' }
+        }).then(r => r.json()).then(({ slots }) => {
+          // Find the row's slots and repaint classes according to backend `available/within_window`
+          const rowSlots = document.querySelectorAll(`.slot[data-item-id="${itemId}"]`);
+          // Assumes same ordering (96 slots). If not, index by ISO8601 start.
+          const byStart = {};
+          slots.forEach(s => { byStart[new Date(s.start).toISOString()] = s; });
+
+          rowSlots.forEach(el => {
+            const key = new Date(el.dataset.start).toISOString();
+            const s = byStart[key];
+            if (!s) return;
+            el.classList.remove('available','selected','unavailable');
+            if (!s.within_window) {
+              el.classList.add('unavailable');
+            } else {
+              el.classList.add(s.available ? 'available' : 'unavailable');
+            }
+          });
+        }).catch(() => { /* ignore for now */ });
+      }
+
+      // Add to Cart placeholder
+      if (e.target.id === 'add-to-cart') {
+        // Later: gather .slot.selected and per-item qty-display counts and POST to a cart endpoint.
+        return;
+      }
+    }, { passive: true });
+
+    // Initialize quantity button disabled states
+    document.querySelectorAll('.qty-wrap').forEach(wrap => {
+      const capText = wrap.querySelector('.qty-cap')?.textContent || "/ 0";
+      const cap = parseInt(capText.replace("/","").trim(), 10) || 0;
+      const upBtn = wrap.querySelector('.qty-up');
+      const downBtn = wrap.querySelector('.qty-down');
+      if (upBtn) upBtn.disabled = (cap <= 0);
+      if (downBtn) downBtn.disabled = true;
+    });
+  })();
+</script>
