@@ -1,8 +1,9 @@
 class AvailabilityService
   SLOT_INTERVAL = 15.minutes
 
-  def initialize(item)
+  def initialize(item, requested_quantity = 1)
     @item = item
+    @requested_quantity = requested_quantity
   end
 
   def time_slots
@@ -17,8 +18,10 @@ class AvailabilityService
         slot_end, start_time
       )
 
-      used_quantity = overlapping_reservations.count # extend later if reservations have quantity
-      available = used_quantity < @item.quantity
+      used_quantity = overlapping_reservations.count 
+      total_quantity = @item.quantity
+      
+      available = (used_quantity + @requested_quantity) <= total_quantity
 
       slots << { start: start_time, end: slot_end, available: available }
       start_time = slot_end
