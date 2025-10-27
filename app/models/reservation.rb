@@ -18,19 +18,21 @@ class Reservation < ApplicationRecord
   def check_availability
     return if item.blank? || start_time.blank? || end_time.blank?
 
-    if item.start_time.present? && start_time < item.start_time
-      errors.add(:start_time, "is before the item's availability window")
-    end
-    if item.end_time.present? && end_time > item.end_time
-      errors.add(:end_time, "is after the item's availability window")
+    # Extract only the time-of-day
+    reservation_start = start_time.seconds_since_midnight
+    reservation_end   = end_time.seconds_since_midnight
+    item_start        = item.start_time.seconds_since_midnight
+    item_end          = item.end_time.seconds_since_midnight
+
+    # Eligibility check
+    if reservation_start < item_start
+      errors.add(:start_time, "is before the item's daily availability window")
     end
 
-    overlapping_reservations = Reservation.where(item_id: item_id)
-      .where.not(id: id)
-      .where("start_time < ? AND end_time > ?", end_time, start_time)
-
-    if overlapping_reservations.count >= item.quantity
-      errors.add(:base, "The item is not available for the selected time period")
+    if reservation_end > item_end
+      errors.add(:end_time, "is after the item's daily availability window")
     end
+
+    # Overlap check
   end
 end
