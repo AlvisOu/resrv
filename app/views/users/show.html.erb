@@ -1,0 +1,5 @@
+<h1>Hi, <%= @user.name %>!</h1>
+
+<%= button_to "Delete My Account", user_path(@user), method: :delete, data: { confirm: "Are you sure you want to delete your account? This cannot be undone." }, class: "button danger" %>
+
+<%= link_to "← Back to Workspaces", workspaces_path, class: "button" %>

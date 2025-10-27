@@ -4,7 +4,8 @@ Resrv::Application.routes.draw do
   
   # == User Routes ==
   get "signup", to: "users#new", as: "signup"
-  resources :users, only: [:create]
+  get "profile", to: "users#show", as: "profile"
+  resources :users, only: [:create, :destroy]
 
   # == Session Routes ==
   get "login", to: "sessions#new", as: "login"

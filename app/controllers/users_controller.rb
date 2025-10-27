@@ -5,6 +5,10 @@ class UsersController < ApplicationController
     @user = User.new
   end
 
+  def show
+    @user = current_user
+  end
+
   def create
     @user = User.new(user_params)
     if @user.save
@@ -16,7 +20,17 @@ class UsersController < ApplicationController
     end
   end
 
-
+  def destroy
+    if current_user.owned_workspaces.exists?
+      flash[:notice] = "You must delete or transfer ownership of all your workspaces before deleting your account."
+      redirect_to profile_path
+    else
+      current_user.destroy
+      reset_session
+      flash[:notice] = "Your account has been deleted."
+      redirect_to signup_path
+    end
+  end
   
   private
 
