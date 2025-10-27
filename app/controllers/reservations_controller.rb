@@ -17,4 +17,11 @@ class ReservationsController < ApplicationController
                                     .includes(item: :workspace)
                                     .group_by { |r| [r.start_time, r.end_time, r.item_id] }
     end
+
+    def destroy
+        reservation = current_user.reservations.find(params[:id])
+        reservation.destroy
+        flash[:notice] = "Reservation cancelled successfully."
+        redirect_to reservations_path
+    end
 end

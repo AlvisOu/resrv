@@ -9,17 +9,26 @@
         <th>Start Time</th>
         <th>End Time</th>
         <th>Quantity</th>
+        <th>Actions</th>
       </tr>
     </thead>
     <tbody>
       <% @reservations.each do |(start_time, end_time, item_id), res_group| %>
         <% item = res_group.first.item %>
+        <% sample_reservation = res_group.first %>
+
         <tr>
           <td><%= item.name %></td>
           <td><%= item.workspace.name %></td>
           <td><%= start_time.in_time_zone.strftime("%b %d, %I:%M %p") %></td>
           <td><%= end_time.in_time_zone.strftime("%b %d, %I:%M %p") %></td>
           <td><%= res_group.size %></td>
+          <td>
+            <%= link_to "Cancel", reservation_path(sample_reservation),
+                        method: :delete,
+                        data: { confirm: "Are you sure you want to cancel this reservation?" },
+                        class: "btn btn-danger btn-sm" %>
+          </td>
         </tr>
       <% end %>
     </tbody>
@@ -27,3 +36,9 @@
 <% else %>
   <p>You have no reservations yet.</p>
 <% end %>
+
+<hr>
+
+<div class="text-center mt-3">
+  <%= link_to "← Back to Workspaces", workspaces_path, class: "btn btn-secondary" %>
+</div>
