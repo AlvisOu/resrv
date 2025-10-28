@@ -54,45 +54,34 @@
     border-right: 1px solid #f0f0f0;
     border-bottom: 1px solid #f0f0f0;
     background: #fff;
-    font-size: 14px;         /* bigger text */
+    font-size: 14px;
     line-height: 1.25;
     box-sizing: border-box;
   }
-  .cell.sticky-1 {
-    position: sticky; left: 0;
-    background: #fafafa; font-weight: 600; z-index: 3;
-  }
-  .cell.sticky-2 {
-    position: sticky; left: 260px;  /* width of first sticky column */
-    background: #fafafa; font-weight: 600; z-index: 3;
-    border-left: 1px solid #e5e7eb;
-  }
-  .time-cell {
-    text-align: center; font-weight: 700; background: #fafafa;
-    position: sticky; top: 0; z-index: 2;
-    font-size: 13px;
-  }
-  .corner {
-    position: sticky; top: 0; left: 0; z-index: 4; background: #fafafa; font-weight:700;
-  }
-  .corner-2 {
-    position: sticky; top: 0; left: 260px; z-index: 4; background: #fafafa; font-weight:700;
-  }
+  .cell.sticky-1 { position: sticky; left: 0; background: #fafafa; font-weight: 600; z-index: 3; }
+  .cell.sticky-2 { position: sticky; left: 260px; background: #fafafa; font-weight: 600; z-index: 3; border-left: 1px solid #e5e7eb; }
+  .time-cell { text-align: center; font-weight: 700; background: #fafafa; position: sticky; top: 0; z-index: 2; font-size: 13px; }
+  .corner { position: sticky; top: 0; left: 0; z-index: 4; background: #fafafa; font-weight:700; }
+  .corner-2 { position: sticky; top: 0; left: 260px; z-index: 4; background: #fafafa; font-weight:700; }
 
   .slot {
     cursor: pointer;
-    height: 34px;            /* taller boxes */
+    height: 34px;
     border-radius: 6px;
     margin: 8px;
     transition: transform 0.02s ease-in-out, background-color 0.15s ease-in-out;
     border: 1px solid #d1d5db;
   }
-  .slot.available   { background: #22c55e33; }  /* green-ish */
-  .slot.selected    { background: #ef444466; }  /* red-ish */
-  .slot.unavailable { background: #9ca3af55; cursor: not-allowed; } /* gray */
-  .slot:hover { transform: scale(1.02); }
-  .item-name { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-size: 15px; }
 
+  /* meanings */
+  .slot.available   { background: #22c55e33; }   /* green = available */
+  .slot.unavailable { background: #ef444466; }   /* red   = already reserved / no capacity */
+  .slot.selected    { background: #f59e0b66; }   /* orange = your selection */
+  .slot.outside     { background: #9ca3af55; cursor: not-allowed; } /* gray = outside window */
+
+  .slot:hover { transform: scale(1.02); }
+
+  .item-name { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-size: 15px; }
   .qty-wrap { display:flex; align-items:center; gap:10px; }
   .qty-controls { display:inline-flex; flex-direction:column; gap:6px; }
   .qty-btn {
@@ -104,42 +93,32 @@
   .qty-display { font-weight:700; min-width: 1.8rem; text-align:center; font-size:15px; }
   .qty-cap { color:#6b7280; font-size: 12px; }
 
-  .actions-bar {
-    margin-top: 14px;
-    display: flex;
-    justify-content: flex-end;
-  }
+  .actions-bar { margin-top: 14px; display: flex; justify-content: flex-end; }
   .btn-primary {
     background: #111827; color: #fff; border: none;
     padding: 10px 16px; font-size: 15px; border-radius: 8px; cursor: pointer;
   }
   .btn-primary:hover { filter: brightness(1.05); }
 
-  .owner-mode .slot {
-    cursor: default;
-    pointer-events: none;
-    transform: none;
-  }
-  .owner-mode .slot:hover {
-    transform: none;
-  }
+  .owner-mode .slot { cursor: default; pointer-events: none; transform: none; }
+  .owner-mode .slot:hover { transform: none; }
 </style>
+
 <div class="legend">
   <span class="key"><span class="swatch" style="background:#22c55e33;"></span>Available</span>
   <% unless is_owner %>
-    <span class="key"><span class="swatch" style="background:#ef444466;"></span>Selected</span>
+    <span class="key"><span class="swatch" style="background:#f59e0b66;"></span>Your Selection</span>
   <% end %>
-  <span class="key"><span class="swatch" style="background:#9ca3af55;"></span>Unavailable</span>
+  <span class="key"><span class="swatch" style="background:#ef444466;"></span>Unavailable</span>
 </div>
 
-
 <% if is_owner %>
-    <div style="margin-bottom:1rem; text-align:right;">
-      <%= link_to "Add Item", new_workspace_item_path(@workspace), class: "btn-primary" %>
-    </div>
-  <% end %>
+  <div style="margin-bottom:1rem; text-align:right;">
+    <%= link_to "Add Item", new_workspace_item_path(@workspace), class: "btn-primary" %>
+  </div>
+<% end %>
 
-<div class="schedule-wrapper <%= 'owner-mode' if @current_join&.role == 'owner' %>">
+<div class="schedule-wrapper <%= 'owner-mode' if is_owner %>">
   <div class="schedule-grid" id="schedule-grid">
     <!-- Header -->
     <div class="cell corner sticky-1">Item</div>
@@ -163,7 +142,8 @@
         <% if is_owner %>
           <span style="font-weight:600;"><%= item.quantity || 0 %></span>
         <% else %>
-          <div class="qty-wrap" data-item-id="<%= item.id %>">
+          <!-- NOTE: expose workspace id for cart payload -->
+          <div class="qty-wrap" data-item-id="<%= item.id %>" data-workspace-id="<%= item.workspace_id %>">
             <div class="qty-controls">
               <button class="qty-btn qty-up" type="button" aria-label="Increase">▲</button>
               <button class="qty-btn qty-down" type="button" aria-label="Decrease">▼</button>
@@ -177,9 +157,11 @@
       <% row[:slots].each do |s| %>
         <% klass =
             if !s[:within_window]
-              'unavailable'
+              'outside'                             # gray (outside window)
+            elsif s[:available]
+              'available'                           # green
             else
-              s[:available] ? 'available' : 'unavailable' # you can separate "booked" later if needed
+              'unavailable'                         # red (booked / no capacity)
             end
         %>
         <div class="cell" style="padding:0;">
@@ -197,7 +179,7 @@
   </div>
 </div>
 
-<% if !is_owner %>
+<% unless is_owner %>
   <div class="actions-bar">
     <button type="button" class="btn-primary" id="add-to-cart">Add to Cart</button>
   </div>
@@ -230,53 +212,67 @@
 <script>
   (function () {
     const isOwner = <%= is_owner ? 'true' : 'false' %>;
+    if (isOwner) return; // owners don't interact
 
-    if (!isOwner) {
-      // Toggle client-selected (UI only) but only if backend said slot is available within window
-      document.addEventListener('click', function (e) {
-        const slot = e.target.closest('.slot');
-        if (slot) {
-          if (!slot.classList.contains('available') && !slot.classList.contains('selected')) return; // gray or blocked -> ignore
-          if (slot.classList.contains('available')) {
-            slot.classList.remove('available');
-            slot.classList.add('selected');
-          } else if (slot.classList.contains('selected')) {
-            slot.classList.remove('selected');
-            slot.classList.add('available');
-          }
-          return;
+    // Initialize quantity button disabled states
+    document.querySelectorAll('.qty-wrap').forEach(wrap => {
+      const capText = wrap.querySelector('.qty-cap')?.textContent || "/ 0";
+      const cap = parseInt(capText.replace("/", "").trim(), 10) || 0;
+      const upBtn = wrap.querySelector('.qty-up');
+      const downBtn = wrap.querySelector('.qty-down');
+      if (upBtn) upBtn.disabled = (cap <= 0);
+      if (downBtn) downBtn.disabled = true;
+    });
+
+    document.addEventListener('click', function (e) {
+      // Slot toggling
+      const slot = e.target.closest('.slot');
+      if (slot) {
+        // block clicks on red (unavailable) and gray (outside)
+        if (slot.classList.contains('unavailable') || slot.classList.contains('outside')) return;
+
+        // toggle green <-> orange
+        if (slot.classList.contains('available')) {
+          slot.classList.remove('available');
+          slot.classList.add('selected');
+        } else if (slot.classList.contains('selected')) {
+          slot.classList.remove('selected');
+          slot.classList.add('available');
         }
+        return;
+      }
 
-        // Quantity controls: request fresh availability for that item from backend
-        const up = e.target.closest('.qty-up');
-        const down = e.target.closest('.qty-down');
-        if (up || down) {
-          const wrap = e.target.closest('.qty-wrap');
-          if (!wrap) return;
-          const itemId = wrap.dataset.itemId;
-          const display = wrap.querySelector('.qty-display');
-          const capText = wrap.querySelector('.qty-cap')?.textContent || "/ 0";
-          const cap = parseInt(capText.replace("/","").trim(), 10) || 0;
+      // Quantity controls
+      const up = e.target.closest('.qty-up');
+      const down = e.target.closest('.qty-down');
+      if (up || down) {
+        const wrap = e.target.closest('.qty-wrap');
+        if (!wrap) return;
 
-          let count = parseInt(display.dataset.count || "0", 10);
-          if (up && count < cap) count += 1;
-          if (down && count > 0) count -= 1;
+        const itemId = wrap.dataset.itemId;
+        const display = wrap.querySelector('.qty-display');
+        const capText = wrap.querySelector('.qty-cap')?.textContent || "/ 0";
+        const cap = parseInt(capText.replace("/", "").trim(), 10) || 0;
 
-          display.dataset.count = String(count);
-          display.textContent = String(count);
+        let count = parseInt(display.dataset.count || "0", 10);
+        if (up && count < cap) count += 1;
+        if (down && count > 0) count -= 1;
 
-          const upBtn = wrap.querySelector('.qty-up');
-          const downBtn = wrap.querySelector('.qty-down');
-          if (upBtn) upBtn.disabled = (count >= cap);
-          if (downBtn) downBtn.disabled = (count <= 0);
+        display.dataset.count = String(count);
+        display.textContent = String(count);
 
-          // Repaint this item's row based on backend availability for selected quantity
-          fetch(`/reservations/availability?item_id=${encodeURIComponent(itemId)}&quantity=${encodeURIComponent(count)}`, {
-            headers: { 'Accept': 'application/json' }
-          }).then(r => r.json()).then(({ slots }) => {
-            // Find the row's slots and repaint classes according to backend `available/within_window`
+        const upBtn = wrap.querySelector('.qty-up');
+        const downBtn = wrap.querySelector('.qty-down');
+        if (upBtn) upBtn.disabled = (count >= cap);
+        if (downBtn) downBtn.disabled = (count <= 0);
+
+        // Repaint this item's row based on backend availability for selected quantity
+        fetch(`/reservations/availability?item_id=${encodeURIComponent(itemId)}&quantity=${encodeURIComponent(count)}`, {
+          headers: { 'Accept': 'application/json' }
+        })
+          .then(r => r.json())
+          .then(({ slots }) => {
             const rowSlots = document.querySelectorAll(`.slot[data-item-id="${itemId}"]`);
-            // Assumes same ordering (96 slots). If not, index by ISO8601 start.
             const byStart = {};
             slots.forEach(s => { byStart[new Date(s.start).toISOString()] = s; });
 
@@ -284,34 +280,75 @@
               const key = new Date(el.dataset.start).toISOString();
               const s = byStart[key];
               if (!s) return;
-              el.classList.remove('available','selected','unavailable');
+
+              const wasSelected = el.classList.contains('selected');
+
+              el.classList.remove('available','selected','unavailable','outside');
+
               if (!s.within_window) {
-                el.classList.add('unavailable');
+                el.classList.add('outside');                   // gray
+              } else if (s.available) {
+                el.classList.add(wasSelected ? 'selected' : 'available'); // keep orange if user picked
               } else {
-                el.classList.add(s.available ? 'available' : 'unavailable');
+                el.classList.add('unavailable');               // red
               }
             });
-          }).catch(() => { /* ignore for now */ });
-        }
+          })
+          .catch(() => { /* ignore for now */ });
 
-        // Add to Cart placeholder
-        if (e.target.id === 'add-to-cart') {
-          // Later: gather .slot.selected and per-item qty-display counts and POST to a cart endpoint.
+        return;
+      }
+
+      // Add to Cart: collect selected slots and current quantity, then POST
+      if (e.target.id === 'add-to-cart') {
+        const selected = Array.from(document.querySelectorAll('.slot.selected'));
+        if (selected.length === 0) {
+          alert('Select at least one time slot first.');
           return;
         }
-      }, { passive: true });
-    } // end if !isOwner
-    
-    if (isOwner) {
-      // Initialize quantity button disabled states
-      document.querySelectorAll('.qty-wrap').forEach(wrap => {
-        const capText = wrap.querySelector('.qty-cap')?.textContent || "/ 0";
-        const cap = parseInt(capText.replace("/","").trim(), 10) || 0;
-        const upBtn = wrap.querySelector('.qty-up');
-        const downBtn = wrap.querySelector('.qty-down');
-        if (upBtn) upBtn.disabled = (cap <= 0);
-        if (downBtn) downBtn.disabled = true;
-      });
-    }
+
+        const selections = selected.map(el => {
+          const itemId = parseInt(el.dataset.itemId, 10);
+          const wrap = document.querySelector(`.qty-wrap[data-item-id="${itemId}"]`);
+          const qty = wrap ? parseInt(wrap.querySelector('.qty-display')?.dataset.count || "1", 10) : 1;
+          const workspaceId = wrap ? parseInt(wrap.dataset.workspaceId || "0", 10) : 0;
+
+          return {
+            item_id: itemId,
+            workspace_id: workspaceId,
+            start_time: el.dataset.start,
+            end_time: el.dataset.end,
+            quantity: qty || 1
+          };
+        });
+
+        fetch('/cart_items', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+          body: JSON.stringify({ selections })
+        })
+          .then(r => r.json())
+          .then(({ ok, total }) => {
+            if (!ok) throw new Error('failed');
+
+            // Clear selections back to "available"
+            selected.forEach(el => {
+              el.classList.remove('selected');
+              el.classList.add('available');
+            });
+
+            // Update navbar "Cart (N)" if present
+            const navLink = document.querySelector('a[href="/cart"]');
+            if (navLink && typeof total === 'number') {
+              navLink.textContent = `Cart (${total})`;
+            }
+
+            alert('Added to cart!');
+          })
+          .catch(() => alert('Something went wrong adding to the cart.'));
+
+        return;
+      }
+    }, { passive: false });
   })();
 </script>

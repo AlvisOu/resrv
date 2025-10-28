@@ -1,0 +1,64 @@
+<h1>Your Cart</h1>
+
+<% if @workspaces.blank? %>
+  <p>No items yet. Go add some!</p>
+  <%= link_to "Back to Workspaces", root_path %>
+<% else %>
+  <div class="workspace-tabs" style="display:flex; gap:.5rem; margin-bottom:1rem;">
+    <% @workspaces.each do |ws| %>
+      <% active = (ws.id == @active_workspace_id) %>
+      <%= link_to ws.name,
+                  cart_path(workspace_id: ws.id),
+                  class: "tab #{'active' if active}",
+                  style: "padding:.5rem .75rem; border:1px solid #e5e7eb; border-radius:8px; #{'background:#111;color:#fff;' if active}" %>
+    <% end %>
+  </div>
+
+  <% if @active_segments.blank? %>
+    <p>No items in this workspace tab yet.</p>
+  <% else %>
+    <table style="width:100%; border-collapse:collapse;">
+      <thead>
+        <tr>
+          <th align="left">Item</th>
+          <th align="left">Time</th>
+          <th align="left">Qty</th>
+        </tr>
+      </thead>
+        <tbody>
+        <% @active_segments.each_with_index do |seg, i| %>
+            <tr style="border-top:1px solid #eee;">
+            <td><%= seg[:item]&.name || "(deleted item)" %></td>
+            <td>
+                <%= seg[:start_time]&.in_time_zone&.strftime("%b %-d, %-I:%M %p") %> –
+                <%= seg[:end_time]&.in_time_zone&.strftime("%-I:%M %p") %>
+            </td>
+            <td><%= seg[:quantity] %></td>
+            <td style="text-align:right;">
+                <%= button_to "Remove",
+                    remove_range_cart_items_path(
+                        item_id:      seg[:item]&.id,
+                        workspace_id: seg[:workspace]&.id,
+                        start_time:   seg[:start_time]&.iso8601,
+                        end_time:     seg[:end_time]&.iso8601
+                    ),
+                    method: :delete,
+                    form: { data: { turbo_confirm: "Remove this time range from your cart?" } },
+                    class: "btn btn-sm btn-outline-danger" %>
+            </td>
+            </tr>
+        <% end %>
+        </tbody>
+    </table>
+
+    <div style="margin-top:1rem; display:flex; justify-content:flex-end; gap:.5rem;">
+    <%= form_with url: checkout_cart_path, method: :post, local: true do %>
+        <%= hidden_field_tag :workspace_id, @active_workspace_id %>
+        <button type="submit" class="btn btn-primary" style="padding:.6rem 1rem; border-radius:8px; background:#111; color:#fff; border:none;">
+        Checkout
+        </button>
+    <% end %>
+    <%= link_to "Continue Browsing", root_path, class: "btn" %>
+    </div>
+  <% end %>
+<% end %>

@@ -23,4 +23,12 @@ Resrv::Application.routes.draw do
   resources :reservations, only: [:index, :create, :destroy] do
     get :availability, on: :collection
   end
+
+  # == Cart Routes ==
+  resource  :cart, only: [:show] do
+    post :checkout   # <= NEW
+  end
+  resources :cart_items, only: [:create, :update, :destroy] do
+    delete :remove_range, on: :collection
+  end
 end
