@@ -14,7 +14,7 @@ class ItemsController < ApplicationController
     if @item.save
       redirect_to workspace_path(@workspace), notice: "Item added successfully."
     else
-      render :new
+      render :new, status: :unprocessable_entity
     end
   end
 
@@ -27,7 +27,7 @@ class ItemsController < ApplicationController
     if @item.update(item_params)
       redirect_to workspace_path(@workspace), notice: "Item updated successfully."
     else
-      render :edit
+      render :edit, status: :unprocessable_entity
     end
   end
 
