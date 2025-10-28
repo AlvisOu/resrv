@@ -1,6 +1,8 @@
 class User < ApplicationRecord
     has_secure_password
 
+    validates :password, confirmation: true, if: -> { password.present? }
+
     has_many :reservations, dependent: :destroy
     has_many :items, through: :reservations
     has_many :user_to_workspaces, dependent: :destroy

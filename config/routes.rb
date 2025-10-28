@@ -5,6 +5,7 @@ Resrv::Application.routes.draw do
   # == User Routes ==
   get "signup", to: "users#new", as: "signup"
   get "profile", to: "users#show", as: "profile"
+  patch "profile", to: "users#update"
   resources :users, only: [:create, :destroy]
 
   # == Session Routes ==

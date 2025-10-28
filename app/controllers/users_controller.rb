@@ -9,6 +9,17 @@ class UsersController < ApplicationController
     @user = current_user
   end
 
+  def update
+    @user = current_user
+    if @user.update(user_params)
+      flash[:notice] = "Profile updated successfully."
+      redirect_to profile_path
+    else
+      flash[:notice] = "There was a problem updating your profile."
+      redirect_to profile_path
+    end
+  end
+
   def create
     @user = User.new(user_params)
     if @user.save
