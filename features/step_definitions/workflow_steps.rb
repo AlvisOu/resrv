@@ -92,6 +92,10 @@ Then /^(?:|I )should see \/([^\/]*)\/$/ do |regexp|
   end
 end
 
+Then(/^I should see the text "(.*?)"$/) do |text|
+  expect(page).to have_content(text)
+end
+
 Then /^(?:|I )should not see "([^"]*)"$/ do |text|
   if page.respond_to? :should
     page.should have_no_content(text)
@@ -272,7 +276,6 @@ When /^(?:|I )fill in the workspace information$/ do
   # This is a declarative step. We fill in concrete data for the test.
   @workspace_name = "My New Test Workspace" # Store for later assertion
   fill_in "Name", :with => @workspace_name
-  fill_in "Description", :with => "A workspace created by a test"
   # Add other fields as necessary
 end
 
