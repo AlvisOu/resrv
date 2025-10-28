@@ -9,7 +9,7 @@ class User < ApplicationRecord
     has_many :workspaces, through: :user_to_workspaces
 
     validates :name, presence: true
-    validates :email, presence: true, uniqueness: true, format: { with: URI::MailTo::EMAIL_REGEXP, message: "must be a valid email address" }
+    validates :email, presence: true, uniqueness: { case_sensitive: false }, format: { with: URI::MailTo::EMAIL_REGEXP, message: "must be a valid email address" }
 
     has_many :owner_joins, -> { where(role: 'owner') }, class_name: 'UserToWorkspace'
     has_many :owned_workspaces, through: :owner_joins, source: :workspace, dependent: :destroy

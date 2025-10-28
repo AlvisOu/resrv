@@ -76,7 +76,20 @@ You will need the following tools installed on your system:
     You can now visit the app in your browser at `http://localhost:3000`.
 
 2.  **Run Tests:**
-    To run the test suite:
+    This project uses multiple test suites. You can run them using the following commands:
+    * RSpec (Unit & Integration Tests):
     ```bash
-    bundle exec rails test
+    # Run all RSpec tests
+    bundle exec rspec
+
+    # Run a specific spec file
+    bundle exec rspec spec/models/user_spec.rb
+    ```
+    * Cucumber (Acceptance & Feature Tests):
+    ```bash
+    # Run all Cucumber features
+    bundle exec cucumber
+
+    # ex. Run a specific feature file
+    bundle exec cucumber features/user_flow.feature
     ```
