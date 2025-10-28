@@ -25,28 +25,46 @@ class WorkspacesController < ApplicationController
     @workspace = Workspace.new
   end
   
-def show
-  @workspace = Workspace.find(params[:id])
-  @current_join = @workspace.user_to_workspaces.find_by(user: current_user)
+  def show
+    @workspace = Workspace.find(params[:id])
+    @current_join = @workspace.user_to_workspaces.find_by(user: current_user)
 
-  @items = @workspace.items.includes(:reservations)
+    @items = @workspace.items.includes(:reservations)
 
-  @day = Date.current
-  @tz  = Time.zone || ActiveSupport::TimeZone["UTC"]
+    @day = Date.current
+    @tz  = Time.zone || ActiveSupport::TimeZone["UTC"]
 
-  # Precompute the 96 time ticks once for header
-  @slots = []
-  day_start = @tz.local(@day.year, @day.month, @day.day, 0, 0, 0)
-  96.times { |i| @slots << (day_start + i * 15.minutes) }
+    # Precompute the 96 time ticks once for header
+    @slots = []
+    day_start = @tz.local(@day.year, @day.month, @day.day, 0, 0, 0)
+    96.times { |i| @slots << (day_start + i * 15.minutes) }
 
-  # Availability for default quantity = 1 (initial paint)
-  @availability_data = @items.map do |item|
-    {
-      item: item,
-      slots: AvailabilityService.new(item, 1, day: @day, tz: @tz).time_slots
-    }
+    # Availability for default quantity = 1 (initial paint)
+    @availability_data = @items.map do |item|
+      {
+        item: item,
+        slots: AvailabilityService.new(item, 1, day: @day, tz: @tz).time_slots
+      }
+    end
   end
-end
+
+  def edit
+    @workspace = Workspace.find(params[:id])
+    redirect_to root_path, alert: "Not authorized." unless current_user_is_owner?(@workspace)
+  end
+
+  def update
+    @workspace = Workspace.find(params[:id])
+    if current_user_is_owner?(@workspace)
+      if @workspace.update(workspace_params)
+        redirect_to workspace_path(@workspace), notice: "Workspace name updated."
+      else
+        render :edit, status: :unprocessable_entity
+      end
+    else
+      redirect_to root_path, alert: "Not authorized."
+    end
+  end
 
   private
   def workspace_params

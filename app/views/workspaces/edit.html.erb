@@ -1,0 +1,25 @@
+<h1>Rename Workspace</h1>
+
+<%= form_with(model: @workspace, local: true) do |form| %>
+  <% if @workspace.errors.any? %>
+    <div class="errors">
+      <h3><%= pluralize(@workspace.errors.count, "error") %> prohibited this workspace from being saved:</h3>
+      <ul>
+        <% @workspace.errors.full_messages.each do |msg| %>
+          <li><%= msg %></li>
+        <% end %>
+      </ul>
+    </div>
+  <% end %>
+
+  <div>
+    <%= form.label :name, "Workspace Name" %>
+    <%= form.text_field :name %>
+  </div>
+
+  <div>
+    <%= form.submit "Save Changes" %>
+  </div>
+<% end %>
+
+<%= link_to "Back", workspace_path(@workspace), class: "button" %>

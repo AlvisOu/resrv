@@ -6,7 +6,7 @@ class ApplicationController < ActionController::Base
 
   # Set the current user based on the session
   before_action :require_user
-  helper_method :current_user, :logged_in?
+  helper_method :current_user, :logged_in?, :current_user_is_owner?
 
   def current_user
     @current_user ||= User.find_by(id: session[:user_id]) if session[:user_id]
@@ -14,6 +14,10 @@ class ApplicationController < ActionController::Base
 
   def logged_in?
     !current_user.nil?
+  end
+
+  def current_user_is_owner?(workspace)
+    workspace.owner == current_user
   end
 
   def require_user
