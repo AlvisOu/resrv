@@ -107,10 +107,11 @@ RSpec.describe User, type: :model do
   describe "associations" do
     let!(:user) { User.create(name: "Test User", email: "test@example.com", password: "password123", password_confirmation: "password123") }
     let!(:workspace) { Workspace.create(name: "Test Workspace") }
-    let!(:item) { Item.create(name: "Test Item", workspace: workspace, quantity: 1, start_time: Time.now, end_time: Time.now + 1.hour) }
+    let(:now) { Time.zone.local(2025, 10, 28, 10, 0, 0) }
+    let!(:item) { Item.create(name: "Test Item", workspace: workspace, quantity: 1, start_time: now, end_time: now + 1.hour) }
     
     it "has many reservations" do
-      reservation = Reservation.create(user: user, item: item, start_time: Time.now, end_time: Time.now + 30.minutes)
+      reservation = Reservation.create(user: user, item: item, start_time: now, end_time: now + 30.minutes)
       expect(user.reservations).to include(reservation)
     end
 
@@ -148,10 +149,11 @@ RSpec.describe User, type: :model do
   describe "dependent destroy" do
     let!(:user) { User.create!(name: "Test", email: "test@example.com", password: "pw") }
     let!(:workspace) { Workspace.create!(name: "Test Space") }
-    let!(:item) { Item.create!(name: "Test Item", workspace: workspace, quantity: 1, start_time: Time.now, end_time: Time.now + 5.hour) }
+    let(:now) { Time.zone.local(2025, 10, 28, 10, 0, 0) }
+    let!(:item) { Item.create!(name: "Test Item", workspace: workspace, quantity: 1, start_time: now, end_time: now + 5.hour) }
 
     it "destroys associated reservations" do
-      Reservation.create!(user: user, item: item, start_time: Time.now, end_time: Time.now + 1.hour)
+      Reservation.create!(user: user, item: item, start_time: now, end_time: now + 1.hour)
       
       expect { user.destroy }.to change(Reservation, :count).by(-1)
     end
