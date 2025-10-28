@@ -2,6 +2,7 @@ Feature: Owner Workflow for Workspace Management
 
   Background:
     Given I am logged in as a workspace owner of "Lerner Auditorium"
+    And a workspace item named "Mic" with availability exists in "Lerner Auditorium"
 
 Scenario: Create a new workspace
   When I go to my owned/bookmarked workspaces
@@ -14,22 +15,21 @@ Scenario: Create a new workspace
 Scenario: Create a new item in a workspace
   When I go to my "Lerner Auditorium" workspace
   And  I click "Add Item"
-  And  I fill in the name "Mic", start time, end time, quantity, and description
-  And  I click "create"
-  Then I should see "Mic" in the "Lerner Auditorium" workspace
+  And  I fill in the name "Projector", start time, end time, and quantity
+  And  I click "Confirm"
+  Then I should see "Projector" in the "Lerner Auditorium" workspace
 
 Scenario: Modify an existing item in a workspace
   When I go to my "Lerner Auditorium" workspace
   Then I should see "Mic" and its availabilities
   When I press "Mic" to edit it
-  And  I change the name, start time, end time, quantity, or description
-  And  I click "confirm"
+  And  I change the name, start time, end time, and quantity
+  And  I click "Confirm"
   Then the "Mic" item details should be updated
 
 Scenario: Delete an item from a workspace
   When I go to my "Lerner Auditorium" workspace
   Then I should see "Mic" and its availabilities
   When I press "Mic" to edit it
-  And  I click "delete"
-  And  I click "confirm"
+  And  I click "Delete"
   Then I should not see "Mic" in the "Lerner Auditorium" workspace

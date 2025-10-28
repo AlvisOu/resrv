@@ -5,7 +5,7 @@ Background:
 
 Scenario: Make a microphone reservation
   When I go to my owned/bookmarked workspaces
-  And  I press "Lerner Auditorium"
+  And  I click "Lerner Auditorium"
   Then I should see "Mic" and its availabilities
   When I adjust the quantity for "Mic"
   And  I press an available time slot

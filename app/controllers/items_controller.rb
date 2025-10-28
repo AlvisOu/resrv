@@ -31,6 +31,13 @@ class ItemsController < ApplicationController
     end
   end
 
+  def destroy
+    @workspace = Workspace.find(params[:workspace_id])
+    @item = @workspace.items.find(params[:id])
+    @item.destroy
+    redirect_to workspace_path(@workspace), notice: "Item deleted successfully."
+  end
+
   private
 
   def set_workspace

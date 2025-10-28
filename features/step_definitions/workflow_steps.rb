@@ -251,6 +251,17 @@ Given /^I am logged in as a (workspace owner|standard user) of "([^"]*)"$/ do |m
   click_button "commit"
 end
 
+Given /^a workspace item named "([^"]*)" with availability exists in "([^"]*)"$/ do |item_name, workspace_name|
+  workspace = Workspace.find_by!(name: workspace_name)
+  Item.create!(
+    name: item_name,
+    start_time: Time.zone.local(2000,1,1,0,0),
+    end_time: Time.zone.local(2000,1,1,23,45),
+    quantity: 10,
+    workspace: workspace
+  )
+end
+
 Given /^(?:|I )have an existing reservation$/ do
   # This step creates prerequisite data in the database.
   # It assumes @current_user is set from the "logged in" step.
@@ -275,17 +286,30 @@ end
 When /^(?:|I )fill in the workspace information$/ do
   # This is a declarative step. We fill in concrete data for the test.
   @workspace_name = "My New Test Workspace" # Store for later assertion
-  fill_in "Name", :with => @workspace_name
+  fill_in("workspace[name]", with: @workspace_name)
   # Add other fields as necessary
 end
 
-When /^(?:|I )fill in the name "([^"]*)", start time, end time, quantity, and description$/ do |item_name|
-  fill_in "Name", :with => item_name
-  # Use specific, valid data for your form
-  fill_in "Start time", :with => Time.now.strftime("%Y-%m-%dT%H:%M")
-  fill_in "End time", :with => (Time.now + 3.days).strftime("%Y-%m-%dT%H:%M")
-  fill_in "Quantity", :with => "10"
-  fill_in "Description", :with => "A new test item"
+When /^(?:|I )fill in the name "([^"]*)", start time, end time, and quantity$/ do |item_name|
+  fill_in "item[name]", with: item_name
+  fill_in "item[quantity]", with: "10"
+
+  select "00", from: "item_start_time_4i"  # hour
+  select "00", from: "item_start_time_5i"  # minute
+  select "01", from: "item_end_time_4i"    # hour
+  select "00", from: "item_end_time_5i"    # minute
+end
+
+When(/^(?:|I )change the name, start time, end time, and quantity$/) do
+  @new_item_name = "Updated Mic"
+  @new_quantity = "5"
+  fill_in "item[name]", with: @new_item_name
+  fill_in "item[quantity]", with: @new_quantity
+
+  select "09", from: "item_start_time_4i" # Hour
+  select "30", from: "item_start_time_5i" # Minute
+  select "17", from: "item_end_time_4i"
+  select "00", from: "item_end_time_5i"
 end
 
 When /^(?:|I )press "([^"]*)" to edit it$/ do |item_name|
@@ -293,13 +317,6 @@ When /^(?:|I )press "([^"]*)" to edit it$/ do |item_name|
   click_link(item_name)
   # If the edit button is separate, you might need a more complex selector:
   # find(:xpath, "//*[contains(text(),'#{item_name}')]/ancestor::div[@class='item-row']//a[text()='Edit']").click
-end
-
-When /^(?:|I )change the name, start time, end time, quantity, or description$/ do
-  # This is another declarative step, filling an edit form.
-  @new_item_name = "Edited Mic"
-  fill_in "Name", :with => @new_item_name
-  fill_in "Quantity", :with => "12"
 end
 
 When /^(?:|I )adjust the quantity for "([^"]*)"$/ do |item_name|
@@ -351,17 +368,18 @@ Then /^(?:|I )should see "([^"]*)" in the "([^"]*)" workspace$/ do |item_name, w
 end
 
 Then /^(?:|I )should see "([^"]*)" and its availabilities$/ do |item_name|
-  page.should have_content(item_name)
-  # This needs to check for whatever UI element represents "availability".
-  # e.g., a calendar, a list of times, etc.
-  page.should have_selector(".availability-calendar") # Or ".time-slots"
+  using_wait_time 3 do
+    expect(page).to have_content(item_name)
+  end
+  expect(page).to have_selector(".schedule-grid")
 end
 
 Then /^(?:|I )the "([^"]*)" item details should be updated$/ do |original_item_name|
-  # Assumes @new_item_name was stored in the "change" step.
-  page.should have_content(@new_item_name)
-  page.should have_content("12") # The new quantity from that step
-  page.should have_no_content(original_item_name) # Optional: check old name is gone
+  expect(page).to have_content(@new_item_name)
+  expect(page).to have_content(@new_quantity)
+  unless @new_item_name.include?(original_item_name)
+    expect(page).not_to have_content(original_item_name)
+  end
 end
 
 Then /^(?:|I )should not see "([^"]*)" in the "([^"]*)" workspace$/ do |item_name, workspace_name|

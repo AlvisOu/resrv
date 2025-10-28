@@ -22,3 +22,9 @@
   <br>
   <%= f.submit "Confirm", class: "btn-primary" %>
 <% end %>
+
+<% if @item.persisted? %>
+  <%= form_with model: [@workspace, @item], method: :delete, local: true do |f| %>
+    <%= f.submit "Delete", data: { confirm: "Are you sure you want to delete this item?" }, class: "btn-danger" %>
+  <% end %>
+<% end %>

@@ -16,7 +16,7 @@ Resrv::Application.routes.draw do
   # == Workspace Routes ==
   resources :workspaces, only: [:index, :new, :create, :show, :edit, :update] do
     resource :user_to_workspace, only: [:create, :destroy]
-    resources :items, only: [:new, :create, :edit, :update]
+    resources :items, only: [:new, :create, :edit, :update, :destroy]
   end
 
   # == Reservation Routes ==

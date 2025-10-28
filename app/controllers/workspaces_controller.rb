@@ -29,7 +29,7 @@ class WorkspacesController < ApplicationController
     @workspace = Workspace.find(params[:id])
     @current_join = @workspace.user_to_workspaces.find_by(user: current_user)
 
-    @items = @workspace.items.includes(:reservations)
+    @items = @workspace.items.reload.includes(:reservations)
 
     @day = Date.current
     @tz  = Time.zone || ActiveSupport::TimeZone["UTC"]
