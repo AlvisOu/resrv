@@ -12,6 +12,8 @@ module NavigationHelpers
 
     when /^my owned\/bookmarked workspaces$/ then root_path
 
+    when /^cart$/ then cart_path
+
     when /^my "(.+)" workspace$/
       workspace = Workspace.find_by(name: $1)
       raise "Workspace '#{$1}' not found" unless workspace

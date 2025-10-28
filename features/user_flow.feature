@@ -2,6 +2,7 @@ Feature: User Workflow for Workspace Reservations
 
 Background:
   Given I am logged in as a standard user of "Lerner Auditorium"
+  And a workspace item named "Mic" with availability exists in "Lerner Auditorium"
 
 Scenario: Make a microphone reservation
   When I go to my owned/bookmarked workspaces
@@ -10,6 +11,7 @@ Scenario: Make a microphone reservation
   When I adjust the quantity for "Mic"
   And  I press an available time slot
   And  I press the shopping cart icon
+  When I go to cart
   Then I should see my pending reservation
   When I click "resrv"
   And  I go to "My Reservation"

@@ -320,22 +320,18 @@ When /^(?:|I )press "([^"]*)" to edit it$/ do |item_name|
 end
 
 When /^(?:|I )adjust the quantity for "([^"]*)"$/ do |item_name|
-  # This assumes a quantity field is uniquely identifiable, perhaps scoped to the item.
-  # e.g., fill_in "quantity_#{item_name}", :with => "2"
-  # For this example, we'll assume a field "Quantity" within an item's scope.
-  # This might require a 'within' block in a real app.
-  fill_in "Quantity", :with => "2"
+  qty_wrap = find(:xpath, "//div[contains(@class,'item-name') and normalize-space(text())='#{item_name}']/following-sibling::div[contains(@class,'sticky-2')]//div[contains(@class,'qty-wrap')]")
+  qty_wrap.find(".qty-up").click
 end
 
 When /^(?:|I )press an available time slot$/ do
   # This is highly implementation-specific (e.g., a calendar UI).
   # We'll assume a simple button or link with a class.
-  first(".available-slot").click
+  first(".slot.available").click
 end
 
 When /^(?:|I )press the shopping cart icon$/ do
-  # Assumes the icon is a link or button with a specific ID or class.
-  find("#cart-icon").click # or find(".shopping-cart-link").click
+  find_button("Add to Cart").click
 end
 
 When /^(?:|I )click "cancel" on the reservation$/ do
