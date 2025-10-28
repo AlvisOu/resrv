@@ -3,17 +3,15 @@ class CartsController < ApplicationController
   before_action :require_login!
 
   def show
-    @cart = Cart.load(session)
-
+    @cart = Cart.load(session, current_user.id)
     groups = @cart.merged_segments_by_workspace
     @workspaces = groups.keys.compact
     @active_workspace_id = params[:workspace_id]&.to_i || @workspaces.first&.id
     @active_segments = groups.find { |w, _| w&.id == @active_workspace_id }&.last || []
   end
 
-  # POST /cart/checkout
   def checkout
-    @cart = Cart.load(session)
+    @cart = Cart.load(session, current_user.id)
     workspace_id = params[:workspace_id].to_i
     groups = @cart.merged_segments_by_workspace
     workspace = groups.keys.compact.find { |w| w.id == workspace_id }

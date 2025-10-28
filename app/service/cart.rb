@@ -15,13 +15,15 @@
 class Cart
   ENTRY_KEYS = %w[item_id workspace_id start_time end_time quantity].freeze
 
-  def self.load(session)
-    session[:cart] ||= { "entries" => [] }
-    new(session[:cart])
+  def self.load(session, user_id = nil)
+    session[:carts] ||= {}
+    key = (user_id || :anonymous).to_s
+    session[:carts][key] ||= { "entries" => [] }
+    new(session[:carts][key])
   end
 
   def initialize(backing)
-    @backing = backing # mutable hash stored in session
+    @backing = backing
   end
 
   def entries
@@ -29,7 +31,8 @@ class Cart
   end
 
   def add!(attrs)
-    entry = attrs.slice(*ENTRY_KEYS).transform_keys(&:to_s)
+    h = attrs.to_h.transform_keys(&:to_s)
+    entry = h.slice(*ENTRY_KEYS)
     entry["quantity"] = entry["quantity"].to_i.clamp(1, 10)
     entries << entry
   end
@@ -46,6 +49,10 @@ class Cart
 
   def clear!
     entries.clear
+  end
+
+  def clear_workspace!(workspace_id)
+    entries.delete_if { |h| h["workspace_id"].to_i == workspace_id.to_i }
   end
 
   # For rendering

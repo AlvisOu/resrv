@@ -1,21 +1,17 @@
 class CartItemsController < ApplicationController
   skip_forgery_protection
-  # before_action :require_login!  # optional if you use auth
+  before_action :require_login!
 
   def create
-    cart = Cart.load(session)
+    cart = Cart.load(session, current_user.id)
     raw = params[:selections] || params.dig(:cart_item, :selections) || []
     raw = JSON.parse(raw) if raw.is_a?(String)
     Array(raw).each { |attrs| cart.add!(permit_entry(attrs)) }
-
-    respond_to do |format|
-      format.html { redirect_to cart_path, notice: "Added to cart." }
-      format.json { render json: { ok: true, total: cart.total_count } }
-    end
+    render json: { ok: true, total: cart.total_count }
   end
 
   def update
-    cart = Cart.load(session)
+    cart = Cart.load(session, current_user.id)
     cart.update!(params[:id], quantity: params[:quantity])
     render json: { ok: true, total: cart.total_count }
   rescue ArgumentError
@@ -23,13 +19,14 @@ class CartItemsController < ApplicationController
   end
 
   def destroy
-    cart = Cart.load(session)
+    cart = Cart.load(session, current_user.id)
     cart.remove!(params[:id])
     render json: { ok: true, total: cart.total_count }
   end
 
+  # remove_range stays the same but uses current_user.id
   def remove_range
-    cart = Cart.load(session)
+    cart = Cart.load(session, current_user.id)
     cart.remove_range!(
       item_id: params[:item_id],
       workspace_id: params[:workspace_id],
@@ -43,7 +40,6 @@ class CartItemsController < ApplicationController
   end
 
   private
-
   def require_login!
     redirect_to root_path, alert: "Please sign in first." unless current_user
   end
