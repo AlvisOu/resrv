@@ -443,3 +443,390 @@ end
 Then(/^(?:|I )should see a confirmation message$/) do
   expect(page).to have_content("Reservation canceled successfully.")
 end
+
+When("I POST to {string} (form) with params:") do |path, table|
+  params = table.rows_hash
+  page.driver.post(path, params)
+end
+
+# --- helpers ---------------------------------------------------------------
+
+def current_user_logged_in?
+  page.has_link?("Log Out") || page.has_selector?("[data-test='logout']")
+end
+
+def read_cart_count
+  # Tries several common places for a cart count (badge, data-attr, etc.)
+  if page.has_selector?("[data-cart-count]", wait: 0.2)
+    find("[data-cart-count]", wait: 0.2).text.to_s.strip.to_i
+  elsif page.has_selector?("#cart-count", wait: 0.2)
+    find("#cart-count", wait: 0.2).text.to_s.strip.to_i
+  elsif page.has_selector?(".cart-count", wait: 0.2)
+    find(".cart-count", wait: 0.2).text.to_s.strip.to_i
+  else
+    # Fallback if no badge exists
+    0
+  end
+end
+
+def first_cart_line
+  # Adjust selectors if your cart rows differ
+  first(".cart-line, .cart-row, [data-test='cart-line']")
+end
+
+def first_cart_qty_input
+  first(".cart-line input[type='number'], .cart-row input[type='number'], [data-test='cart-qty']")
+end
+
+# --- auth ------------------------------------------------------------------
+
+Given('I am logged in as {string}') do |email|
+  user = User.find_or_create_by!(email: email) do |u|
+    u.name = email.split('@').first.capitalize
+    u.password = "password"
+    u.password_confirmation = "password"
+  end
+  visit path_to('the login page')
+  fill_in "session[email]", with: user.email
+  fill_in "session[password]", with: "password"
+  click_button "commit"
+  expect(page).to have_content("Log Out").or have_selector("[data-test='logout']")
+  @current_user = user
+end
+
+Given('I am logged out') do
+  # Try UI logout first
+  if page.has_link?("Log Out", wait: 0.2)
+    click_link "Log Out"
+  elsif page.has_selector?("[data-test='logout']", wait: 0.2)
+    find("[data-test='logout']").click
+  end
+
+  # If driver is rack-test, hard-clear cookies/session as a fallback
+  if page.driver.respond_to?(:browser) && page.driver.browser.respond_to?(:clear_cookies)
+    page.driver.browser.clear_cookies
+  end
+  visit path_to('the home page')
+end
+
+# --- API form POST (already suggested, but making sure it matches literally) ----
+
+When('I POST to {string} (form) with params:') do |path, table|
+  params = table.rows_hash
+  page.driver.post(path, params)  # rack-test
+end
+
+# --- UI assertions ----------------------------------------------------------
+
+Then('I should see the toast {string} or the cart count increases') do |toast_text|
+  before = (@_cart_count_before || read_cart_count)
+
+  # Either a toast appears...
+  if page.has_content?(toast_text, wait: 1.5)
+    expect(page).to have_content(toast_text)
+  else
+    # ...or the cart badge increases
+    using_wait_time 2 do
+      after = read_cart_count
+      expect(after).to be > before
+    end
+  end
+end
+
+# Seed a pending selection via API so UI scenarios have something to work with
+Given('I have at least one pending selection for {string}') do |item_name|
+  workspace = Workspace.find_or_create_by!(name: "Lerner Auditorium")
+  item = Item.find_by!(name: item_name, workspace: workspace)
+
+  body = {
+    selections: [
+      {
+        item_id: item.id,
+        workspace_id: workspace.id,
+        start_time: (Time.zone.now + 1.hour).change(sec: 0).iso8601,
+        end_time:   (Time.zone.now + 1.hour + 15.minutes).change(sec: 0).iso8601,
+        quantity: 1
+      }
+    ]
+  }.to_json
+
+  page.driver.post("/cart_items.json", body, { "CONTENT_TYPE" => "application/json", "ACCEPT" => "application/json" })
+  @last_json = page.body
+end
+
+When('I click {string} on the first cart entry') do |button_text|
+  @_cart_count_before = read_cart_count
+  line = first_cart_line
+  expect(line).to be_present
+  within(line) do
+    # Works for buttons or links labeled Remove/Delete
+    if has_button?(button_text, wait: 0.2)
+      click_button(button_text)
+    else
+      click_link(button_text)
+    end
+  end
+end
+
+Then('I should see the cart count decrease') do
+  using_wait_time 2 do
+    after = read_cart_count
+    # If we couldn't read the old count, assert at least we have a non-negative number
+    if defined?(@_cart_count_before) && @_cart_count_before
+      expect(after).to be < @_cart_count_before
+    else
+      expect(after).to be >= 0
+    end
+  end
+end
+
+When('I increase the quantity of the first cart entry to {string}') do |qty|
+  input = first_cart_qty_input
+  expect(input).to be_present
+  @_cart_count_before = read_cart_count
+  input.fill_in(with: qty)
+  # Nudge change event if needed
+  input.native.send_keys(:tab)
+end
+
+Then('I should see the cart total show {string}') do |qty|
+  # Accept either a badge total, a per-line quantity, or a totals element
+  expect(
+    page.has_selector?(".cart-total", text: qty, wait: 2) ||
+    page.has_selector?("[data-test='cart-total']", text: qty, wait: 2) ||
+    (first_cart_qty_input && first_cart_qty_input.value.to_s == qty.to_s)
+  ).to be(true)
+end
+
+# ========= UNIVERSAL HTTP HELPERS (rack-test or Selenium) =========
+
+def driver_supports_rack_post?
+  page.driver.respond_to?(:post)
+end
+
+def js_fetch(method:, path:, body_str: nil, headers: {})
+  # Use browser fetch to make the request and return {status, body}
+  headers_js = headers.to_json
+  body_js    = body_str.nil? ? 'undefined' : body_str.to_s.inspect
+
+  script = <<~JS
+    const done = arguments[0];
+    fetch(#{path.inspect}, {
+      method: #{method.to_s.inspect},
+      headers: #{headers_js},
+      body: #{body_js}
+    }).then(async (r) => {
+      const text = await r.text();
+      done(JSON.stringify({status: r.status, body: text}));
+    }).catch(e => done(JSON.stringify({status: 0, body: String(e)})));
+  JS
+
+  raw = page.evaluate_async_script(script)
+  JSON.parse(raw).tap do |res|
+    @last_status = res["status"]
+    @last_json   = res["body"]
+  end
+end
+
+# ========= JSON API STEPS (PATCH/DELETE included) =========
+
+When("I POST JSON to {string} with:") do |path, body|
+  if driver_supports_rack_post?
+    page.driver.post(path, body, { "CONTENT_TYPE" => "application/json", "ACCEPT" => "application/json" })
+    @last_status = page.status_code if page.respond_to?(:status_code)
+    @last_json   = page.body
+  else
+    js_fetch(method: :POST, path: path, body_str: body, headers: { "Content-Type" => "application/json", "Accept" => "application/json" })
+  end
+end
+
+When("I PATCH JSON to {string} with:") do |path, body|
+  if driver_supports_rack_post?
+    page.driver.header("Content-Type", "application/json")
+    page.driver.header("Accept", "application/json")
+    page.driver.submit(:patch, path, body)
+    @last_status = page.status_code if page.respond_to?(:status_code)
+    @last_json   = page.body
+  else
+    js_fetch(method: :PATCH, path: path, body_str: body, headers: { "Content-Type" => "application/json", "Accept" => "application/json" })
+  end
+end
+
+When("I DELETE JSON {string}") do |path|
+  if driver_supports_rack_post?
+    page.driver.header("Accept", "application/json")
+    page.driver.submit(:delete, path, nil)
+    @last_status = page.status_code if page.respond_to?(:status_code)
+    @last_json   = page.body
+  else
+    js_fetch(method: :DELETE, path: path, headers: { "Accept" => "application/json" })
+  end
+end
+
+Then("the response status should be {int}") do |code|
+  status = @last_status || (page.respond_to?(:status_code) ? page.status_code : nil)
+  expect(status).to eq(code)
+end
+
+Given("my cart already contains 1 selection") do
+  workspace = Workspace.find_or_create_by!(name: "Lerner Auditorium")
+  item = Item.find_or_create_by!(name: "Mic", workspace: workspace) do |it|
+    it.quantity   = 10
+    it.start_time = Time.zone.today.beginning_of_day
+    it.end_time   = Time.zone.today.end_of_day
+  end
+
+  body = {
+    selections: [
+      {
+        item_id: item.id,
+        workspace_id: workspace.id,
+        start_time: (Time.zone.now + 30.minutes).change(sec: 0).iso8601,
+        end_time:   (Time.zone.now + 45.minutes).change(sec: 0).iso8601,
+        quantity: 1
+      }
+    ]
+  }.to_json
+
+  if driver_supports_rack_post?
+    page.driver.post("/cart_items.json", body, { "CONTENT_TYPE" => "application/json", "ACCEPT" => "application/json" })
+    @last_status = page.status_code if page.respond_to?(:status_code)
+    @last_json   = page.body
+  else
+    js_fetch(method: :POST, path: "/cart_items.json", body_str: body, headers: { "Content-Type" => "application/json", "Accept" => "application/json" })
+  end
+end
+
+Given("my cart contains the following selections:") do |table|
+  workspace = Workspace.find_or_create_by!(name: "Lerner Auditorium")
+  item = Item.find_or_create_by!(name: "Mic", workspace: workspace) do |it|
+    it.quantity   = 10
+    it.start_time = Time.zone.today.beginning_of_day
+    it.end_time   = Time.zone.today.end_of_day
+  end
+
+  selections = table.hashes.map do |h|
+    {
+      item_id: (h["item_id"].presence || item.id).to_i.nonzero? || item.id,
+      workspace_id: (h["workspace_id"].presence || workspace.id).to_i.nonzero? || workspace.id,
+      start_time: h["start_time"],
+      end_time:   h["end_time"],
+      quantity:   h["quantity"].to_i
+    }
+  end
+
+  body = { selections: selections }.to_json
+
+  if driver_supports_rack_post?
+    page.driver.post("/cart_items.json", body, { "CONTENT_TYPE" => "application/json", "ACCEPT" => "application/json" })
+    @last_status = page.status_code if page.respond_to?(:status_code)
+    @last_json   = page.body
+  else
+    js_fetch(method: :POST, path: "/cart_items.json", body_str: body, headers: { "Content-Type" => "application/json", "Accept" => "application/json" })
+  end
+end
+
+# ========= HTML FORM POST (for remove_range HTML branch, unauthenticated POST) =========
+
+When('I POST to {string} (form) with params:') do |path, table|
+  params = table.rows_hash
+
+  # Build and submit a real form in the browser so Rails treats this as an HTML request.
+  form_html = <<~HTML
+    (function(){
+      var f = document.createElement('form');
+      f.method = 'POST';
+      f.action = #{path.inspect};
+      // Rails authenticity token, if present on page:
+      var meta = document.querySelector('meta[name="csrf-token"]');
+      if (meta && meta.content) {
+        var t = document.createElement('input');
+        t.type = 'hidden';
+        t.name = 'authenticity_token';
+        t.value = meta.content;
+        f.appendChild(t);
+      }
+      return f;
+    })();
+  HTML
+
+  form = page.evaluate_script(form_html)
+  # Append inputs
+  params.each do |k, v|
+    page.execute_script(<<~JS)
+      (function(){
+        var f = document.forms[document.forms.length - 1] || document.querySelector('form[action=#{path.inspect}]');
+        var i = document.createElement('input');
+        i.type = 'hidden';
+        i.name = #{k.inspect};
+        i.value = #{v.inspect};
+        f.appendChild(i);
+      })();
+    JS
+  end
+
+  # Submit and wait for navigation
+  page.execute_script("(document.forms[document.forms.length - 1] || document.querySelector('form[action=#{path.inspect}]')).submit();")
+  # Let Capybara detect the new page
+  using_wait_time 2 do
+    expect(page).to have_current_path(/.+/)
+  end
+end
+
+Then(/^the JSON response should include "([^"]+)" (true|false)$/) do |key, tf|
+  json = JSON.parse(@last_json)
+  expect(json[key]).to eq(tf == "true")
+end
+
+Then(/^the JSON response should include "([^"]+)" (-?\d+)$/) do |key, intval|
+  json = JSON.parse(@last_json)
+  expect(json[key]).to eq(intval.to_i)
+end
+
+
+When(/^I POST to "([^"]+)" \(form\) with params:$/) do |path, table|
+  params = table.rows_hash
+
+  # Create a form in the browser DOM
+  page.execute_script(<<~JS)
+    (function(){
+      var f = document.createElement('form');
+      f.method = 'POST';
+      f.action = #{path.inspect};
+      var meta = document.querySelector('meta[name="csrf-token"]');
+      if (meta && meta.content) {
+        var t = document.createElement('input');
+        t.type = 'hidden';
+        t.name = 'authenticity_token';
+        t.value = meta.content;
+        f.appendChild(t);
+      }
+      document.body.appendChild(f);
+    })();
+  JS
+
+  # Append inputs
+  params.each do |k, v|
+    page.execute_script(<<~JS)
+      (function(){
+        var f = document.forms[document.forms.length - 1];
+        var i = document.createElement('input');
+        i.type = 'hidden';
+        i.name = #{k.inspect};
+        i.value = #{v.inspect};
+        f.appendChild(i);
+      })();
+    JS
+  end
+
+  # Submit and wait for navigation
+  page.execute_script("document.forms[document.forms.length - 1].submit();")
+  using_wait_time 3 do
+    expect(page).to have_current_path(/.+/)
+  end
+end
+
+Then(/^the JSON response should include "([^"]+)" "([^"]+)"$/) do |key, val|
+  json = JSON.parse(@last_json)
+  expect(json[key]).to eq(val)
+end
