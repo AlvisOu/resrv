@@ -5,6 +5,9 @@ ruby '3.3.8'
 # Bundle edge Rails instead: gem 'rails', github: 'rails/rails'
 gem 'rails', '8.0'
 
+# JS engine
+gem 'mini_racer', platforms: :ruby
+
 # Use SCSS for stylesheets
 gem 'sass-rails', '~> 5.0'
 # Use jquery as the JavaScript library
