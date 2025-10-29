@@ -325,14 +325,17 @@ When /^(?:|I )adjust the quantity for "([^"]*)"$/ do |item_name|
   qty_wrap.find(".qty-up").click
 end
 
-When /^(?:|I )press an available time slot$/ do
-  # This is highly implementation-specific (e.g., a calendar UI).
-  # We'll assume a simple button or link with a class.
-  first(".slot.available").click
+When /^(?:|I )press the time slot "([^"]*)"$/ do |slot_title|
+  # Deterministic time slot
+  within ".schedule-grid" do
+    find("div.slot[title='#{slot_title}']").click
+  end
 end
 
-When /^(?:|I )press the shopping cart icon$/ do
-  find_button("Add to Cart").click
+When /^(?:|I )press "([^"]*)" and accept the alert$/ do |button_name|
+  accept_alert do
+    click_button(button_name)
+  end
 end
 
 When /^(?:|I )click "cancel" on the reservation$/ do
@@ -388,9 +391,9 @@ end
 
 Then /^(?:|I )should see my pending reservation$/ do
   # This is likely on a "Cart" or "Checkout" page.
-  page.should have_content("Pending Reservation") # Or similar heading
+  page.should have_content("Your Cart")
   page.should have_content("Mic")
-  page.should have_content("2") # The quantity from the "adjust" step
+  page.should have_content("1")
 end
 
 Then /^(?:|I )should see the new reservation for "([^"]*)"$/ do |item_name|

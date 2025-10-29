@@ -51,4 +51,7 @@ group :test do
   gem 'database_cleaner-active_record'
   gem 'simplecov', require: false
   gem 'rails-controller-testing'
+  # High level browser emulation for Cucumber
+  gem "selenium-webdriver"
+  gem 'puma'
 end
