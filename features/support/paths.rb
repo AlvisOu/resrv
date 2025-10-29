@@ -16,6 +16,10 @@ module NavigationHelpers
 
     when /^the profile page$/ then profile_path
 
+    when /^"\/workspaces\?query=(.+)"$/ then "/workspaces?query=#{$1}"
+
+    when /^the edit page for workspace "([^"]+)"$/ then edit_workspace_path(Workspace.find_by!(name: $1))
+
     when /^cart$/ then cart_path
 
     when /^My Reservations$/ then reservations_path
