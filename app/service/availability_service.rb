@@ -15,11 +15,8 @@ class AvailabilityService
     day_end   = day_start + 24.hours
 
     # If item has no window, treat as full-day
-    item_start = (@item.start_time ? align_to_day(@item.start_time) : day_start)
-    item_end   = (@item.end_time   ? align_to_day(@item.end_time)   : day_end)
-
-    # Guard if times are inverted/missing
-    item_start, item_end = [day_start, day_end] if item_end <= item_start
+    item_start = align_to_day(@item.start_time)
+    item_end   = align_to_day(@item.end_time)
 
     slots = []
     t = day_start
