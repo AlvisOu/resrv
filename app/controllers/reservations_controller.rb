@@ -21,7 +21,7 @@ class ReservationsController < ApplicationController
     def destroy
         reservation = current_user.reservations.find(params[:id])
         reservation.destroy
-        flash[:notice] = "Reservation cancelled successfully."
+        flash[:notice] = "Reservation canceled successfully."
         redirect_to reservations_path
     end
 end

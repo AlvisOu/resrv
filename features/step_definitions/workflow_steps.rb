@@ -266,21 +266,22 @@ Given /^(?:|I )have an existing reservation$/ do
   # This step creates prerequisite data in the database.
   # It assumes @current_user is set from the "logged in" step.
   # Assumes Workspace, Item, and Reservation models.
+    today = Time.zone.today
+    workspace = Workspace.find_or_create_by!(name: "Lerner Auditorium")
+    item = Item.find_or_create_by!(
+      name: "Mic",
+      workspace: workspace,
+      quantity: 5,
+      start_time: today.beginning_of_day + 6.hours,
+      end_time:   today.beginning_of_day + 23.hours
+    )
 
-   workspace = Workspace.find_or_create_by!(name: "Lerner Auditorium")
-   item = Item.find_or_create_by!(
-     name: "Mic",
-     workspace: workspace,
-     quantity: 5
-   )
-
-   @reservation = Reservation.create!(
-     user: @current_user,
-     item: item,
-     start_time: Time.now + 1.day,
-     end_time: Time.now + 1.day + 1.hour,
-     quantity: 1
-   )
+    @reservation = Reservation.create!(
+      user: @current_user,
+      item: item,
+      start_time: today.noon + 2.hours,
+      end_time:   today.noon + 3.hours
+    )
 end
 
 When /^(?:|I )fill in the workspace information$/ do
@@ -404,13 +405,16 @@ Then /^(?:|I )should see all my reservations$/ do
   page.should have_content(@reservation.item.name)
 end
 
-Then /^(?:|I )should see a confirmation message$/ do
-  # This could be a JavaScript confirm dialog or an on-page modal.
-  # For a simple flash message or modal text:
-  page.should have_content("Are you sure?") # Adjust text to match your app
+When(/^I click "cancel" on the reservation for "(.+)"$/) do |item_name|
+  within(:xpath, "//tr[td[contains(text(), '#{item_name}')]]") do
+    click_link("Cancel")
+  end
 end
 
-Then /^(?:|I )should not see the old reservation$/ do
-  # Assumes the reservation was removed from the DOM.
-  page.should have_no_selector("#reservation_#{@reservation.id}")
+Then(/^I should not see the reservation for "(.+)"$/) do |item_name|
+  expect(page).not_to have_content(item_name)
+end
+
+Then(/^(?:|I )should see a confirmation message$/) do
+  expect(page).to have_content("Reservation canceled successfully.")
 end

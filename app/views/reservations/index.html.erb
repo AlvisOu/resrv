@@ -17,7 +17,7 @@
         <% item = res_group.first.item %>
         <% sample_reservation = res_group.first %>
 
-        <tr>
+        <tr id="reservation_<%= sample_reservation.id %>">
           <td><%= item.name %></td>
           <td><%= item.workspace.name %></td>
           <td><%= start_time.in_time_zone.strftime("%b %d, %I:%M %p") %></td>

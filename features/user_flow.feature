@@ -14,14 +14,13 @@ Scenario: Make a microphone reservation
   When I go to cart
   Then I should see my pending reservation
   When I click "resrv"
-  And  I go to "My Reservation"
+  And  I go to My Reservations
   Then I should see the new reservation for "Mic"
 
 Scenario: Cancel a microphone reservation
   Given I have an existing reservation
-  When I go to "My Reservation"
+  When I go to My Reservations
   Then I should see all my reservations
-  When I click "cancel" on the reservation
+  When I click "cancel" on the reservation for "Mic"
   Then I should see a confirmation message
-  When I click "yes" to confirm
-  Then I should not see the old reservation
+  Then I should not see the reservation for "Mic"
