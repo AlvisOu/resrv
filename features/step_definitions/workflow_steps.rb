@@ -284,6 +284,28 @@ Given /^(?:|I )have an existing reservation$/ do
     )
 end
 
+Given /^a workspace named "([^"]*)" exists$/ do |workspace_name|
+  Workspace.find_or_create_by!(name: workspace_name)
+end
+
+Given /^a user exists with email "([^"]*)"$/ do |email|
+  User.find_or_create_by!(email: email) do |user|
+    user.name = email.split('@').first.capitalize
+    user.password = "password"
+    user.password_confirmation = "password"
+  end
+end
+
+Given /^"([^"]*)" is a standard user of "([^"]*)"$/ do |email, workspace_name|
+  user = User.find_by!(email: email)
+  workspace = Workspace.find_by!(name: workspace_name)
+  UserToWorkspace.find_or_create_by!(
+    user: user,
+    workspace: workspace,
+    role: 'user'
+  )
+end
+
 When /^(?:|I )fill in the workspace information$/ do
   # This is a declarative step. We fill in concrete data for the test.
   @workspace_name = "My New Test Workspace" # Store for later assertion

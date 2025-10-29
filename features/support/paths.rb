@@ -18,6 +18,15 @@ module NavigationHelpers
 
     when /^My Reservations$/ then reservations_path
 
+    when /^the "([^"]*)" workspace page$/
+      workspace_path(Workspace.find_by!(name: $1))
+
+    when /^my owned\/bookmarked workspaces$/
+      workspaces_path
+
+    when /^the "([^"]*)" management page$/
+      manage_workspace_path(Workspace.find_by!(name: $1))
+
     when /^my "(.+)" workspace$/
       workspace = Workspace.find_by(name: $1)
       raise "Workspace '#{$1}' not found" unless workspace
