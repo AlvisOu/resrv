@@ -1,4 +1,3 @@
-# frozen_string_literal: true
 # A lightweight cart stored entirely in the session.
 # Structure:
 # session[:cart] = {
@@ -49,10 +48,6 @@ class Cart
 
   def clear!
     entries.clear
-  end
-
-  def clear_workspace!(workspace_id)
-    entries.delete_if { |h| h["workspace_id"].to_i == workspace_id.to_i }
   end
 
   # For rendering

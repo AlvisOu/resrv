@@ -1,5 +1,5 @@
 class CartsController < ApplicationController
-  skip_forgery_protection   # you asked to disable CSRF
+  skip_forgery_protection
   before_action :require_login!
 
   def show
