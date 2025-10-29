@@ -39,3 +39,16 @@ Feature: User profile management
     And I press "Delete My Account"
     Then I should see "Your account has been deleted."
     And I should be on the signup page
+
+  Scenario: Login fails with invalid credentials
+    When I go to the login page
+    And I fill in "session[email]" with "bob@example.com"
+    And I fill in "session[password]" with "wrongpassword"
+    And I press "Log In"
+    Then I should see "Invalid email or password."
+
+  Scenario: Successfully log out from profile
+    When I go to the profile page
+    And I click "Log Out"
+    Then I should be on the login page
+    And I should see "Logged out successfully."
