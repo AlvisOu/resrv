@@ -8,6 +8,8 @@ module NavigationHelpers
   def path_to(page_name)
     case page_name
 
+    when /^the sign up page$/ then signup_path
+
     when /^the home\s?page$/ then root_path
 
     when /^my owned\/bookmarked workspaces$/ then root_path
