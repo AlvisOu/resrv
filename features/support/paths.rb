@@ -8,13 +8,30 @@ module NavigationHelpers
   def path_to(page_name)
     case page_name
 
+    when /^the sign up page$/ then signup_path
+
     when /^the home\s?page$/ then root_path
 
     when /^my owned\/bookmarked workspaces$/ then root_path
 
+    when /^the profile page$/ then profile_path
+
+    when /^"\/workspaces\?query=(.+)"$/ then "/workspaces?query=#{$1}"
+
+    when /^the edit page for workspace "([^"]+)"$/ then edit_workspace_path(Workspace.find_by!(name: $1))
+
     when /^cart$/ then cart_path
 
     when /^My Reservations$/ then reservations_path
+
+    when /^the "([^"]*)" workspace page$/
+      workspace_path(Workspace.find_by!(name: $1))
+
+    when /^my owned\/bookmarked workspaces$/
+      workspaces_path
+
+    when /^the "([^"]*)" management page$/
+      manage_workspace_path(Workspace.find_by!(name: $1))
 
     when /^my "(.+)" workspace$/
       workspace = Workspace.find_by(name: $1)

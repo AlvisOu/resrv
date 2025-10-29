@@ -4,13 +4,14 @@ Background:
   Given I am logged in as a standard user of "Lerner Auditorium"
   And a workspace item named "Mic" with availability exists in "Lerner Auditorium"
 
+@javascript
 Scenario: Make a microphone reservation
   When I go to my owned/bookmarked workspaces
   And  I click "Lerner Auditorium"
   Then I should see "Mic" and its availabilities
   When I adjust the quantity for "Mic"
-  And  I press an available time slot
-  And  I press the shopping cart icon
+  And  I press the time slot "Mic — 1:00 PM–1:15 PM"
+  And  I press "Add to Cart" and accept the alert
   When I go to cart
   Then I should see my pending reservation
   When I click "resrv"

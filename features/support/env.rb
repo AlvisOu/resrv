@@ -9,6 +9,15 @@ end
 # newer version of cucumber-rails. Consider adding your own code to a new file
 # instead of editing this one. Cucumber will automatically load all features/**/*.rb
 # files.
+require 'capybara/cucumber'
+require 'selenium-webdriver'
+Capybara.register_driver :firefox do |app|
+  options = Selenium::WebDriver::Firefox::Options.new
+  options.add_argument('--headless')
+  Capybara::Selenium::Driver.new(app, browser: :firefox, options: options)
+end
+Capybara.javascript_driver = :firefox
+Capybara.default_driver = :rack_test
 
 require 'cucumber/rails'
 
