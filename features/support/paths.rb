@@ -14,6 +14,8 @@ module NavigationHelpers
 
     when /^my owned\/bookmarked workspaces$/ then root_path
 
+    when /^the profile page$/ then profile_path
+
     when /^cart$/ then cart_path
 
     when /^My Reservations$/ then reservations_path
