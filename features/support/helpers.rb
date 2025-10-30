@@ -5,14 +5,9 @@ module WithinHelpers
   end
 end
 
-# Custom test helpers
-module CustomHelpers
-  def current_user_logged_in?
-    page.has_link?("Log Out") || page.has_selector?("[data-test='logout']")
-  end
-
+# Custom Helpers
+module CartHelpers
   def read_cart_count
-    # Tries several common places for a cart count (badge, data-attr, etc.)
     if page.has_selector?("[data-cart-count]", wait: 0.2)
       find("[data-cart-count]", wait: 0.2).text.to_s.strip.to_i
     elsif page.has_selector?("#cart-count", wait: 0.2)
@@ -20,24 +15,25 @@ module CustomHelpers
     elsif page.has_selector?(".cart-count", wait: 0.2)
       find(".cart-count", wait: 0.2).text.to_s.strip.to_i
     else
-      # Fallback if no badge exists
       0
     end
   end
 
-  def first_cart_line
-    # Adjust selectors if your cart rows differ
-    first(".cart-line, .cart-row, [data-test='cart-line']")
+  def add_item_to_cart(selections)
+    body = { selections: selections }.to_json
+    path = "/cart_items.json"
+    headers = { "Content-Type" => "application/json", "Accept" => "application/json" }
+    if page.driver.respond_to?(:post)
+      page.driver.post(path, body, headers)
+      @last_status = page.status_code if page.respond_to?(:status_code)
+      @last_json   = page.body
+    else
+      js_fetch(method: :POST, path: path, body_str: body, headers: headers)
+    end
   end
+end
 
-  def first_cart_qty_input
-    first(".cart-line input[type='number'], .cart-row input[type='number'], [data-test='cart-qty']")
-  end
-
-  def driver_supports_rack_post?
-    page.driver.respond_to?(:post)
-  end
-
+module APIHelpers
   def js_fetch(method:, path:, body_str: nil, headers: {})
     # Use browser fetch to make the request and return {status, body}
     headers_js = headers.to_json

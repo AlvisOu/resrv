@@ -22,7 +22,8 @@ Capybara.default_driver = :rack_test
 # Import helpers
 require_relative 'helpers'
 World(WithinHelpers)
-World(CustomHelpers)
+World(CartHelpers)
+World(APIHelpers)
 
 require 'cucumber/rails'
 

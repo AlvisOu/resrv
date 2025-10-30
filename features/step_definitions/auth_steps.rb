@@ -12,7 +12,6 @@ Given('I am logged in as {string}') do |email|
   expect(page).to have_content("Log Out").or have_selector("[data-test='logout']")
   @current_user = user
 end
-
 Given('I am logged out') do
   # Try UI logout first
   if page.has_link?("Log Out", wait: 0.2)

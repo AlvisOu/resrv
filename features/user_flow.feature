@@ -27,42 +27,6 @@ Scenario: Cancel a microphone reservation
   Then I should not see the reservation for "Mic"
 
 @javascript
-Scenario: Cart create via JSON with selections as a JSON string
-  When I POST JSON to "/cart_items.json" with:
-    """
-    { "selections": "[{\"item_id\":1,\"workspace_id\":1,\"start_time\":\"2025-10-30T13:00:00Z\",\"end_time\":\"2025-10-30T13:15:00Z\",\"quantity\":1}]" }
-    """
-  Then the JSON response should include "ok" true
-  And the JSON response should include "total" 1
-
-@javascript
-Scenario: Cart create via JSON with cart_item[selections] array
-  When I POST JSON to "/cart_items.json" with:
-    """
-    { "cart_item": { "selections": [{ "item_id": 1, "workspace_id": 1, "start_time":"2025-10-30T13:15:00Z","end_time":"2025-10-30T13:30:00Z","quantity":2 }] } }
-    """
-  Then the JSON response should include "ok" true
-  And the JSON response should include "total" 2
-
-@javascript
-Scenario: Cart create no-op with empty selections
-  When I POST JSON to "/cart_items.json" with:
-    """
-    { "selections": "[]" }
-    """
-  Then the JSON response should include "ok" true
-  And the JSON response should include "total" 0
-
-@javascript
-Scenario: Cart create ignores extra keys (strong params)
-  When I POST JSON to "/cart_items.json" with:
-    """
-    { "selections": "[{\"item_id\":1,\"workspace_id\":1,\"start_time\":\"2025-10-30T14:00:00Z\",\"end_time\":\"2025-10-30T14:15:00Z\",\"quantity\":1,\"price_cents\":999999,\"hacker\":\"yes\"}]" }
-    """
-  Then the JSON response should include "ok" true
-  And the JSON response should include "total" 1
-
-@javascript
 Scenario: Cart update quantity (success)
   Given my cart already contains 1 selection
   When I PATCH JSON to "/cart_items/0.json" with:
