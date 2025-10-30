@@ -9,6 +9,10 @@
 * Sky Sun
 * Weijie Jiang
 
+## Links
+* [**Heroku Deployment**](https://resrv-fc94874a0a23.herokuapp.com/)
+* [**GitHub Repository**](https://github.com/AlvisOu/resrv)
+
 ## Core Features
 * **User Reservations:** Book equipment for defined time slots.
 * **Real-time Availability:** A live dashboard shows what's available right now.
