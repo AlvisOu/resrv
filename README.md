@@ -1,24 +1,37 @@
-# resrv
+# [resrv](https://resrv-fc94874a0a23.herokuapp.com/)
 > it's time to resrv.
 
 `resrv` is a cloud-based equipment reservation and usage tracking platform. It's designed for shared spaces like university labs, gyms, and clubs to introduce accountability, fairness, and data-driven insights into resource management.
 
-## Team
-* Alvis Ou
-* Francis Deng
-* Sky Sun
-* Weijie Jiang
-
-## Core Features
+## 🌟 Core Features
 * **User Reservations:** Book equipment for defined time slots.
 * **Real-time Availability:** A live dashboard shows what's available right now.
 * **Accountability:** Automatic reminders before time is up and penalties for late returns or no-shows.
 * **Conflict Resolution:** Handles recurring reservations and simultaneous requests.
 * **Admin Analytics:** View usage heatmaps, underutilized equipment reports, and demand forecasting.
 
+## 💻 Tech Stack
+<p align="left">
+  <img src="https://img.shields.io/badge/Ruby-CC342D?style=for-the-badge&logo=ruby&logoColor=white" alt="Ruby">
+  <img src="https://img.shields.io/badge/Ruby_on_Rails-CC0000?style=for-the-badge&logo=ruby-on-rails&logoColor=white" alt="Ruby on Rails">
+  <img src="https://img.shields.io/badge/PostgreSQL-4169E1?style=for-the-badge&logo=postgresql&logoColor=white" alt="PostgreSQL">
+  <img src="https://img.shields.io/badge/Heroku-430098?style=for-the-badge&logo=heroku&logoColor=white" alt="Heroku">
+  <br>
+  <img src="https://img.shields.io/badge/HTML5-E34F26?style=for-the-badge&logo=html5&logoColor=white" alt="HTML5">
+  <img src="https://img.shields.io/badge/CSS3-1572B6?style=for-the-badge&logo=css3&logoColor=white" alt="CSS3">
+  <img src="https://img.shields.io/badge/JavaScript-F7DF1E?style=for-the-badge&logo=javascript&logoColor=black" alt="JavaScript">
+  <img src="https://img.shields.io/badge/jQuery-0769AD?style=for-the-badge&logo=jquery&logoColor=white" alt="jQuery">
+</p>
+
+## 👥 Team
+* Alvis Ou
+* Francis Deng
+* Sky Sun
+* Weijie Jiang
+
 ---
 
-## Getting Started
+## 🛠 Getting Started
 This guide will get you a copy of the project up and running on your local machine for development and testing.
 
 ### Prerequisites
