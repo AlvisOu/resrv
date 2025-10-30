@@ -19,6 +19,11 @@ end
 Capybara.javascript_driver = :firefox
 Capybara.default_driver = :rack_test
 
+# Import helpers
+require_relative 'helpers'
+World(WithinHelpers)
+World(CustomHelpers)
+
 require 'cucumber/rails'
 
 # Capybara defaults to CSS3 selectors rather than XPath.
