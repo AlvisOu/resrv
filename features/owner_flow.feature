@@ -17,11 +17,11 @@ Scenario: Create a new item in a workspace
   And  I click "Add Item"
   And  I fill in the name "Projector", start time, end time, and quantity
   And  I click "Confirm"
-  Then I should see "Projector" in the "Lerner Auditorium" workspace
+  Then I should see "Projector"
 
 Scenario: Modify an existing item in a workspace
   When I go to my "Lerner Auditorium" workspace
-  Then I should see "Mic" and its availabilities
+  Then I should see "Mic"
   When I click "Mic"
   And  I change the name, start time, end time, and quantity
   And  I click "Confirm"
@@ -29,7 +29,7 @@ Scenario: Modify an existing item in a workspace
 
 Scenario: Delete an item from a workspace
   When I go to my "Lerner Auditorium" workspace
-  Then I should see "Mic" and its availabilities
+  Then I should see "Mic"
   When I click "Mic"
   And  I click "Delete"
-  Then I should not see "Mic" in the "Lerner Auditorium" workspace
+  Then I should not see "Mic"

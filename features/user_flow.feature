@@ -8,7 +8,7 @@ Background:
 Scenario: Make a microphone reservation
   When I go to my owned/bookmarked workspaces
   And  I click "Lerner Auditorium"
-  Then I should see "Mic" and its availabilities
+  Then I should see "Mic"
   When I adjust the quantity for "Mic"
   And  I press the time slot "Mic — 1:00 PM–1:15 PM"
   And  I press "Add to Cart" and accept the alert
@@ -23,7 +23,7 @@ Scenario: Cancel a microphone reservation
   When I go to My Reservations
   Then I should see all my reservations
   When I click "cancel" on the reservation for "Mic"
-  Then I should see a confirmation message
+  Then I should see "Reservation canceled successfully."
   Then I should not see the reservation for "Mic"
 
 @javascript

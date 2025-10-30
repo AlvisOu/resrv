@@ -52,19 +52,20 @@ When /^(?:|I )attach the file "([^"]*)" to "([^"]*)"$/ do |path, field|
 end
 
 # --- Sees ---
-Then /^(?:|I )should see "([^"]*)"$/ do |text|
-  expect(page).to have_content(text)
+Then /^(?:|I )should (not )?see "([^"]*)"$/ do |negation, text|
+  if negation
+    expect(page).to have_no_content(text)
+  else
+    expect(page).to have_content(text)
+  end
 end
-Then /^(?:|I )should see \/([^\/]*)\/$/ do |regexp|
+Then /^(?:|I )should (not )?see \/([^\/]*)\/$/ do |negation, regexp|
   regexp = Regexp.new(regexp)
-  expect(page).to have_xpath('//*', text: regexp)
-end
-Then /^(?:|I )should not see "([^"]*)"$/ do |text|
-  expect(page).to have_no_content(text)
-end
-Then /^(?:|I )should not see \/([^\/]*)\/$/ do |regexp|
-  regexp = Regexp.new(regexp)
-  expect(page).to have_no_xpath('//*', text: regexp)
+  if negation
+    expect(page).to have_no_xpath('//*', text: regexp)
+  else
+    expect(page).to have_xpath('//*', text: regexp)
+  end
 end
 
 # --- Contains ---
