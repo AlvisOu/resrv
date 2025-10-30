@@ -7,7 +7,7 @@ Feature: Owner Workflow for Workspace Management
 Scenario: Create a new workspace
   When I go to my owned/bookmarked workspaces
   And  I click "Create New Workspace"
-  Then I should see the text "Create a New Workspace"
+  Then I should see "Create a New Workspace"
   When I fill in the workspace information
   And  I click "Create Workspace"
   Then the new workspace should appear in my list of workspaces

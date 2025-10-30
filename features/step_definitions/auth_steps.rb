@@ -1,0 +1,50 @@
+# --- Authentication Steps ---
+Given('I am logged in as {string}') do |email|
+  user = User.find_or_create_by!(email: email) do |u|
+    u.name = email.split('@').first.capitalize
+    u.password = "password"
+    u.password_confirmation = "password"
+  end
+  visit path_to('the login page')
+  fill_in "session[email]", with: user.email
+  fill_in "session[password]", with: "password"
+  click_button "commit"
+  expect(page).to have_content("Log Out").or have_selector("[data-test='logout']")
+  @current_user = user
+end
+
+Given('I am logged out') do
+  # Try UI logout first
+  if page.has_link?("Log Out", wait: 0.2)
+    click_link "Log Out"
+  elsif page.has_selector?("[data-test='logout']", wait: 0.2)
+    find("[data-test='logout']").click
+  end
+
+  # If driver is rack-test, hard-clear cookies/session as a fallback
+  if page.driver.respond_to?(:browser) && page.driver.browser.respond_to?(:clear_cookies)
+    page.driver.browser.clear_cookies
+  end
+  visit path_to('the home page')
+end
+
+# This is a domain-specific login step
+Given /^I am logged in as a (workspace owner|standard user) of "([^"]*)"$/ do |membership, workspace_name|
+  role_name = (membership == "workspace owner") ? "owner" : "user"
+  @current_user = User.find_or_create_by!(email: "#{role_name}@example.com") do |user|
+    user.name = "#{role_name.capitalize} User"
+    user.password = "password"
+    user.password_confirmation = "password"
+  end
+
+  workspace = Workspace.find_or_create_by!(name: workspace_name)
+  UserToWorkspace.find_or_create_by!(
+    user: @current_user,
+    workspace: workspace,
+    role: role_name
+  )
+  visit path_to('the login page')
+  fill_in "session[email]", :with => @current_user.email
+  fill_in "session[password]", :with => "password"
+  click_button "commit"
+end

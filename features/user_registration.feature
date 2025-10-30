@@ -23,7 +23,7 @@ Feature: User Registration
     And I fill in "user[password_confirmation]" with "wrongpassword"
     And I press "Create Account"
     Then I should see "Password confirmation doesn't match Password"
-    And I should see the text "Sign Up"
+    And I should see "Sign Up"
 
   Scenario: Invalid or blank email
     When I fill in "user[name]" with "Test User"
