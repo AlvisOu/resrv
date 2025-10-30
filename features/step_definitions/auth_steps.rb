@@ -28,7 +28,7 @@ Given('I am logged out') do
   visit path_to('the home page')
 end
 
-# This is a domain-specific login step
+# Logged in as role in workspace
 Given /^I am logged in as a (workspace owner|standard user) of "([^"]*)"$/ do |membership, workspace_name|
   role_name = (membership == "workspace owner") ? "owner" : "user"
   @current_user = User.find_or_create_by!(email: "#{role_name}@example.com") do |user|

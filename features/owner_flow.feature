@@ -22,7 +22,7 @@ Scenario: Create a new item in a workspace
 Scenario: Modify an existing item in a workspace
   When I go to my "Lerner Auditorium" workspace
   Then I should see "Mic" and its availabilities
-  When I press "Mic" to edit it
+  When I click "Mic"
   And  I change the name, start time, end time, and quantity
   And  I click "Confirm"
   Then the "Mic" item details should be updated
@@ -30,6 +30,6 @@ Scenario: Modify an existing item in a workspace
 Scenario: Delete an item from a workspace
   When I go to my "Lerner Auditorium" workspace
   Then I should see "Mic" and its availabilities
-  When I press "Mic" to edit it
+  When I click "Mic"
   And  I click "Delete"
   Then I should not see "Mic" in the "Lerner Auditorium" workspace

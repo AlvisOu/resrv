@@ -3,33 +3,6 @@ require 'cgi'
 require File.expand_path(File.join(File.dirname(__FILE__), "..", "support", "paths"))
 require File.expand_path(File.join(File.dirname(__FILE__), "..", "support", "selectors"))
 
-module WithinHelpers
-  def with_scope(locator)
-    locator ? within(*selector_for(locator)) { yield } : yield
-  end
-end
-World(WithinHelpers)
-# Single-line step scoper
-When /^(.*) within (.*[^:])$/ do |step, parent|
-  with_scope(parent) { When step }
-end
-# Multi-line step scoper
-When /^(.*) within (.*[^:]):$/ do |step, parent, table_or_string|
-  with_scope(parent) { When "#{step}:", table_or_string }
-end
-
-
-
-Given /^a workspace item named "([^"]*)" with availability exists in "([^"]*)"$/ do |item_name, workspace_name|
-  workspace = Workspace.find_by!(name: workspace_name)
-  Item.create!(
-    name: item_name,
-    start_time: Time.zone.local(2000,1,1,0,0),
-    end_time: Time.zone.local(2000,1,1,23,45),
-    quantity: 10,
-    workspace: workspace
-  )
-end
 
 Given /^(?:|I )have an existing reservation$/ do
   # This step creates prerequisite data in the database.
@@ -53,27 +26,7 @@ Given /^(?:|I )have an existing reservation$/ do
     )
 end
 
-Given /^a workspace named "([^"]*)" exists$/ do |workspace_name|
-  Workspace.find_or_create_by!(name: workspace_name)
-end
 
-Given /^a user exists with email "([^"]*)"$/ do |email|
-  User.find_or_create_by!(email: email) do |user|
-    user.name = email.split('@').first.capitalize
-    user.password = "password"
-    user.password_confirmation = "password"
-  end
-end
-
-Given /^"([^"]*)" is a standard user of "([^"]*)"$/ do |email, workspace_name|
-  user = User.find_by!(email: email)
-  workspace = Workspace.find_by!(name: workspace_name)
-  UserToWorkspace.find_or_create_by!(
-    user: user,
-    workspace: workspace,
-    role: 'user'
-  )
-end
 
 When /^(?:|I )fill in the workspace information$/ do
   # This is a declarative step. We fill in concrete data for the test.
@@ -104,12 +57,6 @@ When(/^(?:|I )change the name, start time, end time, and quantity$/) do
   select "00", from: "item_end_time_5i"
 end
 
-When /^(?:|I )press "([^"]*)" to edit it$/ do |item_name|
-  # This step assumes the item's name itself is a link to edit it.
-  click_link(item_name)
-  # If the edit button is separate, you might need a more complex selector:
-  # find(:xpath, "//*[contains(text(),'#{item_name}')]/ancestor::div[@class='item-row']//a[text()='Edit']").click
-end
 
 When /^(?:|I )adjust the quantity for "([^"]*)"$/ do |item_name|
   qty_wrap = find(:xpath, "//div[contains(@class,'item-name') and normalize-space(text())='#{item_name}']/following-sibling::div[contains(@class,'sticky-2')]//div[contains(@class,'qty-wrap')]")
@@ -123,11 +70,6 @@ When /^(?:|I )press the time slot "([^"]*)"$/ do |slot_title|
   end
 end
 
-When /^(?:|I )press "([^"]*)" and accept the alert$/ do |button_name|
-  accept_alert do
-    click_button(button_name)
-  end
-end
 
 When /^(?:|I )click "cancel" on the reservation$/ do
   # This needs to find the specific reservation (created in the Given step)
