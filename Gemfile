@@ -16,7 +16,8 @@ gem 'jquery-rails'
 gem 'bcrypt'
 # Window support
 gem 'tzinfo-data', platforms: [:mingw, :mswin, :x64_mingw]
-
+# Slug generation
+gem "friendly_id", "~> 5.4"
 
 
 group :development, :test do

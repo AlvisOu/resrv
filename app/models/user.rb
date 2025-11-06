@@ -1,4 +1,7 @@
 class User < ApplicationRecord
+    extend FriendlyId
+    friendly_id :name, use: :slugged
+
     has_secure_password
 
     validates :password, confirmation: true, if: -> { password.present? }

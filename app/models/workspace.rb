@@ -1,4 +1,7 @@
 class Workspace < ApplicationRecord
+    extend FriendlyId
+    friendly_id :name, use: :slugged
+
     has_many :items, dependent: :destroy
     has_many :user_to_workspaces, dependent: :destroy
     has_many :users, through: :user_to_workspaces

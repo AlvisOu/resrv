@@ -32,8 +32,8 @@ class ItemsController < ApplicationController
   end
 
   def destroy
-    @workspace = Workspace.find(params[:workspace_id])
-    @item = @workspace.items.find(params[:id])
+    @workspace = Workspace.friendly.find(params[:workspace_id])
+    @item = @workspace.items.friendly.find(params[:id])
     @item.destroy
     redirect_to workspace_path(@workspace), notice: "Item deleted successfully."
   end
@@ -41,11 +41,11 @@ class ItemsController < ApplicationController
   private
 
   def set_workspace
-    @workspace = Workspace.find(params[:workspace_id])
+    @workspace = Workspace.friendly.find(params[:workspace_id])
   end
 
   def set_item
-    @item = @workspace.items.find(params[:id])
+    @item = @workspace.items.friendly.find(params[:id])
   end
 
   def item_params

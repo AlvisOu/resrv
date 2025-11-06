@@ -2,7 +2,7 @@ class ReservationsController < ApplicationController
     before_action :require_user
 
     def availability
-        item = Item.find(params[:item_id])
+        item = Item.friendly.find(params[:item_id])
         quantity = params[:quantity].to_i.clamp(0, item.quantity.to_i)
         day = Date.current
         tz  = Time.zone

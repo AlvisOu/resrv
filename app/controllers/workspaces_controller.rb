@@ -26,7 +26,7 @@ class WorkspacesController < ApplicationController
   end
   
   def show
-    @workspace = Workspace.find(params[:id])
+    @workspace = Workspace.friendly.find(params[:id])
     @current_join = @workspace.user_to_workspaces.find_by(user: current_user)
 
     @items = @workspace.items.reload.includes(:reservations)
@@ -49,12 +49,12 @@ class WorkspacesController < ApplicationController
   end
 
   def edit
-    @workspace = Workspace.find(params[:id])
+    @workspace = Workspace.friendly.find(params[:id])
     redirect_to root_path, alert: "Not authorized." unless current_user_is_owner?(@workspace)
   end
 
   def update
-    @workspace = Workspace.find(params[:id])
+    @workspace = Workspace.friendly.find(params[:id])
     if current_user_is_owner?(@workspace)
       if @workspace.update(workspace_params)
         redirect_to workspace_path(@workspace), notice: "Workspace name updated."
