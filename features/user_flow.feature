@@ -14,7 +14,7 @@ Scenario: Make a microphone reservation
   And  I press "Add to Cart" and accept the alert
   When I go to cart
   Then I should see my pending reservation
-  When I click "resrv"
+  When I click "resrv" within "#checkout-form"
   And  I go to My Reservations
   Then I should see the new reservation for "Mic"
 
@@ -83,7 +83,8 @@ Scenario: Cart remove_range via HTML redirects with notice
 
 @javascript
 Scenario: Unauthenticated users are redirected when posting to cart
-  When I click "Log Out"
+  When I click "User"
+  And I click "Log Out"
   And I POST to "/cart_items" (form) with params:
     | selections | [] |
   Then I should be on the login page

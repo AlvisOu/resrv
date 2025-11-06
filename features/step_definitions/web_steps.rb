@@ -1,12 +1,12 @@
 # Use the actions defined in this file to map plain English steps to Capybara commands.
 
 # Single-line step scoper
-When /^(.*) within (.*[^:])$/ do |step, parent|
-  with_scope(parent) { When step }
+When /^(.*) within (.*[^:])$/ do |step_text, parent|
+  with_scope(parent) { step step_text }
 end
 # Multi-line step scoper
-When /^(.*) within (.*[^:]):$/ do |step, parent, table_or_string|
-  with_scope(parent) { When "#{step}:", table_or_string }
+When /^(.*) within (.*[^:]):$/ do |step_text, parent, table_or_string|
+  with_scope(parent) { step "#{step_text}:", table_or_string }
 end
 
 # --- Navigation ---

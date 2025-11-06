@@ -52,7 +52,7 @@
     </table>
 
     <div style="margin-top:1rem; display:flex; justify-content:flex-end; gap:.5rem;">
-    <%= form_with url: checkout_cart_path, method: :post, local: true do %>
+    <%= form_with url: checkout_cart_path, method: :post, local: true, id: "checkout-form" do %>
         <%= hidden_field_tag :workspace_id, @active_workspace_id %>
         <button type="submit" class="btn btn-primary" style="padding:.6rem 1rem; border-radius:8px; background:#111; color:#fff; border:none;">
         resrv
