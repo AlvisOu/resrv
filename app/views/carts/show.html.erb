@@ -2,7 +2,6 @@
 
 <% if @workspaces.blank? %>
   <p>No items yet. Go add some!</p>
-  <%= link_to "Back to Workspaces", root_path %>
 <% else %>
   <div class="workspace-tabs" style="display:flex; gap:.5rem; margin-bottom:1rem;">
     <% @workspaces.each do |ws| %>
