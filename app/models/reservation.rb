@@ -3,20 +3,20 @@ class Reservation < ApplicationRecord
   belongs_to :item
 
   validates :start_time, :end_time, presence: true
+
+  include TimeValidatable
   validate :end_time_after_start_time
   validate :check_availability
 
   private
-  def end_time_after_start_time
-    return if end_time.blank? || start_time.blank?
-
-    if end_time <= start_time
-      errors.add(:end_time, "must be after the start time")
-    end
-  end
 
   def check_availability
-    return if item.blank? || start_time.blank? || end_time.blank?
+    validate_time_within_item_window
+    validate_no_time_overlap
+  end
+
+  def validate_time_within_item_window
+    return if item.nil? || start_time.blank? || end_time.blank?
 
     # Extract only the time-of-day
     reservation_start = start_time.seconds_since_midnight
@@ -32,7 +32,16 @@ class Reservation < ApplicationRecord
     if reservation_end > item_end
       errors.add(:end_time, "is after the item's daily availability window")
     end
+  end
 
-    # Overlap check
+  def validate_no_time_overlap
+    overlapping_reservations = item.reservations.where.not(id: self.id).where(
+      "(start_time < :new_end_time AND end_time > :new_start_time) OR (start_time < :new_start_time AND end_time > :new_end_time)",
+      new_end_time: self.end_time, new_start_time: self.start_time
+    )
+
+    if overlapping_reservations.count >= item.quantity
+      errors.add(:base, "This item is fully booked for the selected time period")
+    end
   end
 end
