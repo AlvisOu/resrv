@@ -63,7 +63,7 @@ RSpec.describe Item, type: :model do
         end_time: start_time - 1.minute # before
       ))
       expect(item).not_to be_valid
-      expect(item.errors[:end_time]).to include("must be after start time")
+      expect(item.errors[:end_time]).to include("must be after the start time")
     end
 
     it "is invalid if end_time is *equal to* start_time" do
@@ -72,7 +72,7 @@ RSpec.describe Item, type: :model do
         end_time: start_time # equal
       ))
       expect(item).not_to be_valid
-      expect(item.errors[:end_time]).to include("must be after start time")
+      expect(item.errors[:end_time]).to include("must be after the start time")
     end
 
     it "is valid if end_time is after start_time" do
@@ -87,14 +87,14 @@ RSpec.describe Item, type: :model do
       item = Item.new(base_attributes.merge(start_time: nil))
       expect(item).not_to be_valid
       expect(item.errors[:start_time]).to include("can't be blank")
-      expect(item.errors[:end_time]).not_to include("must be after start time")
+      expect(item.errors[:end_time]).not_to include("must be after the start time")
     end
 
     it "does not run if end_time is missing" do
       item = Item.new(base_attributes.merge(end_time: nil))
       expect(item).not_to be_valid
       expect(item.errors[:end_time]).to include("can't be blank")
-      expect(item.errors[:end_time]).not_to include("must be after start time")
+      expect(item.errors[:end_time]).not_to include("must be after the start time")
     end
   end
 
