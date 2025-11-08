@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2025_11_06_140242) do
+ActiveRecord::Schema[8.0].define(version: 2025_11_08_184450) do
   create_table "items", force: :cascade do |t|
     t.string "name"
     t.integer "quantity"
@@ -31,6 +31,9 @@ ActiveRecord::Schema[8.0].define(version: 2025_11_06_140242) do
     t.integer "item_id"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.integer "quantity", default: 1, null: false
+    t.boolean "no_show", default: false, null: false
+    t.boolean "not_returned", default: false, null: false
     t.index ["item_id"], name: "index_reservations_on_item_id"
     t.index ["user_id"], name: "index_reservations_on_user_id"
   end

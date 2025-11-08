@@ -17,7 +17,8 @@ class ApplicationController < ActionController::Base
   end
 
   def current_user_is_owner?(workspace)
-    workspace.owner == current_user
+    join = workspace.user_to_workspaces.find_by(user: current_user)
+    join && join.role == "owner"
   end
 
   def require_user

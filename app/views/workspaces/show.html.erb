@@ -11,6 +11,69 @@
 
 <hr>
 <% is_owner = @current_join&.role == 'owner' %>
+<% if is_owner %>
+  <div class="current-activity-section">
+    <h3>Current Activity</h3>
+    <% if @current_activity.any? %>
+      <table class="activity-table">
+        <thead>
+          <tr>
+            <th>Item</th>
+            <th>User</th>
+            <th>Quantity</th>
+            <th>Reservation Starts</th>
+            <th>Ends</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          <% @current_activity.each do |reservation| %>
+            <tr>
+              <td><%= reservation.item.name %></td>
+              <td><%= reservation.user.name %></td>
+              <td><%= reservation.quantity %></td>
+              <td><%= reservation.start_time.strftime("%-I:%M %p") %></td>
+              <td><%= reservation.end_time.strftime("%-I:%M %p") %></td>
+              <td>
+                <div class="activity-actions">
+                  
+                  <% if reservation.no_show? %>
+                    <%= button_to "Undo No Show", 
+                                  mark_no_show_reservation_path(reservation), 
+                                  method: :patch, 
+                                  class: "btn-action-revert" %>
+                  <% else %>
+                    <%= button_to "Mark No Show", 
+                                  mark_no_show_reservation_path(reservation), 
+                                  method: :patch, 
+                                  class: "btn-action-warn",
+                                  data: { confirm: "Are you sure? This will mark '#{reservation.user.name}' as a 'No Show'." } %>
+                  <% end %>
+                  
+                  <% if reservation.not_returned? %>
+                    <%= button_to "Undo 'Not Returned'", 
+                                  mark_not_returned_reservation_path(reservation), 
+                                  method: :patch, 
+                                  class: "btn-action-revert" %>
+                  <% else %>
+                    <%= button_to "Mark Not Returned", 
+                                  mark_not_returned_reservation_path(reservation), 
+                                  method: :patch, 
+                                  class: "btn-action-warn",
+                                  data: { confirm: "Are you sure? This will mark '#{reservation.item.name}' as 'Not Returned'." } %>
+                  <% end %>
+                  
+                </div>
+              </td>
+            </tr>
+          <% end %>
+        </tbody>
+      </table>
+    <% else %>
+      <p>No current activity in this workspace.</p>
+    <% end %>
+  </div>
+<% end %>
 <%
   # ---------- 24h TIME SLOTS (today 00:00 → tomorrow 00:00) in 15-min intervals ----------
   day = Date.current
@@ -102,6 +165,71 @@
 
   .owner-mode .slot { cursor: default; pointer-events: none; transform: none; }
   .owner-mode .slot:hover { transform: none; }
+
+  .current-activity-section {
+    margin: 2rem 0;
+  }
+  .current-activity-section h3 {
+    margin-bottom: 0.75rem;
+    font-size: 1.25rem; /* 20px */
+  }
+  .activity-table {
+    width: 100%;
+    border-collapse: collapse;
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
+    overflow: hidden; /* Ensures border-radius applies to corners */
+    box-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1);
+  }
+  .activity-table th,
+  .activity-table td {
+    padding: 12px 15px;
+    border-bottom: 1px solid #e5e7eb;
+    text-align: left;
+  }
+  .activity-table th {
+    background-color: #fafafa;
+    font-weight: 600;
+    font-size: 13px;
+    text-transform: uppercase;
+    color: #374151;
+  }
+  .activity-table td {
+    font-size: 14px;
+    color: #111827;
+  }
+  .activity-table tbody tr:last-child td {
+    border-bottom: none;
+  }
+  .current-activity-section p {
+    color: #6b7280;
+    font-style: italic;
+    margin-top: 0.5rem;
+  }
+  .activity-table th:last-child,
+  .activity-table td:last-child {
+    text-align: center;
+  }
+
+  .activity-actions {
+    display: flex;
+    gap: 8px;
+    justify-content: center;
+  }
+
+  .btn-action-warn {
+    padding: 4px 8px;
+    font-size: 12px;
+    font-weight: 500;
+    border: 1px solid #d97706; /* amber-600 */
+    color: #d97706;
+    background: #fffbeb; /* amber-50 */
+    border-radius: 6px;
+    cursor: pointer;
+  }
+  .btn-action-warn:hover {
+    background: #fef3c7; /* amber-100 */
+  }
 </style>
 
 <div class="legend">

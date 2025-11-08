@@ -46,6 +46,13 @@ class WorkspacesController < ApplicationController
         slots: AvailabilityService.new(item, 1, day: @day, tz: @tz).time_slots
       }
     end
+
+    now = @tz.now
+    @current_activity = Reservation.joins(:item)
+                                   .where(items: { workspace_id: @workspace.id })
+                                   .where("reservations.start_time <= ? AND reservations.end_time >= ?", now, now)
+                                   .includes(:user, :item)
+                                   .order("reservations.end_time ASC")
   end
 
   def edit

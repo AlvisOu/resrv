@@ -22,6 +22,10 @@ Resrv::Application.routes.draw do
   # == Reservation Routes ==
   resources :reservations, only: [:index, :create, :destroy] do
     get :availability, on: :collection
+    member do
+      patch :mark_no_show
+      patch :mark_not_returned
+    end
   end
 
   # == Cart Routes ==
