@@ -1,6 +1,4 @@
 class CartsController < ApplicationController
-  skip_forgery_protection
-  before_action :require_login!
 
   def show
     @cart = Cart.load(session, current_user.id)
@@ -22,8 +20,4 @@ class CartsController < ApplicationController
   end
 
   private
-
-  def require_login!
-    redirect_to root_path, alert: "Please sign in first." unless current_user
-  end
 end

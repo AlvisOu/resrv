@@ -1,4 +1,7 @@
 class WorkspacesController < ApplicationController
+  before_action :set_workspace, only: [:show, :edit, :update]
+  before_action :authorize_owner!, only: [:edit, :update]
+
   def index
     if params[:query].present?
       query = params[:query]
@@ -26,7 +29,6 @@ class WorkspacesController < ApplicationController
   end
   
   def show
-    @workspace = Workspace.friendly.find(params[:id])
     @current_join = @workspace.user_to_workspaces.find_by(user: current_user)
 
     @items = @workspace.items.reload.includes(:reservations)
@@ -50,30 +52,32 @@ class WorkspacesController < ApplicationController
     now = @tz.now
     @current_activity = Reservation.joins(:item)
                                    .where(items: { workspace_id: @workspace.id })
-                                   .where("reservations.start_time <= ? AND reservations.end_time >= ?", now, now)
+                                   .where("reservations.start_time <= ? AND reservations.end_time >= ?", now, now - 30.minutes)
                                    .includes(:user, :item)
                                    .order("reservations.end_time ASC")
   end
 
   def edit
-    @workspace = Workspace.friendly.find(params[:id])
-    redirect_to root_path, alert: "Not authorized." unless current_user_is_owner?(@workspace)
   end
 
   def update
-    @workspace = Workspace.friendly.find(params[:id])
-    if current_user_is_owner?(@workspace)
-      if @workspace.update(workspace_params)
-        redirect_to workspace_path(@workspace), notice: "Workspace name updated."
-      else
-        render :edit, status: :unprocessable_entity
-      end
+    if @workspace.update(workspace_params)
+      redirect_to workspace_path(@workspace), notice: "Workspace name updated."
     else
-      redirect_to root_path, alert: "Not authorized."
+      render :edit, status: :unprocessable_entity
     end
   end
 
   private
+
+  def set_workspace
+    @workspace = Workspace.friendly.find(params[:id])
+  end
+
+  def authorize_owner!
+    redirect_to root_path, alert: "Not authorized." unless current_user_is_owner?(@workspace)
+  end
+
   def workspace_params
     params.require(:workspace).permit(:name)
   end

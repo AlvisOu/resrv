@@ -13,7 +13,7 @@
 <% is_owner = @current_join&.role == 'owner' %>
 <% if is_owner %>
   <div class="current-activity-section">
-    <h3>Current Activity</h3>
+    <h3>Current Activity at <%= @tz.now.strftime("%-I:%M %p %Z") %></h3>
     <% if @current_activity.any? %>
       <table class="activity-table">
         <thead>
@@ -512,6 +512,7 @@
       // Add to Cart: collect selected slots and current quantity, then POST
       if (e.target.id === 'add-to-cart') {
         const selected = Array.from(document.querySelectorAll('.slot.selected'));
+        const csrfToken = document.querySelector('meta[name="csrf-token"]')?.content;
         if (selected.length === 0) {
           alert('Select at least one time slot first.');
           return;
@@ -534,7 +535,11 @@
 
         fetch('/cart_items', {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+          headers: { 
+            'Content-Type': 'application/json', 
+            'Accept': 'application/json',
+            'X-CSRF-Token': csrfToken
+          },
           body: JSON.stringify({ selections })
         })
           .then(r => r.json())
