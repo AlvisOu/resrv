@@ -60,7 +60,6 @@ class ReservationsController < ApplicationController
         begin
             ActiveRecord::Base.transaction do
                 @reservation.update!(returned_count: current_returned + quantity_to_return)
-                item.increment!(:quantity, quantity_to_return)
             end
             redirect_to @workspace, notice: "#{quantity_to_return} #{item.name}(s) returned successfully."
         rescue => e
@@ -86,8 +85,6 @@ class ReservationsController < ApplicationController
         begin
             ActiveRecord::Base.transaction do
                 @reservation.update!(returned_count: current_returned - quantity_to_undo)
-                new_item_quantity = [0, item.quantity - quantity_to_undo].max
-                item.update!(quantity: new_item_quantity)
             end
             redirect_to @workspace, notice: "Undo return of #{quantity_to_undo} #{item.name}(s) successful."
         rescue => e
