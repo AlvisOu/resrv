@@ -21,9 +21,10 @@
             <th>Item</th>
             <th>User</th>
             <th>Quantity</th>
-            <th>Reservation Starts</th>
+            <th>Starts</th>
             <th>Ends</th>
-            <th>Actions</th>
+            <th>No Show</th>
+            <th>Return Items</th>
           </tr>
         </thead>
         <tbody>
@@ -49,20 +50,46 @@
                                   class: "btn-action-warn",
                                   data: { confirm: "Are you sure? This will mark '#{reservation.user.name}' as a 'No Show'." } %>
                   <% end %>
+                </div>
+              </td>
+              <td>
+                <div class="return-form-wrapper">
+                  <% 
+                    total = reservation.quantity
+                    returned = reservation.returned_count
+                    still_missing = total - returned
+                  %>
                   
-                  <% if reservation.not_returned? %>
-                    <%= button_to "Undo 'Not Returned'", 
-                                  mark_not_returned_reservation_path(reservation), 
-                                  method: :patch, 
-                                  class: "btn-action-revert" %>
-                  <% else %>
-                    <%= button_to "Mark Not Returned", 
-                                  mark_not_returned_reservation_path(reservation), 
-                                  method: :patch, 
-                                  class: "btn-action-warn",
-                                  data: { confirm: "Are you sure? This will mark '#{reservation.item.name}' as 'Not Returned'." } %>
+                  <% if still_missing > 0 %>
+                    <%= form_with(url: return_items_reservation_path(reservation), method: :patch, class: "return-form") do |f| %>
+                      
+                      <%= number_field_tag :quantity_to_return, nil, 
+                            placeholder: "Qty", 
+                            class: "return-input", 
+                            min: 1, 
+                            max: still_missing %>
+                      
+                      <%= f.submit "Return", class: "btn-action-revert" %>
+                    <% end %>
+                  <% elsif returned > 0 %>
+                    <%= form_with(url: undo_return_items_reservation_path(reservation), method: :patch, class: "return-form") do |f| %>
+                      
+                      <%= number_field_tag :quantity_to_undo, nil, 
+                            placeholder: "Qty", 
+                            class: "return-input", 
+                            min: 1, 
+                            max: returned %>
+                      
+                      <%= f.submit "Undo", class: "btn-action-warn" %>
+                    <% end %>
                   <% end %>
                   
+                  <%# --- STATUS MESSAGE --- %>
+                  <% if still_missing == 0 %>
+                    <span class="status-note-complete">All items returned</span>
+                  <% else %>
+                    <span class="status-note">(<%= still_missing %> / <%= total %> missing)</span>
+                  <% end %>
                 </div>
               </td>
             </tr>
@@ -229,6 +256,62 @@
   }
   .btn-action-warn:hover {
     background: #fef3c7; /* amber-100 */
+  }
+
+  .btn-action-revert {
+    padding: 4px 8px;
+    font-size: 12px;
+    font-weight: 500;
+    border: 1px solid #52525b; /* zinc-600 */
+    color: #3f3f46; /* zinc-700 */
+    background: #f4f4f5; /* zinc-100 */
+    border-radius: 6px;
+    cursor: pointer;
+  }
+  .btn-action-revert:hover {
+    background: #e4e4e7; /* zinc-200 */
+  }
+  .status-note {
+    font-size: 11px;
+    color: #6b7280; /* gray-500 */
+    align-self: center;
+    white-space: nowrap;
+  }
+  
+  .status-note-complete {
+    font-size: 12px;
+    color: #16a34a; /* green-600 */
+    font-weight: 500;
+    align-self: center;
+    white-space: nowrap;
+    padding: 5px 0; /* Add padding to match button height */
+  }
+
+  /* Wrapper for the form and status text */
+  .return-form-wrapper {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    align-items: center;
+    /* Add a border to visually separate it */
+    border-left: 2px solid #e5e7eb;
+    padding-left: 8px;
+    margin-left: 8px;
+  }
+
+  /* The form itself (input + button) */
+  .return-form {
+    display: flex;
+    gap: 6px;
+  }
+
+  /* The small number input box */
+  .return-input {
+    width: 50px; 
+    padding: 4px 6px;
+    font-size: 13px;
+    border: 1px solid #d1d5db;
+    border-radius: 6px;
   }
 </style>
 

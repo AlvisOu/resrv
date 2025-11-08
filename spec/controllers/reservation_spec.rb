@@ -21,8 +21,8 @@ RSpec.describe ReservationsController, type: :controller do
   describe "GET #index" do
     it "assigns grouped reservations to @reservations" do
       get :index
-      expect(assigns(:reservations)).to be_a(Hash)
-      expect(assigns(:reservations).values.flatten.first).to eq(reservation)
+      expect(assigns(:reservations)).to be_a(ActiveRecord::Relation)
+      expect(assigns(:reservations).first).to eq(reservation)
       expect(response).to render_template(:index)
     end
   end

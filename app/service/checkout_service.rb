@@ -49,14 +49,13 @@ class CheckoutService
       return add_error("Not enough capacity for #{item.name} between #{s.in_time_zone.strftime('%-I:%M %p')}–#{e.in_time_zone.strftime('%-I:%M %p')}.")
     end
 
-    q.times do
-      Reservation.create!(
-        user_id:    user.id,
-        item_id:    item.id,
-        start_time: s,
-        end_time:   e
-      )
-    end
+    Reservation.create!(
+      user_id:    user.id,
+      item_id:    item.id,
+      start_time: s,
+      end_time:   e,
+      quantity:   q
+    )
 
     true
   end
@@ -65,7 +64,7 @@ class CheckoutService
     existing = Reservation.
       where(item_id: item.id).
       where("start_time < ? AND end_time > ?", end_time, start_time).
-      count
+      sum(:quantity)
 
     (existing + quantity) <= item.quantity.to_i
   end

@@ -24,7 +24,8 @@ Resrv::Application.routes.draw do
     get :availability, on: :collection
     member do
       patch :mark_no_show
-      patch :mark_not_returned
+      patch :return_items
+      patch :undo_return_items
     end
   end
 

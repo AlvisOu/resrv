@@ -1,6 +1,6 @@
 class ReservationsController < ApplicationController
     before_action :require_user
-    before_action :set_reservation_and_workspace, only: [:mark_no_show, :mark_not_returned]
+    before_action :set_reservation_and_workspace, only: [:mark_no_show, :return_items, :undo_return_items]
 
     def availability
         item = Item.friendly.find(params[:item_id])
@@ -16,7 +16,7 @@ class ReservationsController < ApplicationController
         # Group reservations by identical (start, end, item)
         @reservations = current_user.reservations
                                     .includes(item: :workspace)
-                                    .group_by { |r| [r.start_time, r.end_time, r.item_id] }
+                                    .order(start_time: :asc)
     end
 
     def destroy
@@ -39,17 +39,60 @@ class ReservationsController < ApplicationController
         redirect_to @workspace, notice: notice
     end
 
-    def mark_not_returned
+    def return_items
         unless current_user_is_owner?(@workspace)
             redirect_to @workspace, alert: "Not authorized."
         end
-        new_status = !@reservation.not_returned
-        @reservation.update(not_returned: new_status)
-        notice = new_status ?
-            "#{@reservation.user.name} marked as not returned." :
-            "Not returned status reverted for #{@reservation.user.name}."
+        item = @reservation.item
+        quantity_to_return = params[:quantity_to_return].to_i
+        if quantity_to_return <= 0
+            return redirect_to @workspace, alert: "Please enter a positive number."
+        end
 
-        redirect_to @workspace, notice: notice
+        total_reserved = @reservation.quantity
+        current_returned = @reservation.returned_count
+        max_possible_return = total_reserved - current_returned
+
+        if quantity_to_return > max_possible_return
+            return redirect_to @workspace, alert: "Cannot return more than reserved. Max possible to return: #{max_possible_return}."
+        end
+
+        begin
+            ActiveRecord::Base.transaction do
+                @reservation.update!(returned_count: current_returned + quantity_to_return)
+                item.increment!(:quantity, quantity_to_return)
+            end
+            redirect_to @workspace, notice: "#{quantity_to_return} #{item.name}(s) returned successfully."
+        rescue => e
+            redirect_to @workspace, alert: "Failed to update status: #{e.message}"
+        end
+    end
+
+    def undo_return_items
+        unless current_user_is_owner?(@workspace)
+            redirect_to @workspace, alert: "Not authorized."
+        end
+        item = @reservation.item
+        quantity_to_undo = params[:quantity_to_undo].to_i
+        if quantity_to_undo <= 0
+            return redirect_to @workspace, alert: "Please enter a positive number."
+        end
+
+        current_returned = @reservation.returned_count
+        if quantity_to_undo > current_returned
+            return redirect_to @workspace, alert: "Cannot undo more than returned. Currently returned: #{current_returned}."
+        end
+
+        begin
+            ActiveRecord::Base.transaction do
+                @reservation.update!(returned_count: current_returned - quantity_to_undo)
+                new_item_quantity = [0, item.quantity - quantity_to_undo].max
+                item.update!(quantity: new_item_quantity)
+            end
+            redirect_to @workspace, notice: "Undo return of #{quantity_to_undo} #{item.name}(s) successful."
+        rescue => e
+            redirect_to @workspace, alert: "Failed to update status: #{e.message}"
+        end
     end
 
     private

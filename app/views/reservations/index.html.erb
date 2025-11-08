@@ -13,18 +13,15 @@
       </tr>
     </thead>
     <tbody>
-      <% @reservations.each do |(start_time, end_time, item_id), res_group| %>
-        <% item = res_group.first.item %>
-        <% sample_reservation = res_group.first %>
-
-        <tr id="reservation_<%= sample_reservation.id %>">
-          <td><%= item.name %></td>
-          <td><%= item.workspace.name %></td>
-          <td><%= start_time.in_time_zone.strftime("%b %d, %I:%M %p") %></td>
-          <td><%= end_time.in_time_zone.strftime("%b %d, %I:%M %p") %></td>
-          <td><%= res_group.size %></td>
+      <% @reservations.each do |reservation| %>
+        <tr id="reservation_<%= reservation.id %>">
+          <td><%= reservation.item.name %></td>
+          <td><%= reservation.item.workspace.name %></td>
+          <td><%= reservation.start_time.in_time_zone.strftime("%b %d, %I:%M %p") %></td>
+          <td><%= reservation.end_time.in_time_zone.strftime("%b %d, %I:%M %p") %></td>
+          <td><%= reservation.quantity %></td>
           <td>
-            <%= link_to "Cancel", reservation_path(sample_reservation),
+            <%= link_to "Cancel", reservation_path(reservation),
                         method: :delete,
                         data: { confirm: "Are you sure you want to cancel this reservation?" },
                         class: "btn btn-danger btn-sm" %>

@@ -111,7 +111,7 @@ RSpec.describe CartsController, type: :controller do
 
         post :checkout, params: { workspace_id: workspace.id }
         expect(response).to redirect_to(cart_path(workspace_id: workspace.id))
-        expect(flash[:alert]).to eq("Nothing to checkout for this workspace.")
+        expect(flash[:alert]).to eq("No items in cart for this workspace.")
       end
     end
 
