@@ -19,6 +19,8 @@ class User < ApplicationRecord
     has_many :user_joins, -> { where(role: 'user') }, class_name: 'UserToWorkspace'
     has_many :joined_workspaces, through: :user_joins, source: :workspace
 
+    has_many :notifications, dependent: :destroy
+
     private
 
     def downcase_email

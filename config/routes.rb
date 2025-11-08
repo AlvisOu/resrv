@@ -1,4 +1,6 @@
 Resrv::Application.routes.draw do
+  get "notifications/index"
+  get "notifications/mark_as_read"
   # == Root Route ==
   root "workspaces#index"
   
@@ -27,6 +29,10 @@ Resrv::Application.routes.draw do
       patch :return_items
       patch :undo_return_items
     end
+  end
+
+  resources :notifications, only: [:index] do
+    post :mark_as_read, on: :member
   end
 
   # == Cart Routes ==

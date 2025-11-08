@@ -1,0 +1,12 @@
+<h2>Notifications</h2>
+
+<% @notifications.each do |note| %>
+  <div style="margin-bottom: 10px; padding: 10px; border: 1px solid gray; background: <%= note.read ? '#f8f8f8' : '#fff3cd' %>;">
+    <strong><%= note.message %></strong><br>
+    <small><%= note.created_at.strftime('%b %d, %Y %I:%M %p') %></small><br>
+
+    <% unless note.read %>
+      <%= button_to "Mark as Read", mark_as_read_notification_path(note), method: :post, class: "btn btn-sm btn-outline-secondary" %>
+    <% end %>
+  </div>
+<% end %>

@@ -44,12 +44,12 @@ class CheckoutService
 
     return add_error("Item no longer exists.") if item.nil?
     return add_error("Invalid time/quantity for #{item.name}.") if s.blank? || e.blank? || s >= e || q <= 0
-    
+
     unless capacity_available?(item, s, e, q)
       return add_error("Not enough capacity for #{item.name} between #{s.in_time_zone.strftime('%-I:%M %p')}–#{e.in_time_zone.strftime('%-I:%M %p')}.")
     end
 
-    Reservation.create!(
+    reservation = Reservation.create!(
       user_id:    user.id,
       item_id:    item.id,
       start_time: s,
@@ -57,6 +57,16 @@ class CheckoutService
       quantity:   q
     )
 
+    Notification.create!(
+      user: user,
+      reservation: reservation,
+      message: "You reserved #{reservation.quantity}x #{item.name} in #{item.workspace.name} from #{s.strftime('%-I:%M %p')} to #{e.strftime('%-I:%M %p')}.",
+      read: false
+    )
+
+    ReservationReminderJob.set(wait_until: reservation.start_time - 2.hours).perform_later(reservation.id, 'start')
+    ReservationReminderJob.set(wait_until: reservation.end_time - 10.minutes).perform_later(reservation.id, 'end')
+    
     true
   end
 

@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2025_11_08_200953) do
+ActiveRecord::Schema[8.0].define(version: 2025_11_08_222038) do
   create_table "items", force: :cascade do |t|
     t.string "name"
     t.integer "quantity"
@@ -22,6 +22,17 @@ ActiveRecord::Schema[8.0].define(version: 2025_11_08_200953) do
     t.string "slug"
     t.index ["slug"], name: "index_items_on_slug", unique: true
     t.index ["workspace_id"], name: "index_items_on_workspace_id"
+  end
+
+  create_table "notifications", force: :cascade do |t|
+    t.integer "user_id"
+    t.text "message"
+    t.boolean "read", default: false
+    t.integer "reservation_id"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["reservation_id"], name: "index_notifications_on_reservation_id"
+    t.index ["user_id"], name: "index_notifications_on_user_id"
   end
 
   create_table "reservations", force: :cascade do |t|
@@ -69,6 +80,8 @@ ActiveRecord::Schema[8.0].define(version: 2025_11_08_200953) do
   end
 
   add_foreign_key "items", "workspaces"
+  add_foreign_key "notifications", "reservations"
+  add_foreign_key "notifications", "users"
   add_foreign_key "reservations", "items"
   add_foreign_key "reservations", "users"
   add_foreign_key "user_to_workspaces", "users"

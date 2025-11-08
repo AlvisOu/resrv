@@ -25,6 +25,17 @@
             <ul class="navbar-nav ml-auto">
               <% if logged_in? %>
                 <li class="nav-item">
+                  <%= link_to notifications_path, class: "nav-link position-relative" do %>
+                    🔔
+                    <% unread_count = current_user.notifications.where(read: false).count %>
+                    <% if unread_count > 0 %>
+                      <span class="badge badge-pill badge-danger position-absolute" style="top: 0; right: 0; font-size: 0.7rem;">
+                        <%= unread_count %>
+                      </span>
+                    <% end %>
+                  <% end %>
+                </li>
+                <li class="nav-item">
                   <%= link_to "My Reservations", reservations_path, class: "nav-link" %>
                 </li>
                 <li class="nav-item">
