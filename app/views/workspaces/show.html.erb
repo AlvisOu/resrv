@@ -1,9 +1,5 @@
 <h1><%= @workspace.name %></h1>
 
-<% flash.each do |message_type, message| %>
-  <div class="flash flash-<%= message_type %>"><%= message %></div>
-<% end %>
-
 <%= link_to "Rename Workspace", edit_workspace_path(@workspace), class: "button" if current_user_is_owner?(@workspace) %>
 <p style="font-size:16px;"><strong>Description:</strong> <%= @workspace.name %> ===> Edit later</p>
 <p style="font-size:16px;">ID: <%= @workspace.id %></p>
