@@ -31,8 +31,12 @@ Resrv::Application.routes.draw do
     end
   end
 
-  resources :notifications, only: [:index] do
-    post :mark_as_read, on: :member
+  resources :notifications, only: [:index, :destroy] do
+    post :mark_as_read,  on: :member
+    collection do
+      post :mark_all_as_read
+      delete :delete_all
+    end
   end
 
   # == Cart Routes ==
