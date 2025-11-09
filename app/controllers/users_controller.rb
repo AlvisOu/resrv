@@ -27,9 +27,10 @@ class UsersController < ApplicationController
   def create
     @user = User.new(user_params)
     if @user.save
-      session[:user_id] = @user.id
-      flash[:notice] = "Welcome, #{@user.name}!"
-      redirect_to root_path
+      @user.send_verification_email
+      session[:unverified_user_id] = @user.id
+      flash[:notice] = "Welcome! Please check your email for a verification code."
+      redirect_to verify_email_path
     else
       render :new, status: :unprocessable_entity
     end

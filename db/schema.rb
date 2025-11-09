@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2025_11_09_020657) do
+ActiveRecord::Schema[8.0].define(version: 2025_11_09_192749) do
   create_table "items", force: :cascade do |t|
     t.string "name"
     t.integer "quantity"
@@ -27,7 +27,7 @@ ActiveRecord::Schema[8.0].define(version: 2025_11_09_020657) do
   create_table "notifications", force: :cascade do |t|
     t.integer "user_id"
     t.text "message"
-    t.boolean "read", default: false
+    t.boolean "read", default: false, null: false
     t.integer "reservation_id"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
@@ -80,6 +80,9 @@ ActiveRecord::Schema[8.0].define(version: 2025_11_09_020657) do
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.string "slug"
+    t.string "verification_code"
+    t.datetime "verification_sent_at"
+    t.datetime "email_verified_at"
     t.index ["email"], name: "index_users_on_email", unique: true
     t.index ["slug"], name: "index_users_on_slug", unique: true
   end

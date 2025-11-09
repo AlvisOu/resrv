@@ -4,6 +4,7 @@ Given('I am logged in as {string}') do |email|
     u.name = email.split('@').first.capitalize
     u.password = "password"
     u.password_confirmation = "password"
+    u.email_verified_at = Time.now
   end
   visit path_to('the login page')
   fill_in "session[email]", with: user.email
@@ -34,6 +35,7 @@ Given /^I am logged in as a (workspace owner|standard user) of "([^"]*)"$/ do |m
     user.name = "#{role_name.capitalize} User"
     user.password = "password"
     user.password_confirmation = "password"
+    user.email_verified_at = Time.now
   end
 
   workspace = Workspace.find_or_create_by!(name: workspace_name)

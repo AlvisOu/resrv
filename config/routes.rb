@@ -1,6 +1,4 @@
 Resrv::Application.routes.draw do
-  get "notifications/index"
-  get "notifications/mark_as_read"
   # == Root Route ==
   root "workspaces#index"
   
@@ -14,6 +12,10 @@ Resrv::Application.routes.draw do
   get "login", to: "sessions#new", as: "login"
   post "login", to: "sessions#create"
   delete "logout", to: "sessions#destroy", as: "logout"
+
+  # == Email Verification Routes ==
+  get "email/verify", to: "email_verifications#new", as: "verify_email"
+  post "email/verify", to: "email_verifications#create"
 
   # == Workspace Routes ==
   resources :workspaces, only: [:index, :new, :create, :show, :edit, :update] do
@@ -31,6 +33,7 @@ Resrv::Application.routes.draw do
     end
   end
 
+  # == Notification Routes ==
   resources :notifications, only: [:index, :destroy] do
     post :mark_as_read,  on: :member
     collection do
