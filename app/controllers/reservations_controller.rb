@@ -28,8 +28,9 @@ class ReservationsController < ApplicationController
 
     def mark_no_show
         unless current_user_is_owner?(@workspace)
-            redirect_to @workspace, alert: "Not authorized."
+            return redirect_to @workspace, alert: "Not authorized."
         end
+
         new_status = !@reservation.no_show
         @reservation.update(no_show: new_status)
 
@@ -38,17 +39,18 @@ class ReservationsController < ApplicationController
             user: @reservation.user,
             reservation: @reservation,
             workspace: @reservation.item.workspace,
-            reason: :no_show,
-            expires_at: 2.weeks.from_now
+            reason: "no_show",
+            expires_at: 5.days.from_now
             )
         else
-            @reservation.penalty&.destroy
+            penalty = Penalty.find_by(reservation: @reservation, reason: "no_show")
+            penalty.destroy if penalty.present?
         end
 
         notice = new_status ? 
             "#{@reservation.user.name} marked as no-show." : 
             "No-show status reverted for #{@reservation.user.name}."
-            
+
         redirect_to @workspace, notice: notice
     end
 
@@ -76,7 +78,7 @@ class ReservationsController < ApplicationController
                 if @reservation.end_time < Time.current
                     lateness = Time.current - @reservation.end_time
 
-                    if lateness > 15.minutes
+                    if lateness > 5.minutes
                     duration = lateness > 30.minutes ? 2.weeks : 2.days
                     Penalty.create!(
                         user: @reservation.user,
