@@ -19,6 +19,21 @@ Resrv::Application.configure do
   # Generate digests for assets URLs
   config.assets.digest = true
 
+  # Emailer configuration for production
+  config.action_mailer.delivery_method = :smtp
+  config.action_mailer.raise_delivery_errors = true
+  config.action_mailer.perform_caching = false
+  config.action_mailer.default_url_options = { host: 'resrv-fc94874a0a23.herokuapp.com' }
+  config.action_mailer.smtp_settings = {
+    :address             => ENV['SMTP_ADDRESS'],
+    :port                => ENV['SMTP_PORT'],
+    :user_name           => ENV['SMTP_USER_NAME'],
+    :password            => ENV['SMTP_PASSWORD'],
+    :authentication      => :plain,
+    :domain              => 'herokuapp.com',
+    :enable_starttls_auto => true
+  }
+
   # Defaults to Rails.root.join("public/assets")
   # config.assets.manifest = YOUR_PATH
 
