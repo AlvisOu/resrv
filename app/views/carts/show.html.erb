@@ -13,6 +13,13 @@
     <% end %>
   </div>
 
+  <% if @penalty %>
+    <div class="alert alert-warning" style="background-color: #fef3c7; border: 1px solid #f59e0b; padding: 1rem; border-radius: 8px; margin-bottom: 1rem;">
+      ⚠️ You are blocked from making reservations in this workspace due to a <strong><%= @penalty.reason.humanize %></strong>.
+      Access will be restored on <strong><%= @penalty.expires_at.strftime("%B %-d at %-I:%M %p") %></strong>.
+    </div>
+  <% end %>
+
   <% if @active_segments.blank? %>
     <p>No items in this workspace tab yet.</p>
   <% else %>
@@ -53,8 +60,12 @@
     <div style="margin-top:1rem; display:flex; justify-content:flex-end; gap:.5rem;">
     <%= form_with url: checkout_cart_path, method: :post, local: true, id: "checkout-form" do %>
         <%= hidden_field_tag :workspace_id, @active_workspace_id %>
-        <button type="submit" class="btn btn-primary" style="padding:.6rem 1rem; border-radius:8px; background:#111; color:#fff; border:none;">
-        resrv
+        <% disabled = @penalty.present? %>
+        <button type="submit"
+                class="btn btn-primary"
+                style="padding:.6rem 1rem; border-radius:8px; background:#111; color:#fff; border:none; opacity: <%= disabled ? 0.6 : 1 %>;"
+                <%= "disabled" if disabled %>>
+          <%= disabled ? "Blocked due to Penalty" : "resrv" %>
         </button>
     <% end %>
     <%= link_to "Continue Browsing", root_path, class: "btn" %>

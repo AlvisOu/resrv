@@ -32,6 +32,19 @@ class ReservationsController < ApplicationController
         end
         new_status = !@reservation.no_show
         @reservation.update(no_show: new_status)
+
+        if new_status
+            Penalty.create!(
+            user: @reservation.user,
+            reservation: @reservation,
+            workspace: @reservation.item.workspace,
+            reason: :no_show,
+            expires_at: 2.weeks.from_now
+            )
+        else
+            @reservation.penalty&.destroy
+        end
+
         notice = new_status ? 
             "#{@reservation.user.name} marked as no-show." : 
             "No-show status reverted for #{@reservation.user.name}."
@@ -60,6 +73,20 @@ class ReservationsController < ApplicationController
         begin
             ActiveRecord::Base.transaction do
                 @reservation.update!(returned_count: current_returned + quantity_to_return)
+                if @reservation.end_time < Time.current
+                    lateness = Time.current - @reservation.end_time
+
+                    if lateness > 15.minutes
+                    duration = lateness > 30.minutes ? 2.weeks : 2.days
+                    Penalty.create!(
+                        user: @reservation.user,
+                        reservation: @reservation,
+                        workspace: @reservation.item.workspace,
+                        reason: :late_return,
+                        expires_at: duration.from_now
+                    )
+                    end
+                end
             end
             redirect_to @workspace, notice: "#{quantity_to_return} #{item.name}(s) returned successfully."
         rescue => e

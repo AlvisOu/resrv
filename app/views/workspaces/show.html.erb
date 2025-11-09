@@ -1,5 +1,14 @@
 <h1><%= @workspace.name %></h1>
 
+<% if @penalty && !current_user_is_owner?(@workspace) %>
+  <div class="alert alert-warning" style="margin-top: 1rem; background-color: #fef3c7; border: 1px solid #f59e0b; padding: 1rem; border-radius: 8px;">
+    <strong>⚠️ Penalty Notice:</strong>
+    You are blocked from making reservations in this workspace due to a
+    <%= @penalty.reason.humanize.downcase %>.
+    You’ll regain access after <strong><%= @penalty.expires_at.strftime("%B %-d at %-I:%M %p") %></strong>.
+  </div>
+<% end %>
+
 <%= link_to "Rename Workspace", edit_workspace_path(@workspace), class: "button" if current_user_is_owner?(@workspace) %>
 <p style="font-size:16px;"><strong>Description:</strong> <%= @workspace.name %> ===> Edit later</p>
 <p style="font-size:16px;">ID: <%= @workspace.id %></p>
@@ -388,7 +397,14 @@
 
 <% unless is_owner %>
   <div class="actions-bar">
-    <button type="button" class="btn-primary" id="add-to-cart">Add to Cart</button>
+    <button 
+      type="button" 
+      class="btn-primary" 
+      id="add-to-cart" 
+      <%= "disabled" if @penalty %>
+    >
+      Add to Cart
+    </button>
   </div>
 <% end %>
 

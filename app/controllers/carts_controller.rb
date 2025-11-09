@@ -4,7 +4,10 @@ class CartsController < ApplicationController
     @cart = Cart.load(session, current_user.id)
     groups = @cart.merged_segments_by_workspace
     @workspaces = groups.keys.compact
+
     @active_workspace_id = params[:workspace_id]&.to_i || @workspaces.first&.id
+    @penalty = current_user.penalties.active.find_by(workspace_id: @active_workspace_id)
+    puts "PENALTY DEBUG: #{@penalty.inspect}"
     @active_segments = groups.find { |w, _| w&.id == @active_workspace_id }&.last || []
   end
 

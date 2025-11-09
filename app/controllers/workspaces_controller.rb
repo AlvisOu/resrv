@@ -31,6 +31,8 @@ class WorkspacesController < ApplicationController
   def show
     @current_join = @workspace.user_to_workspaces.find_by(user: current_user)
 
+    @penalty = current_user.penalties.active.find_by(workspace: @workspace)
+
     @items = @workspace.items.reload.includes(:reservations)
 
     @day = Date.current

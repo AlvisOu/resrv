@@ -1,6 +1,7 @@
 class Reservation < ApplicationRecord
   belongs_to :user
   belongs_to :item
+  has_many :penalty, dependent: :destroy
 
   validates :start_time, :end_time, presence: true
 

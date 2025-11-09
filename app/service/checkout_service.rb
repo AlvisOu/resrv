@@ -45,6 +45,10 @@ class CheckoutService
     return add_error("Item no longer exists.") if item.nil?
     return add_error("Invalid time/quantity for #{item.name}.") if s.blank? || e.blank? || s >= e || q <= 0
 
+    if user.blocked_from_reserving_in?(item.workspace)
+      return add_error("You are blocked from making reservations in #{item.workspace.name} due to a recent penalty.")
+    end
+
     unless capacity_available?(item, s, e, q)
       return add_error("Not enough capacity for #{item.name} between #{s.in_time_zone.strftime('%-I:%M %p')}–#{e.in_time_zone.strftime('%-I:%M %p')}.")
     end
@@ -66,7 +70,7 @@ class CheckoutService
 
     ReservationReminderJob.set(wait_until: reservation.start_time - 2.hours).perform_later(reservation.id, 'start')
     ReservationReminderJob.set(wait_until: reservation.end_time - 10.minutes).perform_later(reservation.id, 'end')
-    
+
     true
   end
 

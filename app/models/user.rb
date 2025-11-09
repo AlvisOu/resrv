@@ -21,9 +21,25 @@ class User < ApplicationRecord
 
     has_many :notifications, dependent: :destroy
 
+    has_many :penalties
+
+    def blocked_from_reserving_in?(workspace)
+        penalties.active.any? do |penalty|
+            penalty.reservation.item.workspace_id == workspace.id
+        end
+    end
+
+    def penalty_expiry_for(workspace)
+        penalties.active
+            .select { |p| p.reservation.item.workspace_id == workspace.id }
+            .map(&:expires_at)
+            .max
+    end
+
     private
 
     def downcase_email
         self.email = email.downcase if email.present?
     end
+
 end

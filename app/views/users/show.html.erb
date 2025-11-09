@@ -4,6 +4,30 @@
 
 <hr>
 
+<h2>Penalties by Workspace</h2>
+
+<% if @workspace_penalties.any? %>
+  <% @workspace_penalties.each do |workspace, penalties| %>
+    <div class="mb-3">
+      <h4><%= workspace.name %></h4>
+      <ul class="list-group">
+        <% penalties.each do |penalty| %>
+          <li class="list-group-item d-flex justify-content-between align-items-center">
+            <span>
+              <strong><%= penalty.reason.titleize %></strong>
+              — expires <%= penalty.expires_at.strftime("%b %d, %Y %I:%M %p") %>
+            </span>
+          </li>
+        <% end %>
+      </ul>
+    </div>
+  <% end %>
+<% else %>
+  <p class="text-muted">You have no active penalties in any workspace.</p>
+<% end %>
+
+<hr>
+
 <h2>Edit Profile</h2>
 
 <%= form_with model: @user, url: profile_path, method: :patch do |f| %>
