@@ -14,13 +14,15 @@ admin = User.create!(
   name: "Admin User",
   email: "admin@resrv.com",
   password: "password123",
-  password_confirmation: "password123"
+  password_confirmation: "password123",
+  email_verified_at: Time.current
 )
 member = User.create!(
   name: "Member User",
   email: "member@resrv.com",
   password: "password123",
-  password_confirmation: "password123"
+  password_confirmation: "password123",
+  email_verified_at: Time.current
 )
 puts "Created #{User.count} users."
 
