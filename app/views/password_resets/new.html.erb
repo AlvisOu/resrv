@@ -1,0 +1,16 @@
+<h2>Forgot Your Password?</h2>
+<p>
+  Enter your email address and we will send you
+  a link to reset your password.
+</p>
+
+<%= form_with url: password_reset_path, method: :post, local: true do |form| %>
+  <div>
+    <%= form.label :email %>
+    <%= form.email_field :email %>
+  </div>
+
+  <div>
+    <%= form.submit "Send Reset Link" %>
+  </div>
+<% end %>

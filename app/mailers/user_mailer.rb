@@ -9,4 +9,13 @@ class UserMailer < ApplicationMailer
       subject: "Your Verification Code"
     )
   end
+
+  def send_password_reset(user)
+    @user = user
+    @token = user.reset_token
+    mail(
+      to: @user.email,
+      subject: "Password Reset Instructions"
+    )
+  end
 end
