@@ -29,7 +29,7 @@
                     🔔
                     <% unread_count = current_user.notifications.where(read: false).count %>
                     <% if unread_count > 0 %>
-                      <span class="badge badge-pill badge-danger position-absolute" style="top: 0; right: 0; font-size: 0.7rem;">
+                      <span id="unread-count" class="badge badge-pill badge-danger position-absolute" style="top: 0; right: 0; font-size: 0.7rem;">
                         <%= unread_count %>
                       </span>
                     <% end %>
