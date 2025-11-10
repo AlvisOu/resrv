@@ -3,12 +3,37 @@ class Reservation < ApplicationRecord
   belongs_to :item
   has_many :penalties,     dependent: :delete_all   # or :destroy if you need callbacks
   has_many :notifications, dependent: :delete_all   # add this association if not present
+  has_one :missing_report, dependent: :destroy
 
   validates :start_time, :end_time, presence: true
 
   include TimeValidatable
   validate :end_time_after_start_time
   validate :check_availability
+
+  def auto_mark_missing_items
+    return unless item.present?
+
+    actual_returned = returned_count.to_i
+    booked = quantity.to_i
+
+    return unless Time.current > (end_time + 30.minutes)
+
+    missing_qty = booked - actual_returned
+    return unless missing_qty.positive?
+
+    return if MissingReport.exists?(reservation: self, item: item, workspace: item.workspace)
+
+    MissingReport.create!(
+      reservation: self,
+      item: item,
+      workspace: item.workspace,
+      quantity: missing_qty,
+      resolved: false
+    )
+
+    item.decrement!(:quantity, missing_qty)
+  end
 
   private
 

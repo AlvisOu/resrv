@@ -9,6 +9,12 @@
   </div>
 <% end %>
 
+<% if current_user_is_owner?(@workspace) %>
+  <div style="margin-bottom: 1rem;">
+    <%= link_to "View Missing Items", workspace_missing_reports_path(@workspace), class: "btn btn-warning" %>
+  </div>
+<% end %>
+
 <%= link_to "Rename Workspace", edit_workspace_path(@workspace), class: "button" if current_user_is_owner?(@workspace) %>
 <p style="font-size:16px;"><strong>Description:</strong> <%= @workspace.name %> ===> Edit later</p>
 <p style="font-size:16px;">ID: <%= @workspace.id %></p>

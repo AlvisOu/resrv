@@ -28,57 +28,65 @@ class WorkspacesController < ApplicationController
     @workspace = Workspace.new
   end
   
-def show
-  @current_join = @workspace.user_to_workspaces.find_by(user: current_user)
-  @penalty = current_user.penalties.active.find_by(workspace: @workspace)
-  @items = @workspace.items.reload.includes(:reservations)
+  def show
+    @current_join = @workspace.user_to_workspaces.find_by(user: current_user)
+    @penalty = current_user.penalties.active.find_by(workspace: @workspace)
+    @items = @workspace.items.reload.includes(:reservations)
 
-  @tz = Time.zone || ActiveSupport::TimeZone["UTC"]
-  today = @tz.today
-  max_day = today + 7.days
+    @tz = Time.zone || ActiveSupport::TimeZone["UTC"]
+    today = @tz.today
+    max_day = today + 7.days
 
-  # Parse & clamp selected day (GET /workspaces/:id?day=YYYY-MM-DD)
-  requested_day =
-    begin
-      Date.iso8601(params[:day]) if params[:day].present?
-    rescue ArgumentError
-      nil
+    # Parse & clamp selected day (GET /workspaces/:id?day=YYYY-MM-DD)
+    requested_day =
+      begin
+        Date.iso8601(params[:day]) if params[:day].present?
+      rescue ArgumentError
+        nil
+      end
+
+    @day = requested_day || today
+    @day = today  if @day < today
+    @day = max_day if @day > max_day
+
+    # For the header: precompute 96 ticks for @day
+    @slots = []
+    day_start = @tz.local(@day.year, @day.month, @day.day, 0, 0, 0)
+    96.times { |i| @slots << (day_start + i * 15.minutes) }
+
+    # Booking window: now → (today + 7 days) end-of-day
+    now = @tz.now
+    window_start = [day_start, ceil_to_15(now)].max # greys out past for today
+    window_end   = (today + 7.days).in_time_zone(@tz).end_of_day
+
+    # Availability for default quantity = 1 (initial paint) for selected @day
+    @availability_data = @items.map do |item|
+      {
+        item: item,
+        slots: AvailabilityService.new(
+          item, 1,
+          day: @day, tz: @tz,
+          window_start: window_start,
+          window_end: window_end
+        ).time_slots
+      }
     end
 
-  @day = requested_day || today
-  @day = today  if @day < today
-  @day = max_day if @day > max_day
+    # Current activity block (unchanged)
+    @current_activity = Reservation.joins(:item)
+                                  .where(items: { workspace_id: @workspace.id })
+                                  .where("reservations.start_time <= ? AND reservations.end_time >= ?", now, now - 30.minutes)
+                                  .includes(:user, :item)
+                                  .order("reservations.end_time ASC")
+                                
+    @current_activity.each do |reservation|
+      reservation.auto_mark_missing_items
+    end
 
-  # For the header: precompute 96 ticks for @day
-  @slots = []
-  day_start = @tz.local(@day.year, @day.month, @day.day, 0, 0, 0)
-  96.times { |i| @slots << (day_start + i * 15.minutes) }
+    @unresolved_reports = @workspace.missing_reports.where(resolved: false).includes(:item, reservation: :user)
+    @resolved_reports   = @workspace.missing_reports.where(resolved: true).includes(:item, reservation: :user)
 
-  # Booking window: now → (today + 7 days) end-of-day
-  now = @tz.now
-  window_start = [day_start, ceil_to_15(now)].max # greys out past for today
-  window_end   = (today + 7.days).in_time_zone(@tz).end_of_day
-
-  # Availability for default quantity = 1 (initial paint) for selected @day
-  @availability_data = @items.map do |item|
-    {
-      item: item,
-      slots: AvailabilityService.new(
-        item, 1,
-        day: @day, tz: @tz,
-        window_start: window_start,
-        window_end: window_end
-      ).time_slots
-    }
   end
-
-  # Current activity block (unchanged)
-  @current_activity = Reservation.joins(:item)
-                                 .where(items: { workspace_id: @workspace.id })
-                                 .where("reservations.start_time <= ? AND reservations.end_time >= ?", now, now - 30.minutes)
-                                 .includes(:user, :item)
-                                 .order("reservations.end_time ASC")
-end
 
   private
 
