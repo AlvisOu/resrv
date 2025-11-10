@@ -20,6 +20,15 @@ Feature: Notification
     And the "Reservation Confirmed" notification should be marked as read
     And I should see an unread count of "1"
 
+  @javascript
+  Scenario: Delete a single notification
+    When I go to my notifications page
+    And I press "Delete" for "Reservation Confirmed" and accept the alert
+    Then I should see "Notification deleted."
+    And I should not see "Reservation Confirmed"
+    And I should see "Item Returned"
+    And I should see an unread count of "1"
+
   Scenario: Mark all notifications as read
     When I go to my notifications page
     And I click "Mark All as Read"

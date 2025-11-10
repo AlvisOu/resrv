@@ -16,6 +16,16 @@ When("I click {string} for {string}") do |button_text, notification_message|
     end
 end
 
+When("I press {string} for {string} and accept the alert") do |button_text, notification_message|
+  notification_text_element = find('strong', text: notification_message)
+  notification_block = notification_text_element.find(:xpath, '..')
+
+  within(notification_block) do
+    accept_alert do
+      click_button(button_text)
+    end
+  end
+end
 
 
 # --- Sees ---
