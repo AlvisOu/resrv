@@ -21,6 +21,34 @@
 
   <br>
   <%= f.submit "Confirm", class: "btn-primary" %>
+  
+  <script>
+    document.addEventListener("DOMContentLoaded", () => {
+      const form = document.querySelector("form[action*='items']");
+      if (!form) return;
+
+      const inputs = form.querySelectorAll("input, select, textarea");
+
+      inputs.forEach((input) => {
+        input.addEventListener("change", () => {
+          input.dataset.changed = "true";
+          input.style.backgroundColor = "#fff8e1";  // soft yellow
+          input.style.borderColor = "#facc15";      // amber
+        });
+      });
+
+      form.addEventListener("submit", () => {
+        inputs.forEach((input) => {
+          if (input.dataset.changed === "true") {
+            input.style.backgroundColor = "";
+            input.style.borderColor = "";
+            delete input.dataset.changed;
+          }
+        });
+      });
+    });
+  </script>
+
 <% end %>
 
 <% if @item.persisted? %>
