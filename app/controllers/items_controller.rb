@@ -25,7 +25,7 @@ class ItemsController < ApplicationController
 
     # Hourly reservations today
     today_res = @item.reservations.where(start_time: today.beginning_of_day..today.end_of_day)
-    @current_counts = today_res.group_by { |r| r.start_time.hour }.transform_values(&:count)
+    @current_counts = today_res.group_by { |r| r.start_time.hour }.transform_values{ |reservations| reservations.sum(&:quantity) }
 
     # Historical averages: same weekday over past month
     start_range = 1.month.ago.beginning_of_day
