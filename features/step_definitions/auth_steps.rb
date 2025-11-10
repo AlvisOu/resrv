@@ -1,5 +1,13 @@
 # --- Authentication Steps ---
-# Logged in as role in workspace
+Given /^a user exists with email "([^"]*)"$/ do |email|
+  @user =User.find_or_create_by!(email: email) do |user|
+    user.name = email.split('@').first.capitalize
+    user.password = "password"
+    user.password_confirmation = "password"
+    user.email_verified_at = Time.current
+  end
+end
+
 Given /^I am logged in as a (workspace owner|standard user) of "([^"]*)"$/ do |membership, workspace_name|
   role_name = (membership == "workspace owner") ? "owner" : "user"
   @current_user = User.find_or_create_by!(email: "#{role_name}@example.com") do |user|
@@ -19,6 +27,17 @@ Given /^I am logged in as a (workspace owner|standard user) of "([^"]*)"$/ do |m
   fill_in "session[email]", :with => @current_user.email
   fill_in "session[password]", :with => "password"
   click_button "commit"
+end
+
+Given /^"([^"]*)" is a (workspace owner|standard user) of "([^"]*)"$/ do |email, role, workspace_name|
+  role_name = (role == "workspace owner") ? "owner" : "user"
+  user = User.find_by!(email: email)
+  workspace = Workspace.find_by!(name: workspace_name)
+  UserToWorkspace.find_or_create_by!(
+    user: user,
+    workspace: workspace,
+    role: role_name
+  )
 end
 
 # Logged out

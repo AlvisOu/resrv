@@ -27,6 +27,16 @@ World(APIHelpers)
 
 require 'cucumber/rails'
 
+# Email and Time testing helpers
+require 'active_support/testing/time_helpers'
+World(ActiveSupport::Testing::TimeHelpers)
+Before do
+  ActionMailer::Base.deliveries.clear
+end
+After do
+  travel_back
+end
+
 # Capybara defaults to CSS3 selectors rather than XPath.
 # If you'd prefer to use XPath, just uncomment this line and adjust any
 # selectors in your step definitions to use the XPath syntax.

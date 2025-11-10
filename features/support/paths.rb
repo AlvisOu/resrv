@@ -41,6 +41,12 @@ module NavigationHelpers
     when /my notifications page/
       notifications_path
 
+    when /the email verification page/
+      verify_email_path
+
+    when /the new password reset page/
+      new_password_reset_path
+
     else
       begin
         page_name =~ /^the (.*) page$/

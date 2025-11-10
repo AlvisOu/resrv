@@ -25,9 +25,7 @@ class User < ApplicationRecord
     def send_password_reset_email
         self.reset_token = SecureRandom.urlsafe_base64
         self.reset_sent_at = Time.now
-        print("User sending " + self.reset_token)
         if save!
-          print("User saved " + self.reset_token)
           UserMailer.send_password_reset(self).deliver_now
         end
     end
