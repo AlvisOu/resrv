@@ -1,3 +1,110 @@
-<h2>Edit Item: <%= @item.name %></h2>
-<%= render 'form' %>
-<%= link_to "Back to Workspace", workspace_path(@workspace) %>
+<h2><%= @item.name %> — Item Details</h2>
+
+<div style="display:flex; flex-direction:row; align-items:stretch; gap:2rem; flex-wrap:nowrap;">
+  <!-- Left column: reusable edit form -->
+  <div class="md:w-1/2 w-full">
+    <%= render 'form' %>
+    <%= link_to "Back to Workspace", workspace_path(@workspace), class: "btn-secondary" %>
+  </div>
+
+  <!-- Right column: analytics chart -->
+  <div style="flex:1; min-width:400px; align-self:stretch; display:flex; flex-direction:column; justify-content:flex-start;">
+    <% if @busyness_index.present? %>
+      <div style="margin-bottom:0.75rem;">
+        <% if @busyness_index > 120 %>
+          <p style="font-weight:500; color:#dc2626;">
+            Busier than usual today (<%= @busyness_index %>% of normal)
+          </p>
+        <% elsif @busyness_index < 80 %>
+          <p style="font-weight:500; color:#2563eb;">
+            Quieter than usual today (<%= @busyness_index %>% of normal)
+          </p>
+        <% else %>
+          <p style="font-weight:500; color:#16a34a;">
+            About average activity (<%= @busyness_index %>% of normal)
+          </p>
+        <% end %>
+      </div>
+    <% end %>
+
+    <!-- Chart always gets a fixed height -->
+    <div class="chart-container"
+        style="flex-grow:1; width:100%; min-height:400px; height:400px;">
+      <canvas id="usageChart"></canvas>
+    </div>
+  </div>
+
+
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+  document.addEventListener("DOMContentLoaded", () => {
+    const ctx = document.getElementById("usageChart").getContext("2d");
+
+    const hours = <%= raw @hours.map { |h| "#{h}:00" }.to_json %>;
+    const avgCounts = <%= raw @avg_counts.values_at(*@hours).map { |v| v || 0 }.to_json %>;
+    const currentCounts = <%= raw @current_counts.values_at(*@hours).map { |v| v || 0 }.to_json %>;
+    const totalQuantity = <%= @total_quantity.to_json %>;
+
+    new Chart(ctx, {
+      data: {
+        labels: hours,
+        datasets: [
+          {
+            type: "bar",
+            label: "Avg reservations (same weekday, past month)",
+            data: avgCounts,
+            backgroundColor: "rgba(54, 162, 235, 0.5)",
+            borderColor: "rgba(54, 162, 235, 1)",
+            borderWidth: 1
+          },
+          {
+            type: "line",
+            label: "Today's reservations",
+            data: currentCounts,
+            borderColor: "rgba(255, 99, 132, 1)",
+            backgroundColor: "rgba(255, 99, 132, 0.2)",
+            borderWidth: 2,
+            fill: false,
+            tension: 0.3
+          },
+          {
+            type: "line",
+            label: "Total capacity",
+            data: Array(hours.length).fill(totalQuantity),
+            borderColor: "rgba(75, 192, 192, 1)",
+            borderDash: [5, 5],
+            borderWidth: 1.5,
+            pointRadius: 0
+          }
+        ]
+      },
+      options: {
+        responsive: true,
+        plugins: {
+          title: {
+            display: true,
+            text: "Usage Trends — Hourly Reservations"
+          },
+          legend: {
+            position: "bottom",
+            labels: {
+              usePointStyle: true,
+              boxWidth: 12
+            }
+          }
+        },
+        scales: {
+          y: {
+            beginAtZero: true,
+            title: { display: true, text: "Number of Reservations" }
+          },
+          x: {
+            title: { display: true, text: "Hour of Day" }
+          }
+        }
+      }
+    });
+  });
+</script>

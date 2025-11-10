@@ -88,6 +88,12 @@ reservations = [
     item: lat_pulldown_machine,
     start_time: today.noon,
     end_time:   today.noon + 1.hour
+  },
+  {
+    user: member,
+    item: projector,
+    start_time: (today - 7.days).noon,
+    end_time: (today - 7.days).noon + 2.hours
   }
 ]
 reservations.each { |attrs| Reservation.create!(attrs) }
