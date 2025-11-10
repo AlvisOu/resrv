@@ -1,7 +1,8 @@
 class Reservation < ApplicationRecord
   belongs_to :user
   belongs_to :item
-  has_many :penalty, dependent: :destroy
+  has_many :penalties,     dependent: :delete_all   # or :destroy if you need callbacks
+  has_many :notifications, dependent: :delete_all   # add this association if not present
 
   validates :start_time, :end_time, presence: true
 

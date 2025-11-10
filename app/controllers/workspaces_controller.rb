@@ -28,47 +28,57 @@ class WorkspacesController < ApplicationController
     @workspace = Workspace.new
   end
   
-  def show
-    @current_join = @workspace.user_to_workspaces.find_by(user: current_user)
+def show
+  @current_join = @workspace.user_to_workspaces.find_by(user: current_user)
+  @penalty = current_user.penalties.active.find_by(workspace: @workspace)
+  @items = @workspace.items.reload.includes(:reservations)
 
-    @penalty = current_user.penalties.active.find_by(workspace: @workspace)
+  @tz = Time.zone || ActiveSupport::TimeZone["UTC"]
+  today = @tz.today
+  max_day = today + 7.days
 
-    @items = @workspace.items.reload.includes(:reservations)
-
-    @day = Date.current
-    @tz  = Time.zone || ActiveSupport::TimeZone["UTC"]
-
-    # Precompute the 96 time ticks once for header
-    @slots = []
-    day_start = @tz.local(@day.year, @day.month, @day.day, 0, 0, 0)
-    96.times { |i| @slots << (day_start + i * 15.minutes) }
-
-    # Availability for default quantity = 1 (initial paint)
-    @availability_data = @items.map do |item|
-      {
-        item: item,
-        slots: AvailabilityService.new(item, 1, day: @day, tz: @tz).time_slots
-      }
+  # Parse & clamp selected day (GET /workspaces/:id?day=YYYY-MM-DD)
+  requested_day =
+    begin
+      Date.iso8601(params[:day]) if params[:day].present?
+    rescue ArgumentError
+      nil
     end
 
-    now = @tz.now
-    @current_activity = Reservation.joins(:item)
-                                   .where(items: { workspace_id: @workspace.id })
-                                   .where("reservations.start_time <= ? AND reservations.end_time >= ?", now, now - 30.minutes)
-                                   .includes(:user, :item)
-                                   .order("reservations.end_time ASC")
+  @day = requested_day || today
+  @day = today  if @day < today
+  @day = max_day if @day > max_day
+
+  # For the header: precompute 96 ticks for @day
+  @slots = []
+  day_start = @tz.local(@day.year, @day.month, @day.day, 0, 0, 0)
+  96.times { |i| @slots << (day_start + i * 15.minutes) }
+
+  # Booking window: now → (today + 7 days) end-of-day
+  now = @tz.now
+  window_start = [day_start, ceil_to_15(now)].max # greys out past for today
+  window_end   = (today + 7.days).in_time_zone(@tz).end_of_day
+
+  # Availability for default quantity = 1 (initial paint) for selected @day
+  @availability_data = @items.map do |item|
+    {
+      item: item,
+      slots: AvailabilityService.new(
+        item, 1,
+        day: @day, tz: @tz,
+        window_start: window_start,
+        window_end: window_end
+      ).time_slots
+    }
   end
 
-  def edit
-  end
-
-  def update
-    if @workspace.update(workspace_params)
-      redirect_to workspace_path(@workspace), notice: "Workspace name updated."
-    else
-      render :edit, status: :unprocessable_entity
-    end
-  end
+  # Current activity block (unchanged)
+  @current_activity = Reservation.joins(:item)
+                                 .where(items: { workspace_id: @workspace.id })
+                                 .where("reservations.start_time <= ? AND reservations.end_time >= ?", now, now - 30.minutes)
+                                 .includes(:user, :item)
+                                 .order("reservations.end_time ASC")
+end
 
   private
 
@@ -83,4 +93,11 @@ class WorkspacesController < ApplicationController
   def workspace_params
     params.require(:workspace).permit(:name)
   end
+
+  def ceil_to_15(time)
+    sec = (15.minutes - (time.min % 15).minutes) % 15.minutes
+    base = time.change(sec: 0)
+    sec.zero? ? base : base + sec
+  end
+
 end

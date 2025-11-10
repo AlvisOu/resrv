@@ -43,7 +43,7 @@
               <td>
                 <div class="activity-actions">
                   
-                  <% if reservation.no_show? %>
+                  <% if reservation.no_show? %>=
                     <%= button_to "Undo No Show", 
                                   mark_no_show_reservation_path(reservation), 
                                   method: :patch, 
@@ -106,21 +106,8 @@
     <% end %>
   </div>
 <% end %>
-<%
-  # ---------- 24h TIME SLOTS (today 00:00 → tomorrow 00:00) in 15-min intervals ----------
-  day = Date.current
-  tz  = Time.zone || ActiveSupport::TimeZone["UTC"]
 
-  start_of_day = tz.local(day.year, day.month, day.day, 0, 0, 0)
-  end_of_day   = start_of_day + 24.hours
-
-  slots = []
-  t = start_of_day
-  while t < end_of_day
-    slots << t
-    t += 15.minutes
-  end
-%>
+<% slots = @slots %>
 
 <style>
   .legend { display:flex; gap:1.25rem; align-items:center; margin: 0.5rem 0 1rem; font-size:14px; }
@@ -320,6 +307,38 @@
   }
 </style>
 
+<% today    = @tz.today %>
+<% max_day  = today + 7.days %>
+<% prev_day = @day - 1.day %>
+<% next_day = @day + 1.day %>
+
+<div class="date-nav" style="display:flex; align-items:center; gap:10px; margin:.5rem 0 1rem;">
+  <!-- Prev -->
+  <%= link_to "←", workspace_path(@workspace, day: prev_day),
+        class: "btn-primary",
+        style: "padding:6px 10px; text-decoration:none; opacity:#{@day <= today ? 0.4 : 1}; pointer-events:#{@day <= today ? 'none' : 'auto'}" %>
+
+  <!-- Date display -->
+  <div style="font-weight:600; min-width: 220px; text-align:center;">
+    <%= @day.strftime("%A, %B %-d") %>
+  </div>
+
+  <!-- Next -->
+  <%= link_to "→", workspace_path(@workspace, day: next_day),
+        class: "btn-primary",
+        style: "padding:6px 10px; text-decoration:none; opacity:#{@day >= max_day ? 0.4 : 1}; pointer-events:#{@day >= max_day ? 'none' : 'auto'}" %>
+
+  <!-- Date picker -->
+  <form action="<%= workspace_path(@workspace) %>" method="get" style="margin-left:auto; display:flex; gap:8px; align-items:center;">
+    <input type="date"
+           name="day"
+           value="<%= @day.iso8601 %>"
+           min="<%= today.iso8601 %>"
+           max="<%= max_day.iso8601 %>">
+    <button class="btn-primary" type="submit" style="padding:6px 10px;">Go</button>
+  </form>
+</div>
+
 <div class="legend">
   <span class="key"><span class="swatch" style="background:#22c55e33;"></span>Available</span>
   <% unless is_owner %>
@@ -333,6 +352,7 @@
     <%= link_to "Add Item", new_workspace_item_path(@workspace), class: "btn-primary" %>
   </div>
 <% end %>
+
 
 <div class="schedule-wrapper <%= 'owner-mode' if is_owner %>">
   <div class="schedule-grid" id="schedule-grid">
@@ -489,7 +509,9 @@
         if (downBtn) downBtn.disabled = (count <= 0);
 
         // Repaint this item's row based on backend availability for selected quantity
-        fetch(`/reservations/availability?item_id=${encodeURIComponent(itemId)}&quantity=${encodeURIComponent(count)}`, {
+        const selectedDay = document.getElementById('selected-day')?.dataset.day; // YYYY-MM-DD
+        const dayParam = selectedDay ? `&day=${encodeURIComponent(selectedDay)}` : '';
+        fetch(`/reservations/availability?item_id=${encodeURIComponent(itemId)}&quantity=${encodeURIComponent(count)}${dayParam}`, {
           headers: { 'Accept': 'application/json' }
         })
           .then(r => r.json())
