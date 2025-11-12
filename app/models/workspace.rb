@@ -4,7 +4,7 @@ class Workspace < ApplicationRecord
 
     has_many :items, dependent: :destroy
     has_many :user_to_workspaces, dependent: :destroy
-    has_many :users, through: :user_to_workspace
+    has_many :users, through: :user_to_workspaces
     has_many :missing_reports, dependent: :destroy
     has_many :reservations, through: :items
 

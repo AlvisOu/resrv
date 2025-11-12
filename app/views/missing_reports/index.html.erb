@@ -77,11 +77,11 @@
 
 <% if @unresolved_reports.any? %>
   <h2 class="section-title">Currently Missing</h2>
-  <% @unresolved_reports.each do |report| %>
+  <% @unresolved_reports.sort_by(&:created_at).reverse.each do |report| %>
     <div class="missing-card">
       <div class="card-row">
         <div class="card-cell"><strong>Item:</strong> <%= report.item.name %></div>
-        <div class="card-cell"><strong>Reservation:</strong> <%= link_to "##{report.reservation.id}", reservation_path(report.reservation), class: "res-link" %></div>
+        <div class="card-cell"><strong>Reservation:</strong> #<%= report.reservation.id %></div>
         <div class="card-cell"><strong>Missing:</strong> <%= report.reservation.quantity - report.reservation.returned_count.to_i %></div>
         <div class="card-cell"><strong>Who Lost It:</strong> <%= report.reservation.user.name %></div>
         <div class="card-cell">
@@ -96,11 +96,11 @@
 
 <% if @resolved_reports.any? %>
   <h2 class="section-title">Resolved Reports</h2>
-  <% @resolved_reports.each do |report| %>
+  <% @resolved_reports.sort_by(&:updated_at).reverse.each do |report| %>
     <div class="missing-card resolved">
       <div class="card-row">
         <div class="card-cell"><strong>Item:</strong> <%= report.item.name %></div>
-        <div class="card-cell"><strong>Reservation:</strong> <%= link_to "##{report.reservation.id}", reservation_path(report.reservation), class: "res-link" %></div>
+        <div class="card-cell"><strong>Reservation:</strong> #<%= report.reservation.id %></div>
         <div class="card-cell"><strong>Missing:</strong> <%= report.reservation.quantity - report.reservation.returned_count.to_i %></div>
         <div class="card-cell"><strong>Who Lost It:</strong> <%= report.reservation.user.name %></div>
         <div class="card-cell"><strong>Resolved At:</strong> <%= report.updated_at.strftime("%b %d, %Y %I:%M %p") %></div>

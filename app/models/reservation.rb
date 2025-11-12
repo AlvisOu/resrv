@@ -17,7 +17,7 @@ class Reservation < ApplicationRecord
     actual_returned = returned_count.to_i
     booked = quantity.to_i
 
-    return unless Time.current > (end_time + 30.minutes)
+    return unless Time.current > (end_time + 29.minutes + 59.seconds)
 
     missing_qty = booked - actual_returned
     return unless missing_qty.positive?
