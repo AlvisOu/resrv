@@ -42,7 +42,7 @@ ActiveRecord::Schema[8.0].define(version: 2025_11_10_043814) do
   create_table "notifications", force: :cascade do |t|
     t.integer "user_id"
     t.text "message"
-    t.boolean "read", default: false
+    t.boolean "read", default: false, null: false
     t.integer "reservation_id"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
