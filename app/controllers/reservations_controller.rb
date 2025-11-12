@@ -37,9 +37,10 @@ class ReservationsController < ApplicationController
 
     def index
         # Group reservations by identical (start, end, item)
-        @reservations = current_user.reservations
-                                    .includes(item: :workspace)
-                                    .order(start_time: :asc)
+    @reservations = current_user.reservations
+                                .checked_out
+                                .includes(item: :workspace)
+                                .order(start_time: :asc)
     end
 
     def destroy

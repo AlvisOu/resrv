@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2025_11_10_043814) do
+ActiveRecord::Schema[8.0].define(version: 2025_11_12_170000) do
   create_table "items", force: :cascade do |t|
     t.string "name"
     t.integer "quantity"
@@ -74,6 +74,9 @@ ActiveRecord::Schema[8.0].define(version: 2025_11_10_043814) do
     t.boolean "no_show", default: false, null: false
     t.integer "returned_count", default: 0, null: false
     t.boolean "stock_adjusted", default: false, null: false
+    t.boolean "in_cart", default: false, null: false
+    t.datetime "hold_expires_at"
+    t.index ["item_id", "in_cart", "hold_expires_at"], name: "idx_res_item_cart_exp"
     t.index ["item_id"], name: "index_reservations_on_item_id"
     t.index ["user_id"], name: "index_reservations_on_user_id"
   end

@@ -2,6 +2,10 @@ class CartsController < ApplicationController
 
   def show
     @cart = Cart.load(session, current_user.id)
+   
+    Reservation.notify_and_purge_expired_holds!
+    CartHoldPruner.prune!(@cart, current_user.id)
+
     groups = @cart.merged_segments_by_workspace
     @workspaces = groups.keys.compact
 
@@ -13,6 +17,8 @@ class CartsController < ApplicationController
 
   def checkout
     @cart = Cart.load(session, current_user.id)
+    Reservation.notify_and_purge_expired_holds!
+    CartHoldPruner.prune!(@cart, current_user.id)
     workspace_id = params[:workspace_id].to_i
     service = CheckoutService.new(@cart, current_user, workspace_id)
     if service.call

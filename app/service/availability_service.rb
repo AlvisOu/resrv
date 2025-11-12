@@ -38,8 +38,10 @@ class AvailabilityService
 
       available = false
       if within_window
-        overlapping = @item.reservations.where("(start_time < ?) AND (end_time > ?)", slot_end, t)
-        used_quantity = overlapping.count # keep your original behavior
+        overlapping = @item.reservations
+                          .active_for_capacity
+                          .where("(start_time < ?) AND (end_time > ?)", slot_end, t)
+        used_quantity = overlapping.sum(:quantity)
         total_quantity = @item.quantity.to_i
         available = (used_quantity + @requested_quantity) <= total_quantity
       end

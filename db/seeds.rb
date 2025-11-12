@@ -1,6 +1,6 @@
 puts "Destroying old data..."
 Reservation.destroy_all
-UserToWorkspace.destroy_all   # <- delete the join table first
+UserToWorkspace.destroy_all   # delete the join table first
 Item.destroy_all
 Workspace.destroy_all
 User.destroy_all
@@ -27,7 +27,7 @@ member = User.create!(
 puts "Created #{User.count} users."
 
 puts "Creating workspaces..."
-gym = Workspace.create!(name: "Dodge Fitness Center")
+gym        = Workspace.create!(name: "Dodge Fitness Center")
 auditorium = Workspace.create!(name: "Roone Auditorium")
 puts "Created #{Workspace.count} workspaces."
 
@@ -43,8 +43,8 @@ treadmill = Item.create!(
   workspace:  gym,
   name:       "Treadmill",
   quantity:   5,
-  start_time: today.beginning_of_day + 6.hours,   # 6:00 AM today (Rails zone)
-  end_time:   today.beginning_of_day + 22.hours   # 10:00 PM today
+  start_time: today.beginning_of_day + 6.hours,   # 6:00 AM
+  end_time:   today.beginning_of_day + 22.hours   # 10:00 PM
 )
 lat_pulldown_machine = Item.create!(
   workspace:  gym,
@@ -69,33 +69,46 @@ podium = Item.create!(
 )
 puts "Created #{Item.count} items."
 
-puts "Creating reservations..."
+puts "Creating reservations (all checked out, not in cart)..."
 reservations = [
   {
     user: member,
     item: projector,
     start_time: today.noon,
-    end_time:   today.noon + 2.hours
+    end_time:   today.noon + 2.hours,
+    quantity:   1,
+    in_cart:    false,
+    hold_expires_at: nil
   },
   {
     user: member,
     item: podium,
     start_time: today.noon + 2.hours,
-    end_time:   today.noon + 3.hours
+    end_time:   today.noon + 3.hours,
+    quantity:   1,
+    in_cart:    false,
+    hold_expires_at: nil
   },
   {
     user: member,
     item: lat_pulldown_machine,
     start_time: today.noon,
-    end_time:   today.noon + 1.hour
+    end_time:   today.noon + 1.hour,
+    quantity:   1,
+    in_cart:    false,
+    hold_expires_at: nil
   },
   {
     user: member,
     item: projector,
     start_time: (today - 7.days).noon,
-    end_time: (today - 7.days).noon + 2.hours
+    end_time:   (today - 7.days).noon + 2.hours,
+    quantity:   1,
+    in_cart:    false,
+    hold_expires_at: nil
   }
 ]
+
 reservations.each { |attrs| Reservation.create!(attrs) }
 
 puts "Created #{Reservation.count} reservations."
