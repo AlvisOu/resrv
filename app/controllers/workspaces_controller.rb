@@ -72,6 +72,33 @@ class WorkspacesController < ApplicationController
       }
     end
 
+    # --- NEW: build booking tooltips for owners on the selected day ---
+    is_owner = @current_join&.role == 'owner'
+    day_end  = day_start + 24.hours
+
+    if is_owner
+      # Reservations that overlap the selected day, with users preloaded
+      day_reservations = Reservation
+        .joins(:item)
+        .includes(:user) # so we can show names without N+1
+        .where(items: { workspace_id: @workspace.id })
+        .where("reservations.start_time < ? AND reservations.end_time > ?", day_end, day_start)
+
+      @booking_tooltips = Hash.new { |h, item_id| h[item_id] = Hash.new { |hh, ts| hh[ts] = [] } }
+
+      day_reservations.each do |r|
+        s = [r.start_time.in_time_zone(@tz), day_start].max
+        e = [r.end_time.in_time_zone(@tz),   day_end  ].min
+
+        t = floor_to_15(s)
+        while t < e
+          key = t.iso8601
+          @booking_tooltips[r.item_id][key] << "#{r.user.name} ×#{r.quantity}"
+          t += 15.minutes
+        end
+      end
+    end
+
     # Current activity block (unchanged)
     @current_activity = Reservation.joins(:item)
                                   .where(items: { workspace_id: @workspace.id })
@@ -106,6 +133,11 @@ class WorkspacesController < ApplicationController
     sec = (15.minutes - (time.min % 15).minutes) % 15.minutes
     base = time.change(sec: 0)
     sec.zero? ? base : base + sec
+  end
+
+  def floor_to_15(time)
+    base = time.change(sec: 0)
+    base - (time.min % 15).minutes
   end
 
 end
