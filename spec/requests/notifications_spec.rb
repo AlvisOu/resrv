@@ -40,9 +40,13 @@ RSpec.describe "Notifications", type: :request do
   end
 
   describe "POST /notifications/:id/mark_as_read" do
-    it "returns http success" do
+    it "marks the notification as read and redirects" do
       post mark_as_read_notification_path(notification)
-      expect(response).to have_http_status(:success)
+
+      expect(response).to redirect_to(notifications_path)
+      # and optionally:
+      notification.reload
+      expect(notification.read).to be true
     end
   end
 end
