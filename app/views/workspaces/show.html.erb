@@ -581,7 +581,8 @@
       }
 
       // Add to Cart
-      if (e.target.id === 'add-to-cart') {
+      const addBtn = e.target.closest('#add-to-cart');
+      if (addBtn) {
         const selected = Array.from(document.querySelectorAll('.slot.selected'));
         const csrfToken = document.querySelector('meta[name="csrf-token"]')?.content;
         if (selected.length === 0) {

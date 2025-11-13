@@ -24,6 +24,15 @@ class WorkspacesController < ApplicationController
     end
   end
 
+  def update
+    if @workspace.update(workspace_params)
+      redirect_to @workspace, notice: 'Workspace was successfully updated.'
+    else
+      # render errors so the feature can see "prohibited this workspace..."
+      render :edit, status: :unprocessable_entity
+    end
+  end
+
   def new
     @workspace = Workspace.new
   end

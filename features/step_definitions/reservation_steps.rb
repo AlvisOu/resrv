@@ -36,12 +36,16 @@ When /^(?:|I )adjust the quantity for "([^"]*)"$/ do |item_name|
   qty_wrap = find(:xpath, "//div[contains(@class,'item-name') and normalize-space(text())='#{item_name}']/following-sibling::div[contains(@class,'sticky-2')]//div[contains(@class,'qty-wrap')]")
   qty_wrap.find(".qty-up").click
 end
-When /^(?:|I )press the time slot "([^"]*)"$/ do |slot_title|
-  # Deterministic time slot
-  within ".schedule-grid" do
-    find("div.slot[title='#{slot_title}']").click
-  end
+
+# features/step_definitions/reservation_steps.rb
+When(/^I press an available time slot for "([^"]+)"$/) do |item_name|
+  item = Item.find_by!(name: item_name)
+  slot = find(%(.slot.available[data-item-id="#{item.id}"]), match: :first, wait: 5)
+  slot.click
+  expect(slot[:class]).to include("selected")
 end
+
+
 When(/^I click "cancel" on the reservation for "(.+)"$/) do |item_name|
   within(:xpath, "//tr[td[contains(text(), '#{item_name}')]]") do
     click_link("Cancel")

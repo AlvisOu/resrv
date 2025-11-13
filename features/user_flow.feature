@@ -10,7 +10,7 @@ Scenario: Make a microphone reservation
   And  I click "Lerner Auditorium"
   Then I should see "Mic"
   When I adjust the quantity for "Mic"
-  And  I press the time slot "Mic — 1:00 PM–1:15 PM"
+  And I press an available time slot for "Mic"
   And  I press "Add to Cart" and accept the alert
   When I go to cart
   Then I should see my pending reservation
