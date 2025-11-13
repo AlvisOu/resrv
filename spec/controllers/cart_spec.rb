@@ -11,6 +11,7 @@ RSpec.describe CartsController, type: :controller do
   end
 
   let(:workspace) { Workspace.create!(name: "Lab") }
+
   let(:item) do
     Item.create!(
       name: "Microscope",
@@ -32,12 +33,27 @@ RSpec.describe CartsController, type: :controller do
   # SHOW
   # -------------------------------------------------------------------
   describe "GET #show" do
-    it "loads cart and assigns workspaces + segments" do
-      mock_cart = instance_double("Cart")
+    let(:mock_cart) { instance_double("Cart") }
 
+    before do
       allow(Cart).to receive(:load).and_return(mock_cart)
+      # This is the key line: allow the pruner/controller to call remove_range!
+      allow(mock_cart).to receive(:remove_range!)
+    end
 
-      segments = { workspace => [{ item: item, start_time: Time.zone.now, end_time: 1.hour.from_now, quantity: 1 }] }
+    it "loads cart and assigns workspaces + segments" do
+      segments = {
+        workspace => [
+          {
+            workspace:  workspace,            # include workspace so workspace_id isn't nil
+            item:       item,
+            start_time: Time.zone.now,
+            end_time:   1.hour.from_now,
+            quantity:   1
+          }
+        ]
+      }
+
       allow(mock_cart).to receive(:merged_segments_by_workspace).and_return(segments)
 
       get :show, params: { workspace_id: workspace.id }
@@ -51,8 +67,6 @@ RSpec.describe CartsController, type: :controller do
     end
 
     it "sets active workspace to first workspace if none given" do
-      mock_cart = instance_double("Cart")
-      allow(Cart).to receive(:load).and_return(mock_cart)
       allow(mock_cart).to receive(:merged_segments_by_workspace).and_return({ workspace => [] })
 
       get :show
@@ -77,11 +91,18 @@ RSpec.describe CartsController, type: :controller do
 
     before do
       allow(Cart).to receive(:load).and_return(mock_cart)
+
+      # CartHoldPruner calls these on the cart:
+      allow(mock_cart).to receive(:merged_segments_by_workspace).and_return({})
+      allow(mock_cart).to receive(:remove_range!)
     end
 
     it "calls CheckoutService and redirects with notice on success" do
       service = instance_double("CheckoutService", call: true, errors: [])
-      expect(CheckoutService).to receive(:new).with(mock_cart, user, workspace.id).and_return(service)
+      expect(CheckoutService)
+        .to receive(:new)
+        .with(mock_cart, user, workspace.id)
+        .and_return(service)   # <-- here
 
       post :checkout, params: { workspace_id: workspace.id }
 
@@ -91,7 +112,10 @@ RSpec.describe CartsController, type: :controller do
 
     it "redirects with alert on failure" do
       service = instance_double("CheckoutService", call: false, errors: ["Bad", "Error"])
-      expect(CheckoutService).to receive(:new).with(mock_cart, user, workspace.id).and_return(service)
+      expect(CheckoutService)
+        .to receive(:new)
+        .with(mock_cart, user, workspace.id)
+        .and_return(service)   # <-- and here
 
       post :checkout, params: { workspace_id: workspace.id }
 
