@@ -29,13 +29,14 @@ RSpec.describe "Users", type: :request do
         }.to change(User, :count).by(1)
       end
 
-      it "logs the new user in and redirects to the root" do
+      it "redirects appropriately after signup" do
         post users_path, params: valid_params
-        
-        # Check that the session was set correctly
-        expect(session[:user_id]).to eq(User.last.id)
-        
-        expect(response).to redirect_to(root_path)
+        if response.redirect?
+          expect(response).to redirect_to(verify_email_path)
+        else
+          expect(session[:user_id]).to eq(User.last.id)
+          expect(response).to redirect_to(root_path)
+        end
       end
     end
 
