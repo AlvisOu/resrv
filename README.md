@@ -31,6 +31,53 @@
 
 ---
 
+## 🔐 User Roles & Seeded Accounts
+
+`resrv` does not use a global admin role. Instead, **any user becomes the admin of a workspace they create**. Workspace admins can manage items, view analytics, and control access *for their own workspace only*.
+
+To simplify development and testing, the seed file includes two users and two initial workspaces. The seeded “Admin User” is simply the **owner/admin of the pre-seeded workspaces**, while the “Member User” is a standard user who has not created any workspaces yet.
+
+> **Note:** When creating a new account, you will receive a verification code at the email you used during sign-up.
+
+### 👤 Roles & Capabilities
+
+#### **Workspace Admin**
+A workspace admin is any user who **creates** a workspace. Workspace admins can:
+- Manage their own workspace(s)
+- Add, edit, and delete items
+- View analytics and usage metrics
+- Manage workspace members and access
+- Handle reservation approvals, conflicts, and penalties within their workspace
+
+#### **Member (Standard User)**
+A standard user can:
+- Join existing workspaces (when added)
+- View real-time availability
+- Reserve items
+- Receive reminders and notifications
+- View their reservation and penalty history  
+
+Users become workspace admins simply by creating their own workspace.
+
+---
+
+## 🧪 Test Login Credentials
+
+These accounts are defined in the seed file  
+(**see the Setup section below for instructions on running `rails db:seed`**):
+
+### **Seeded Workspace Admin**
+*(Admin of the two pre-seeded workspaces)*  
+- **Email:** `admin@resrv.com`  
+- **Password:** `password123`
+
+### **Seeded Member User**
+*(Standard user with no workspace of their own yet)*  
+- **Email:** `member@resrv.com`  
+- **Password:** `password123`
+
+---
+
 ## 🛠 Getting Started
 This guide will get you a copy of the project up and running on your local machine for development and testing.
 
@@ -75,7 +122,7 @@ You will need the following tools installed on your system:
     bundle exec rails db:migrate
     ```
 
-6.  **(Optional) Seed the Database:**
+6.  **Seed the Database:**
     ```bash
     bundle exec rails db:seed
     ```
