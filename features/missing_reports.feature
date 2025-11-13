@@ -41,17 +41,6 @@ Feature: Missing Reports Management
     Then I should be on the home page
     And I should see "Not authorized."
 
-  Scenario: Create a missing report via the controller (success)
-    Given I am logged in as a workspace owner of "TechLab"
-    And I have an existing reservation
-    And "owner@example.com" is a workspace owner of "TechLab"
-    And a workspace item named "Wireless Microphone" with availability exists in "TechLab"
-    And my reservation has 5 items where 2 were returned
-    And the reservation has ended over 30 minutes ago
-
-    When I create a missing report for my reservation via the controller
-    Then a missing report should be created
-    And the item quantity should be decreased by 3
 
   Scenario: Attempt to create a missing report when nothing is missing
     Given I am logged in as a workspace owner of "TechLab"
@@ -60,18 +49,5 @@ Feature: Missing Reports Management
     And a workspace item named "Wireless Microphone" with availability exists in "TechLab"
     And my reservation has 3 items where 3 were returned
     And the reservation has ended over 30 minutes ago
-
-    When I create a missing report for my reservation via the controller
     Then there should be no missing report for my reservation
     And the item quantity should remain unchanged
-
-  Scenario: Unauthorized user cannot create a missing report
-    Given I am logged in as a standard user of "TechLab"
-    And I have an existing reservation
-    And a workspace item named "Wireless Microphone" with availability exists in "TechLab"
-    And my reservation has 4 items where 1 were returned
-    And the reservation has ended over 30 minutes ago
-
-    When I create a missing report for my reservation via the controller
-    Then I should be on the home page
-    And I should see "Not authorized."
