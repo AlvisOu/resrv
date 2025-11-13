@@ -24,10 +24,10 @@
 </p>
 
 ## 👥 Team
-* Alvis Ou
-* Francis Deng
-* Sky Sun
-* Weijie Jiang
+* Alvis Ou (ao2844)
+* Francis Deng (zd2278)
+* Sky Sun (ms6124)
+* Weijie Jiang (wj2344)
 
 ---
 
