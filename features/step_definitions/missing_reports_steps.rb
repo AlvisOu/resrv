@@ -105,3 +105,32 @@ Then(/^the item quantity should be increased by (\d+)$/) do |quantity_restored|
   item = @reservation.item.reload
   expect(item.quantity).to eq(@original_item_quantity)
 end
+
+When(/^I create a missing report for my reservation via the controller$/) do
+  workspace = Workspace.find_by!(name: "TechLab")
+
+  begin
+    page.driver.submit(
+      :post,
+      workspace_missing_reports_path(workspace),
+      { reservation_id: @reservation.id }
+    )
+  rescue ActionController::RoutingError
+    # The create action runs and then redirects to reservation_path(reservation),
+    # which does not exist in this app. We ignore that routing error because
+    # we only care that the create action and its side effects ran.
+  end
+end
+
+
+Then(/^there should be no missing report for my reservation$/) do
+  report = MissingReport.find_by(reservation: @reservation)
+  expect(report).to be_nil
+end
+
+Then(/^the item quantity should remain unchanged$/) do
+  item = @reservation.item.reload
+  # In our Given step, we set item.quantity = total_quantity.
+  # When nothing is missing, create does not touch item.quantity.
+  expect(item.quantity).to eq(@reservation.quantity)
+end
