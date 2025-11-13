@@ -21,3 +21,12 @@ end
 Then /^(?:|I )the new workspace should appear in my list of workspaces$/ do
   page.should have_content(@workspace_name)
 end
+
+Given('a workspace item named {string} exists in {string}') do |item_name, ws_name|
+  ws = Workspace.find_or_create_by!(name: ws_name)
+  Item.find_or_create_by!(name: item_name, workspace: ws) do |it|
+    it.quantity   = 10
+    it.start_time = Time.zone.today.beginning_of_day
+    it.end_time   = Time.zone.today.end_of_day
+  end
+end
