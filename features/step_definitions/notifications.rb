@@ -1,8 +1,45 @@
 # --- Givens ---
 Given("I have {int} unread notifications: {string} and {string}") do |count, title1, title2|
     @current_user.notifications.destroy_all
-    @current_user.notifications.create!(message: title1, read: false)
-    @current_user.notifications.create!(message: title2, read: false)
+
+    workspace = Workspace.first || Workspace.create!(name: "Test Workspace")
+  item = Item.first || Item.create!(
+    name: "Test Item", 
+    quantity: 10, 
+    workspace: workspace,
+    start_time: Time.zone.now.beginning_of_day + 9.hours,
+    end_time: Time.zone.now.beginning_of_day + 17.hours
+  )
+
+  base_time = Time.zone.now.beginning_of_day + 10.hours
+  
+  reservation1 = Reservation.create!(
+    user: @current_user,
+    item: item,
+    start_time: base_time + 1.hour,
+    end_time: base_time + 2.hours,
+    in_cart: false
+  )
+  
+  reservation2 = Reservation.create!(
+    user: @current_user,
+    item: item,
+    start_time: base_time + 3.hours,
+    end_time: base_time + 4.hours,
+    in_cart: false
+  )
+  
+  # Create notifications with reservations
+  @current_user.notifications.create!(
+    message: title1, 
+    read: false,
+    reservation: reservation1
+  )
+  @current_user.notifications.create!(
+    message: title2, 
+    read: false,
+    reservation: reservation2
+  )
     expect(@current_user.notifications.unread.count).to eq(count)
 end
 
