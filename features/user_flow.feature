@@ -88,3 +88,11 @@ Scenario: Unauthenticated users are redirected when posting to cart
   And I POST to "/cart_items" (form) with params:
     | selections | [] |
   Then I should be on the login page
+
+Scenario: Expired in-cart holds are purged by the job
+  Given a workspace named "Lerner Auditorium" exists
+  And a workspace item named "Mic" exists in "Lerner Auditorium"
+  And a user named "User User" exists
+  And an expired in-cart hold for "Mic" exists for "User User"
+  When I run the PurgeExpiredHolds job
+  Then the expired in-cart hold should be removed
