@@ -5,11 +5,12 @@ require 'rails_helper'
 RSpec.describe "Sessions", type: :request do
 
   let!(:user) {
-    User.create(
+    User.create!(
       name: "Test User",
       email: "test@example.com",
       password: "password123",
-      password_confirmation: "password123"
+      password_confirmation: "password123",
+      email_verified_at: Time.current
     )
   }
 
