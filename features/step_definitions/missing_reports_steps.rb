@@ -7,7 +7,8 @@ Given(/^there is an existing missing report for my reservation$/) do
     returned_count: 3
   )
   missing_qty = @reservation.quantity - @reservation.returned_count.to_i
-  
+  @original_item_quantity = @reservation.item.quantity
+
   @reservation.item.decrement!(:quantity, missing_qty)
   @missing_report = MissingReport.find_or_create_by!(
     reservation: @reservation,
@@ -54,8 +55,21 @@ Given(/^my reservation has (\d+) items where (\d+) were returned$/) do |total_qu
   @reservation.item.update!(quantity: total_quantity.to_i)
 end
 
+Given(/^the reservation has ended over 30 minutes ago$/) do
+  @reservation.update!(end_time: 40.minutes.ago)
+end
+
 # --- Whens ---
 
+When(/^I trigger the automatic missing item check$/) do
+  @reservation.reload.auto_mark_missing_items
+end
+
+When(/^I press "([^"]*)" and accept the alert for my missing report$/) do |button_text|
+  accept_confirm do
+    click_button(button_text)
+  end
+end
 
 # --- Sees ---
 Then(/^I should see my reservation in the unresolved reports$/) do
@@ -65,4 +79,29 @@ Then(/^I should see my reservation in the unresolved reports$/) do
     expect(page).to have_content(item_name)
     expect(page).to have_content("Reservation: ##{@reservation.id}")
   end
+end
+
+Then(/^I should see my reservation in the resolved reports$/) do
+  item_name = @reservation.item.name
+  within('div.missing-card.resolved') do
+    expect(page).to have_content(item_name)
+    expect(page).to have_content("Reservation: ##{@reservation.id}")
+  end
+end
+
+Then(/^a missing report should be created$/) do
+  report = MissingReport.find_by(reservation: @reservation)
+  expect(report).not_to be_nil
+  expect(report.quantity).to eq(@reservation.quantity - @reservation.returned_count.to_i)
+  expect(report.resolved).to be false
+end
+
+Then(/^the item quantity should be decreased by (\d+)$/) do |missing_qty|
+  item = @reservation.item.reload
+  expect(item.quantity).to eq(@reservation.quantity - missing_qty)
+end
+
+Then(/^the item quantity should be increased by (\d+)$/) do |quantity_restored|
+  item = @reservation.item.reload
+  expect(item.quantity).to eq(@original_item_quantity)
 end

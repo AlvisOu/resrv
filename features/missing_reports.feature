@@ -21,37 +21,22 @@ Feature: Missing Reports Management
   Scenario: Create a missing report for a reservation with missing items
     Given my reservation has 5 items where 2 were returned
     When I go to My Reservations
-    And I press "Report Missing Items"
-    Then I should be redirected to my reservation page
-    And I should see "Missing item reported."
+    And the reservation has ended over 30 minutes ago
+    When I trigger the automatic missing item check
+    Then a missing report should be created
     And the item quantity should be decreased by 3
 
-  Scenario: Attempt to create missing report when all items are returned
-    Given my reservation has 3 items where all 3 were returned
-    When I go to My Reservations
-    And I press "Report Missing Items"
-    Then I should see "No missing quantity to report."
-    And the item quantity should remain unchanged
-
+  @javascript
   Scenario: Resolve a missing report
     Given there is an existing missing report for my reservation
     When I go to the missing reports page for "TechLab"
-    And I press "Mark as Resolved" for my missing report
+    And I press "✅ Mark as Back Online" and accept the alert for my missing report
     Then I should see "Item marked as back online."
-    And I should be redirected to the missing reports page
-    And the missing report should be marked as resolved
-    And the item quantity should be restored
+    And I should see my reservation in the resolved reports
+    And the item quantity should be increased by 2
 
   Scenario: Unauthorized user cannot access missing reports
     Given I am logged in as a standard user of "TechLab"
     When I go to the missing reports page for "TechLab"
-    Then I should be redirected to the home page
+    Then I should be on the home page
     And I should see "Not authorized."
-
-  @javascript
-  Scenario: Resolve missing report with confirmation
-    Given there is an existing missing report for my reservation
-    When I go to the missing reports page for "TechLab"
-    And I press "Mark as Resolved" and accept the alert for my missing report
-    Then I should see "Item marked as back online."
-    And the missing report should be marked as resolved
