@@ -9,6 +9,12 @@
   </div>
 <% end %>
 
+<% if current_user_is_owner?(@workspace) %>
+  <div style="margin-bottom: 1rem;">
+    <%= link_to "View Missing Items", workspace_missing_reports_path(@workspace), class: "btn btn-warning" %>
+  </div>
+<% end %>
+
 <%= link_to "Rename Workspace", edit_workspace_path(@workspace), class: "button" if current_user_is_owner?(@workspace) %>
 <p style="font-size:16px;"><strong>Description:</strong> <%= @workspace.name %> ===> Edit later</p>
 <p style="font-size:16px;">ID: <%= @workspace.id %></p>
@@ -42,16 +48,15 @@
               <td><%= reservation.end_time.strftime("%-I:%M %p") %></td>
               <td>
                 <div class="activity-actions">
-                  
                   <% if reservation.no_show? %>
-                    <%= button_to "Undo No Show", 
-                                  mark_no_show_reservation_path(reservation), 
-                                  method: :patch, 
+                    <%= button_to "Undo No Show",
+                                  mark_no_show_reservation_path(reservation),
+                                  method: :patch,
                                   class: "btn-action-revert" %>
                   <% else %>
-                    <%= button_to "Mark No Show", 
-                                  mark_no_show_reservation_path(reservation), 
-                                  method: :patch, 
+                    <%= button_to "Mark No Show",
+                                  mark_no_show_reservation_path(reservation),
+                                  method: :patch,
                                   class: "btn-action-warn",
                                   data: { confirm: "Are you sure? This will mark '#{reservation.user.name}' as a 'No Show'." } %>
                   <% end %>
@@ -59,36 +64,32 @@
               </td>
               <td>
                 <div class="return-form-wrapper">
-                  <% 
+                  <%
                     total = reservation.quantity
                     returned = reservation.returned_count
                     still_missing = total - returned
                   %>
-                  
+
                   <% if still_missing > 0 %>
                     <%= form_with(url: return_items_reservation_path(reservation), method: :patch, class: "return-form") do |f| %>
-                      
-                      <%= number_field_tag :quantity_to_return, nil, 
-                            placeholder: "Qty", 
-                            class: "return-input", 
-                            min: 1, 
+                      <%= number_field_tag :quantity_to_return, nil,
+                            placeholder: "Qty",
+                            class: "return-input",
+                            min: 1,
                             max: still_missing %>
-                      
                       <%= f.submit "Return", class: "btn-action-revert" %>
                     <% end %>
                   <% elsif returned > 0 %>
                     <%= form_with(url: undo_return_items_reservation_path(reservation), method: :patch, class: "return-form") do |f| %>
-                      
-                      <%= number_field_tag :quantity_to_undo, nil, 
-                            placeholder: "Qty", 
-                            class: "return-input", 
-                            min: 1, 
+                      <%= number_field_tag :quantity_to_undo, nil,
+                            placeholder: "Qty",
+                            class: "return-input",
+                            min: 1,
                             max: returned %>
-                      
                       <%= f.submit "Undo", class: "btn-action-warn" %>
                     <% end %>
                   <% end %>
-                  
+
                   <%# --- STATUS MESSAGE --- %>
                   <% if still_missing == 0 %>
                     <span class="status-note-complete">All items returned</span>
@@ -106,23 +107,36 @@
     <% end %>
   </div>
 <% end %>
-<%
-  # ---------- 24h TIME SLOTS (today 00:00 → tomorrow 00:00) in 15-min intervals ----------
-  day = Date.current
-  tz  = Time.zone || ActiveSupport::TimeZone["UTC"]
 
-  start_of_day = tz.local(day.year, day.month, day.day, 0, 0, 0)
-  end_of_day   = start_of_day + 24.hours
-
-  slots = []
-  t = start_of_day
-  while t < end_of_day
-    slots << t
-    t += 15.minutes
-  end
-%>
+<% slots = @slots %>
 
 <style>
+
+  /* floating tooltip for owner hover */
+  #slot-tooltip {
+    position: fixed;
+    z-index: 9999;
+    pointer-events: none;
+    background: #111827;      /* gray-900 */
+    color: #fff;
+    font-size: 12px;
+    line-height: 1.4;
+    padding: 8px 10px;
+    border-radius: 8px;
+    box-shadow: 0 6px 20px rgba(0,0,0,.2);
+    max-width: 320px;
+    display: none;
+    white-space: normal;
+  }
+  #slot-tooltip .t-hed {
+    font-weight: 600;
+    margin-bottom: 4px;
+    opacity: .9;
+  }
+  #slot-tooltip .t-body {
+    font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+  }
+
   .legend { display:flex; gap:1.25rem; align-items:center; margin: 0.5rem 0 1rem; font-size:14px; }
   .legend .key { display:inline-flex; align-items:center; gap:0.5rem; }
   .legend .swatch { width:16px; height:16px; border-radius:3px; border:1px solid #bbb; }
@@ -131,17 +145,17 @@
     margin-top: 1rem;
     border: 1px solid #e5e7eb;
     border-radius: 12px;
-    overflow: auto;          /* scrollable both ways */
-    max-height: 70vh;        /* vertical scroll bound */
+    overflow: auto;
+    max-height: 70vh;
     max-width: 100%;
     position: relative;
   }
   .schedule-grid {
     display: grid;
     grid-template-columns:
-      260px   /* sticky item name */
-      140px   /* sticky quantity controls */
-      repeat(<%= slots.size %>, 90px); /* each slot width */
+      260px
+      140px
+      repeat(<%= slots.size %>, 90px);
     min-width: calc(260px + 140px + <%= slots.size %> * 90px);
   }
   .cell {
@@ -169,10 +183,10 @@
   }
 
   /* meanings */
-  .slot.available   { background: #22c55e33; }   /* green = available */
-  .slot.unavailable { background: #ef444466; }   /* red   = already reserved / no capacity */
-  .slot.selected    { background: #f59e0b66; }   /* orange = your selection */
-  .slot.outside     { background: #9ca3af55; cursor: not-allowed; } /* gray = outside window */
+  .slot.available   { background: #22c55e33; }
+  .slot.unavailable { background: #ef444466; }
+  .slot.selected    { background: #f59e0b66; }
+  .slot.outside     { background: #9ca3af55; cursor: not-allowed; }
 
   .slot:hover { transform: scale(1.02); }
 
@@ -198,19 +212,14 @@
   .owner-mode .slot { cursor: default; pointer-events: none; transform: none; }
   .owner-mode .slot:hover { transform: none; }
 
-  .current-activity-section {
-    margin: 2rem 0;
-  }
-  .current-activity-section h3 {
-    margin-bottom: 0.75rem;
-    font-size: 1.25rem; /* 20px */
-  }
+  .current-activity-section { margin: 2rem 0; }
+  .current-activity-section h3 { margin-bottom: 0.75rem; font-size: 1.25rem; }
   .activity-table {
     width: 100%;
     border-collapse: collapse;
     border: 1px solid #e5e7eb;
     border-radius: 8px;
-    overflow: hidden; /* Ensures border-radius applies to corners */
+    overflow: hidden;
     box-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1);
   }
   .activity-table th,
@@ -226,99 +235,80 @@
     text-transform: uppercase;
     color: #374151;
   }
-  .activity-table td {
-    font-size: 14px;
-    color: #111827;
-  }
-  .activity-table tbody tr:last-child td {
-    border-bottom: none;
-  }
-  .current-activity-section p {
-    color: #6b7280;
-    font-style: italic;
-    margin-top: 0.5rem;
-  }
+  .activity-table td { font-size: 14px; color: #111827; }
+  .activity-table tbody tr:last-child td { border-bottom: none; }
+  .current-activity-section p { color: #6b7280; font-style: italic; margin-top: 0.5rem; }
   .activity-table th:last-child,
-  .activity-table td:last-child {
-    text-align: center;
-  }
+  .activity-table td:last-child { text-align: center; }
 
-  .activity-actions {
-    display: flex;
-    gap: 8px;
-    justify-content: center;
-  }
+  .activity-actions { display: flex; gap: 8px; justify-content: center; }
 
   .btn-action-warn {
     padding: 4px 8px;
     font-size: 12px;
     font-weight: 500;
-    border: 1px solid #d97706; /* amber-600 */
+    border: 1px solid #d97706;
     color: #d97706;
-    background: #fffbeb; /* amber-50 */
+    background: #fffbeb;
     border-radius: 6px;
     cursor: pointer;
   }
-  .btn-action-warn:hover {
-    background: #fef3c7; /* amber-100 */
-  }
+  .btn-action-warn:hover { background: #fef3c7; }
 
   .btn-action-revert {
     padding: 4px 8px;
     font-size: 12px;
     font-weight: 500;
-    border: 1px solid #52525b; /* zinc-600 */
-    color: #3f3f46; /* zinc-700 */
-    background: #f4f4f5; /* zinc-100 */
+    border: 1px solid #52525b;
+    color: #3f3f46;
+    background: #f4f4f5;
     border-radius: 6px;
     cursor: pointer;
   }
-  .btn-action-revert:hover {
-    background: #e4e4e7; /* zinc-200 */
-  }
-  .status-note {
-    font-size: 11px;
-    color: #6b7280; /* gray-500 */
-    align-self: center;
-    white-space: nowrap;
-  }
-  
-  .status-note-complete {
-    font-size: 12px;
-    color: #16a34a; /* green-600 */
-    font-weight: 500;
-    align-self: center;
-    white-space: nowrap;
-    padding: 5px 0; /* Add padding to match button height */
-  }
+  .btn-action-revert:hover { background: #e4e4e7; }
 
-  /* Wrapper for the form and status text */
+  .status-note { font-size: 11px; color: #6b7280; white-space: nowrap; }
+  .status-note-complete { font-size: 12px; color: #16a34a; font-weight: 500; white-space: nowrap; padding: 5px 0; }
+
   .return-form-wrapper {
-    display: flex;
-    flex-direction: column;
-    gap: 6px;
-    align-items: center;
-    /* Add a border to visually separate it */
-    border-left: 2px solid #e5e7eb;
-    padding-left: 8px;
-    margin-left: 8px;
+    display: flex; flex-direction: column; gap: 6px; align-items: center;
+    border-left: 2px solid #e5e7eb; padding-left: 8px; margin-left: 8px;
   }
-
-  /* The form itself (input + button) */
-  .return-form {
-    display: flex;
-    gap: 6px;
-  }
-
-  /* The small number input box */
-  .return-input {
-    width: 50px; 
-    padding: 4px 6px;
-    font-size: 13px;
-    border: 1px solid #d1d5db;
-    border-radius: 6px;
-  }
+  .return-form { display: flex; gap: 6px; }
+  .return-input { width: 50px; padding: 4px 6px; font-size: 13px; border: 1px solid #d1d5db; border-radius: 6px; }
 </style>
+
+<% today    = @tz.today %>
+<% max_day  = today + 7.days %>
+<% prev_day = @day - 1.day %>
+<% next_day = @day + 1.day %>
+
+<div class="date-nav" style="display:flex; align-items:center; gap:10px; margin:.5rem 0 1rem;">
+  <!-- Prev -->
+  <%= link_to "←", workspace_path(@workspace, day: prev_day),
+        class: "btn-primary",
+        style: "padding:6px 10px; text-decoration:none; opacity:#{@day <= today ? 0.4 : 1}; pointer-events:#{@day <= today ? 'none' : 'auto'}" %>
+
+  <!-- Date display -->
+  <div style="font-weight:600; min-width: 220px; text-align:center;">
+    <%= @day.strftime("%A, %B %-d") %>
+  </div>
+
+  <!-- Next -->
+  <%= link_to "→", workspace_path(@workspace, day: next_day),
+        class: "btn-primary",
+        style: "padding:6px 10px; text-decoration:none; opacity:#{@day >= max_day ? 0.4 : 1}; pointer-events:#{@day >= max_day ? 'none' : 'auto'}" %>
+
+  <!-- Date picker -->
+  <form action="<%= workspace_path(@workspace) %>" method="get" style="margin-left:auto; display:flex; gap:8px; align-items:center;">
+    <input type="date"
+           name="day"
+           value="<%= @day.iso8601 %>"
+           min="<%= today.iso8601 %>"
+           max="<%= max_day.iso8601 %>">
+    <button class="btn-primary" type="submit" style="padding:6px 10px;">Go</button>
+  </form>
+</div>
 
 <div class="legend">
   <span class="key"><span class="swatch" style="background:#22c55e33;"></span>Available</span>
@@ -358,7 +348,6 @@
         <% if is_owner %>
           <span style="font-weight:600;"><%= item.quantity || 0 %></span>
         <% else %>
-          <!-- NOTE: expose workspace id for cart payload -->
           <div class="qty-wrap" data-item-id="<%= item.id %>" data-workspace-id="<%= item.workspace_id %>">
             <div class="qty-controls">
               <button class="qty-btn qty-up" type="button" aria-label="Increase">▲</button>
@@ -372,24 +361,38 @@
 
       <% row[:slots].each do |s| %>
         <% klass =
-            if !s[:within_window]
-              'outside'                             # gray (outside window)
-            elsif s[:available]
-              'available'                           # green
-            else
-              'unavailable'                         # red (booked / no capacity)
-            end
+          if !s[:within_window]
+            'outside'
+          elsif s[:available]
+            'available'
+          else
+            'unavailable'
+          end
         %>
-        <div class="cell" style="padding:0;">
+
+        <% start_iso = s[:start].iso8601 %>
+        <% owner_bookings = (defined?(@booking_tooltips) && is_owner) ? @booking_tooltips.dig(item.id, start_iso) : nil %>
+        <% bookings_str = owner_bookings.present? ? owner_bookings.join(', ') : nil %>
+
+        <div class="cell" style="padding:0;"
+            <%# expose bookings for owner hover (no visual change) %>
+            <% if is_owner && bookings_str.present? %>
+              data-bookings="<%= bookings_str %>"
+              data-time-label="<%= s[:start].strftime('%-I:%M %p') %>–<%= s[:end].strftime('%-I:%M %p') %>"
+              data-item-name="<%= item.name %>"
+            <% end %>>
           <div
             class="slot <%= klass %>"
             data-item-id="<%= item.id %>"
-            data-start="<%= s[:start].iso8601 %>"
+            data-start="<%= start_iso %>"
             data-end="<%= s[:end].iso8601 %>"
             data-within-window="<%= s[:within_window] %>"
-            title="<%= "#{item.name} — #{s[:start].strftime('%-I:%M %p')}–#{s[:end].strftime('%-I:%M %p')}" %>"
+            <% unless is_owner %>
+              title="<%= "#{item.name} — #{s[:start].strftime('%-I:%M %p')}–#{s[:end].strftime('%-I:%M %p')}" %>"
+            <% end %>
           ></div>
-        </div>
+</div>
+
       <% end %>
     <% end %>
   </div>
@@ -397,12 +400,11 @@
 
 <% unless is_owner %>
   <div class="actions-bar">
-    <button 
-      type="button" 
-      class="btn-primary" 
-      id="add-to-cart" 
-      <%= "disabled" if @penalty %>
-    >
+    <button
+      type="button"
+      class="btn-primary"
+      id="add-to-cart"
+      <%= "disabled" if @penalty %>>
       Add to Cart
     </button>
   </div>
@@ -432,6 +434,61 @@
 <br>
 
 <script>
+  (function ownerHoverTooltip(){
+    const isOwner = <%= is_owner ? 'true' : 'false' %>;
+    if (!isOwner) return;
+
+    const grid = document.getElementById('schedule-grid');
+    if (!grid) return;
+
+    // create tooltip once
+    let tip = document.getElementById('slot-tooltip');
+    if (!tip) {
+      tip = document.createElement('div');
+      tip.id = 'slot-tooltip';
+      document.body.appendChild(tip);
+    }
+
+    function showTooltip(html, x, y) {
+      tip.innerHTML = html;
+      tip.style.display = 'block';
+      // position with a small offset
+      const pad = 12;
+      const vw = window.innerWidth, vh = window.innerHeight;
+      tip.style.left = Math.min(x + pad, vw - tip.offsetWidth - 6) + 'px';
+      tip.style.top  = Math.min(y + pad, vh - tip.offsetHeight - 6) + 'px';
+    }
+    function hideTooltip() {
+      tip.style.display = 'none';
+    }
+
+    function buildHtml(target) {
+      const bookings = target.getAttribute('data-bookings');
+      if (!bookings) return null;
+      const item = target.getAttribute('data-item-name') || 'Item';
+      const when = target.getAttribute('data-time-label') || '';
+      // simple, readable content – no layout change to your table
+      return `
+        <div class="t-hed">${item}${when ? ` — ${when}` : ''}</div>
+        <div class="t-body">${bookings}</div>
+      `;
+    }
+
+    // delegate: look for nearest element with data-bookings
+    function findCell(el) {
+      return el.closest('[data-bookings]');
+    }
+
+    grid.addEventListener('mousemove', (e) => {
+      const cell = findCell(e.target);
+      if (!cell) { hideTooltip(); return; }
+      const html = buildHtml(cell);
+      if (!html) { hideTooltip(); return; }
+      showTooltip(html, e.clientX, e.clientY);
+    });
+
+    grid.addEventListener('mouseleave', hideTooltip);
+  })();
   (function () {
     const isOwner = <%= is_owner ? 'true' : 'false' %>;
     if (isOwner) return; // owners don't interact
@@ -489,7 +546,9 @@
         if (downBtn) downBtn.disabled = (count <= 0);
 
         // Repaint this item's row based on backend availability for selected quantity
-        fetch(`/reservations/availability?item_id=${encodeURIComponent(itemId)}&quantity=${encodeURIComponent(count)}`, {
+        const selectedDay = document.getElementById('selected-day')?.dataset.day; // YYYY-MM-DD
+        const dayParam = selectedDay ? `&day=${encodeURIComponent(selectedDay)}` : '';
+        fetch(`/reservations/availability?item_id=${encodeURIComponent(itemId)}&quantity=${encodeURIComponent(count)}${dayParam}`, {
           headers: { 'Accept': 'application/json' }
         })
           .then(r => r.json())
@@ -521,7 +580,7 @@
         return;
       }
 
-      // Add to Cart: collect selected slots and current quantity, then POST
+      // Add to Cart
       if (e.target.id === 'add-to-cart') {
         const selected = Array.from(document.querySelectorAll('.slot.selected'));
         const csrfToken = document.querySelector('meta[name="csrf-token"]')?.content;
@@ -547,8 +606,8 @@
 
         fetch('/cart_items', {
           method: 'POST',
-          headers: { 
-            'Content-Type': 'application/json', 
+          headers: {
+            'Content-Type': 'application/json',
             'Accept': 'application/json',
             'X-CSRF-Token': csrfToken
           },

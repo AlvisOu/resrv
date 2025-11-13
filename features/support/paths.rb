@@ -47,6 +47,10 @@ module NavigationHelpers
     when /the new password reset page/
       new_password_reset_path
 
+    when /the missing reports page for "([^"]+)"/
+      workspace = Workspace.find_by!(name: $1)
+      workspace_missing_reports_path(workspace_id: workspace.id)
+
     else
       begin
         page_name =~ /^the (.*) page$/

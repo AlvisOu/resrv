@@ -1,34 +1,45 @@
 class AvailabilityService
   SLOT_INTERVAL = 15.minutes
 
-  def initialize(item, requested_quantity = 1, day: Date.current, tz: Time.zone)
+  # window_start/window_end are optional and let the caller grey out past-today or >7d
+  def initialize(item, requested_quantity = 1, day: Date.current, tz: Time.zone, window_start: nil, window_end: nil)
     @item = item
     @requested_quantity = requested_quantity.to_i
     @day = day
     @tz  = tz || ActiveSupport::TimeZone["UTC"]
+    @window_start = window_start
+    @window_end   = window_end
   end
 
-  # Returns exactly 96 slots for the day (00:00 → 24:00) with availability decided server-side.
-  # Each element: { start:, end:, available:, within_window: }
+  # Returns exactly 96 slots for the day (00:00 → 24:00)
+  # { start:, end:, available:, within_window: }
   def time_slots
     day_start = @tz.local(@day.year, @day.month, @day.day, 0, 0, 0)
     day_end   = day_start + 24.hours
 
-    # If item has no window, treat as full-day
-    item_start = align_to_day(@item.start_time)
-    item_end   = align_to_day(@item.end_time)
+    # 1) Item's daily window, aligned to @day
+    item_start, item_end = item_window_for_day(day_start, day_end)
+
+    # 2) Booking window (optional)
+    bw_start = @window_start || day_start
+    bw_end   = @window_end   || day_end
+
+    # 3) Effective window = intersection of (day) ∩ (item window) ∩ (booking window)
+    effective_start = [day_start, item_start, bw_start].max
+    effective_end   = [day_end,   item_end,   bw_end].min
 
     slots = []
     t = day_start
     while t < day_end
       slot_end = t + SLOT_INTERVAL
 
-      within_window = (t >= item_start) && (t < item_end)
-      available = false
+      # within_window means the whole 15-min slot is inside the effective window
+      within_window = (t >= effective_start) && (slot_end <= effective_end)
 
+      available = false
       if within_window
         overlapping = @item.reservations.where("(start_time < ?) AND (end_time > ?)", slot_end, t)
-        used_quantity = overlapping.count
+        used_quantity = overlapping.count # keep your original behavior
         total_quantity = @item.quantity.to_i
         available = (used_quantity + @requested_quantity) <= total_quantity
       end
@@ -41,7 +52,30 @@ class AvailabilityService
   end
 
   private
-  # To ensure consistent slot alignment across days without DST or UTC offset drift.
+
+  # Safely derive the item window for @day; if either bound is nil, treat as open
+  def item_window_for_day(day_start, day_end)
+    if @item.start_time.present?
+      s = align_to_day(@item.start_time)
+    else
+      s = day_start
+    end
+
+    if @item.end_time.present?
+      e = align_to_day(@item.end_time)
+    else
+      e = day_end
+    end
+
+    # If someone inverted start/end, normalize to full-day to avoid “all grey”
+    if e <= s
+      [day_start, day_end]
+    else
+      [s, e]
+    end
+  end
+
+  # Ensure consistent slot alignment for the given @day
   def align_to_day(time)
     time.in_time_zone(@tz).change(year: @day.year, month: @day.month, day: @day.day)
   end

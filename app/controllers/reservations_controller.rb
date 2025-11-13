@@ -3,12 +3,35 @@ class ReservationsController < ApplicationController
     before_action :set_reservation_and_workspace, only: [:mark_no_show, :return_items, :undo_return_items]
 
     def availability
-        item = Item.friendly.find(params[:item_id])
-        quantity = params[:quantity].to_i.clamp(0, item.quantity.to_i)
-        day = Date.current
-        tz  = Time.zone
+        item = Item.find(params[:item_id])
+        qty  = params[:quantity].to_i
+        tz   = Time.zone || ActiveSupport::TimeZone["UTC"]
 
-        slots = AvailabilityService.new(item, quantity, day: day, tz: tz).time_slots
+        # Parse day (YYYY-MM-DD), clamp to [today, today+7]
+        today = tz.today
+        max_day = today + 7.days
+        day = begin
+            Date.iso8601(params[:day]) if params[:day].present?
+        rescue ArgumentError
+            nil
+        end
+        day ||= today
+        day = today  if day < today
+        day = max_day if day > max_day
+
+        # Window: grey out past for today; hard-stop after 7 days
+        day_start = tz.local(day.year, day.month, day.day, 0, 0, 0)
+        now = tz.now
+        window_start = [day_start, now].max
+        window_end   = (today + 7.days).in_time_zone(tz).end_of_day
+
+        slots = AvailabilityService.new(
+            item, qty,
+            day: day, tz: tz,
+            window_start: window_start,
+            window_end: window_end
+        ).time_slots
+
         render json: { slots: slots }
     end
 
@@ -126,5 +149,11 @@ class ReservationsController < ApplicationController
     def set_reservation_and_workspace
         @reservation = Reservation.find(params[:id])
         @workspace = @reservation.item.workspace
+    end
+
+    def ceil_to_15(time)
+        remainder = (time.min % 15)
+        return time.change(sec: 0) if remainder.zero? && time.sec.zero?
+        time.change(sec: 0) + (15 - remainder).minutes
     end
 end
