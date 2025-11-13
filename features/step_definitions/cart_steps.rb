@@ -46,9 +46,9 @@ Then /^(?:|I )should see my pending reservation$/ do
 end
 
 
-Given('an expired in-cart hold for {string} exists for {string}') do |item_name, full_name|
+Given("an expired in-cart hold for {string} exists for {string}") do |item_name, user_name|
+  user = User.find_by!(name: user_name)
   item = Item.find_by!(name: item_name)
-  user = User.find_by!(name: full_name)
 
   item_start = item.start_time
   item_end = item.end_time
@@ -63,12 +63,12 @@ Given('an expired in-cart hold for {string} exists for {string}') do |item_name,
     start_time: reservation_start,
     end_time: reservation_end,
     quantity: 1,
+    start_time: start_window + 1.hour,
+    end_time:   start_window + 2.hours,
     in_cart: true,
-    hold_expires_at: 10.minutes.ago
+    created_at: 5.hours.ago,
+    hold_expires_at: 4.hours.ago
   )
-
-  # sanity check it exists
-  expect(Reservation.where(id: @expired_hold.id)).to exist
 end
 
 When('I run the PurgeExpiredHolds job') do

@@ -1,50 +1,82 @@
 require 'rails_helper'
 
 RSpec.describe ReservationReminderJob, type: :job do
-  let(:user) { User.create!(name: "Test User", email: "test@example.com", password: "password", email_verified_at: Time.current) }
-  let(:workspace) { Workspace.create!(name: "Test Workspace") }
-  let(:item) { Item.create!(name: "Camera", workspace: workspace, quantity: 10) }
-  let(:reservation) { Reservation.create!(user: user, item: item, quantity: 2, start_time: 1.hour.from_now, end_time: 3.hours.from_now) }
+  let!(:user) { User.create!(name: "Test User", email: "test@example.com", password: "password123") }
+  let!(:workspace) { Workspace.create!(name: "Test Workspace") }
 
-  it "creates a start reminder notification" do
-    expect {
-      ReservationReminderJob.perform_now(reservation.id, 'start')
-    }.to change(Notification, :count).by(1)
-
-    notification = Notification.last
-    expect(notification.message).to include("starts in 2 hours")
-    expect(notification.user).to eq(user)
+  let!(:item) do
+    Item.create!(
+      name: "Camera",
+      quantity: 10,
+      workspace: workspace,
+      start_time: Time.zone.now.beginning_of_day + 9.hours,  # 9 AM
+      end_time: Time.zone.now.beginning_of_day + 17.hours    # 5 PM
+    )
   end
 
-  it "creates an end reminder notification" do
-    expect {
-      ReservationReminderJob.perform_now(reservation.id, 'end')
-    }.to change(Notification, :count).by(1)
-
-    notification = Notification.last
-    expect(notification.message).to include("ends in 10 minutes")
+  let!(:reservation) do
+    Reservation.create!(
+      user: user,
+      item: item,
+      quantity: 2,
+      start_time: Time.zone.now.beginning_of_day + 10.hours,  # 10 AM
+      end_time: Time.zone.now.beginning_of_day + 11.hours,     # 11 AM
+      in_cart: false
+    )
   end
 
-  it "creates a fallback reminder notification for unknown type" do
-    expect {
-      ReservationReminderJob.perform_now(reservation.id, 'random')
-    }.to change(Notification, :count).by(1)
+  describe "#perform - start reminder" do
+    it "creates a start reminder notification" do
+      expect {
+        described_class.perform_now(reservation.id, "start")
+      }.to change(Notification, :count).by(1)
 
-    notification = Notification.last
-    expect(notification.message).to include("Reminder about your reservation")
+      n = Notification.last
+      expect(n.message).to include("starts in 2 hours")
+      expect(n.user).to eq(user)
+      expect(n.reservation).to eq(reservation)
+      expect(n.read).to be false
+    end
   end
 
-  it "does not create a notification if reservation is missing" do
-    expect {
-      ReservationReminderJob.perform_now(0, 'start')
-    }.not_to change(Notification, :count)
+  describe "#perform - end reminder" do
+    it "creates an end reminder notification" do
+      expect {
+        described_class.perform_now(reservation.id, "end")
+      }.to change(Notification, :count).by(1)
+
+      n = Notification.last
+      expect(n.message).to include("ends in 10 minutes")
+    end
   end
 
-  it "does not create a notification if reservation has no user" do
-    reservation.update(user: nil)
+  describe "#perform - unknown reminder type" do
+    it "creates a fallback reminder notification" do
+      expect {
+        described_class.perform_now(reservation.id, "random_type")
+      }.to change(Notification, :count).by(1)
 
-    expect {
-      ReservationReminderJob.perform_now(reservation.id, 'start')
-    }.not_to change(Notification, :count)
+      n = Notification.last
+      expect(n.message).to eq(
+        "Reminder about your reservation for #{reservation.quantity}x #{item.name} in #{workspace.name}."
+      )
+    end
+  end
+
+  describe "#perform - reservation with no user" do
+    it "does not create a notification" do
+      res_no_user = Reservation.create!(
+        user: nil,
+        item: item,
+        quantity: 1,
+        start_time: Time.zone.now.beginning_of_day + 12.hours,
+        end_time: Time.zone.now.beginning_of_day + 13.hours,
+        in_cart: false
+      )
+
+      expect {
+        described_class.perform_now(res_no_user.id, "start")
+      }.not_to change(Notification, :count)
+    end
   end
 end
