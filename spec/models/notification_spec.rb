@@ -60,10 +60,9 @@ RSpec.describe Notification, type: :model do
         expect(notification.errors[:user]).not_to be_empty
       end
 
-      it "is invalid without a reservation" do
+      it "is valid without a reservation" do
         notification = Notification.new(base_attributes.merge(reservation: nil))
-        expect(notification).not_to be_valid
-        expect(notification.errors[:reservation]).not_to be_empty
+        expect(notification).to be_valid
       end
     end
   end

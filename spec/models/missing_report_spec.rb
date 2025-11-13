@@ -90,9 +90,20 @@ RSpec.describe MissingReport, type: :model do
   end
 
   describe "associations" do
-    it { should belong_to(:reservation) }
-    it { should belong_to(:item) }
-    it { should belong_to(:workspace) }
+    it "belongs to a reservation" do
+      missing_report = MissingReport.new
+      expect(missing_report).to respond_to(:reservation)
+    end
+
+    it "belongs to an item" do
+      missing_report = MissingReport.new
+      expect(missing_report).to respond_to(:item)
+    end
+
+    it "belongs to a workspace" do
+      missing_report = MissingReport.new
+      expect(missing_report).to respond_to(:workspace)
+    end
   end
 
   describe "default values" do

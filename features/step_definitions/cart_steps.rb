@@ -50,14 +50,18 @@ Given('an expired in-cart hold for {string} exists for {string}') do |item_name,
   item = Item.find_by!(name: item_name)
   user = User.find_by!(name: full_name)
 
-  start_t = Time.zone.now + 30.minutes
-  end_t   = start_t + 15.minutes
+  item_start = item.start_time
+  item_end = item.end_time
+
+  window_duration = item_end - item_start
+  reservation_start = item_start + (window_duration * 0.25)
+  reservation_end   = item_start + (window_duration * 0.5)
 
   @expired_hold = Reservation.create!(
     user: user,
     item: item,
-    start_time: start_t,
-    end_time: end_t,
+    start_time: reservation_start,
+    end_time: reservation_end,
     quantity: 1,
     in_cart: true,
     hold_expires_at: 10.minutes.ago
