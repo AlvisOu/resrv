@@ -166,13 +166,26 @@ RSpec.describe WorkspacesController, type: :controller do
     end
 
     it "assigns resolved and unresolved missing reports" do
-      mr1 = MissingReport.create!(item: @item, reservation: @reservation, workspace: workspace, resolved: false)
-      mr2 = MissingReport.create!(item: @item, reservation: @reservation, workspace: workspace, resolved: true)
+      mr1 = MissingReport.create!(
+        item: @item,
+        reservation: @reservation,
+        workspace: workspace,
+        quantity: 1,
+        resolved: false
+      )
+
+      mr2 = MissingReport.create!(
+        item: @item,
+        reservation: @reservation,
+        workspace: workspace,
+        quantity: 1,
+        resolved: true
+      )
 
       get :show, params: { id: workspace.slug }
 
       expect(assigns(:unresolved_reports)).to include(mr1)
-      expect(assigns(:resolved_reports)).to include(mr2)
+      expect(assigns(:resolved_reports)).to   include(mr2)
     end
   end
 
