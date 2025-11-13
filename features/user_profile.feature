@@ -52,3 +52,12 @@ Feature: User profile management
     And I click "Log Out"
     Then I should be on the login page
     And I should see "Logged out successfully."
+
+  Scenario: Login blocked for unverified email
+    Given the user "unverified@example.com" exists and is unverified with password "password123"
+    When I go to the login page
+    And I fill in "session[email]" with "unverified@example.com"
+    And I fill in "session[password]" with "password123"
+    And I press "Log In"
+    Then I should see "Please verify your email to continue."
+    And I should be on the email verification page

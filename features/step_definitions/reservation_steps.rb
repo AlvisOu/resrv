@@ -17,6 +17,40 @@ Given /^(?:|I )have an existing reservation$/ do
       end_time:   today.noon + 3.hours
     )
 end
+Given(/^I have a reservation in "([^"]*)" for "([^"]*)"$/) do |workspace_name, item_name|
+  workspace = Workspace.find_by!(name: workspace_name)
+  item = Item.find_by!(name: item_name, workspace: workspace)
+  user = User.find_or_create_by!(email: "user@example.com") do |u|
+    u.name = "Example User"
+    u.password = "password"
+  end
+
+  @reservation = Reservation.create!(
+    user: user,
+    item: item,
+    start_time: 2.hours.ago,
+    end_time: 1.hour.ago,
+    quantity: 1,
+    returned_count: 0
+  )
+end
+Given(/^I have a reservation in "([^"]*)" for "([^"]*)" with (\d+) reserved items$/) do |workspace_name, item_name, quantity|
+  workspace = Workspace.find_by!(name: workspace_name)
+  item = Item.find_by!(name: item_name, workspace: workspace)
+  user = User.find_or_create_by!(email: "user@example.com") do |u|
+    u.name = "Example User"
+    u.password = "password"
+  end
+
+  @reservation = Reservation.create!(
+    user: user,
+    item: item,
+    start_time: 2.hours.ago,
+    end_time: 1.hour.ago,
+    quantity: quantity.to_i,
+    returned_count: 0
+  )
+end
 
 # --- Sees ---
 Then /^(?:|I )should see the new reservation for "([^"]*)"$/ do |item_name|
@@ -36,18 +70,27 @@ When /^(?:|I )adjust the quantity for "([^"]*)"$/ do |item_name|
   qty_wrap = find(:xpath, "//div[contains(@class,'item-name') and normalize-space(text())='#{item_name}']/following-sibling::div[contains(@class,'sticky-2')]//div[contains(@class,'qty-wrap')]")
   qty_wrap.find(".qty-up").click
 end
-
-# features/step_definitions/reservation_steps.rb
 When(/^I press an available time slot for "([^"]+)"$/) do |item_name|
   item = Item.find_by!(name: item_name)
   slot = find(%(.slot.available[data-item-id="#{item.id}"]), match: :first, wait: 5)
   slot.click
   expect(slot[:class]).to include("selected")
 end
-
-
 When(/^I click "cancel" on the reservation for "(.+)"$/) do |item_name|
   within(:xpath, "//tr[td[contains(text(), '#{item_name}')]]") do
     click_link("Cancel")
   end
+end
+When(/^I mark the reservation as a no-show$/) do
+  page.driver.submit :patch, mark_no_show_reservation_path(@reservation), {}
+end
+When(/^I return (\d+) items from the reservation$/) do |qty|
+  page.driver.submit :patch,
+    return_items_reservation_path(@reservation),
+    { quantity_to_return: qty.to_i }
+end
+When(/^I undo return of (\d+) items from the reservation$/) do |qty|
+  page.driver.submit :patch,
+    undo_return_items_reservation_path(@reservation),
+    { quantity_to_undo: qty.to_i }
 end

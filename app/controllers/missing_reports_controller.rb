@@ -7,27 +7,27 @@ class MissingReportsController < ApplicationController
     @resolved_reports   = @workspace.missing_reports.where(resolved: true).includes(:item, :reservation)
   end
 
-  def create
-    reservation = Reservation.find(params[:reservation_id])
-    missing_qty = reservation.quantity - reservation.returned_count
+#   def create
+#     reservation = Reservation.find(params[:reservation_id])
+#     missing_qty = reservation.quantity - reservation.returned_count
 
-    if missing_qty > 0
-      MissingReport.create!(
-        reservation: reservation,
-        item: reservation.item,
-        workspace: reservation.item.workspace,
-        quantity: missing_qty,
-        resolved: false
-      )
+#     if missing_qty > 0
+#       MissingReport.create!(
+#         reservation: reservation,
+#         item: reservation.item,
+#         workspace: reservation.item.workspace,
+#         quantity: missing_qty,
+#         resolved: false
+#       )
 
-      reservation.item.decrement!(:quantity, missing_qty)
-      flash[:notice] = "Missing item reported."
-    else
-      flash[:alert] = "No missing quantity to report."
-    end
+#       reservation.item.decrement!(:quantity, missing_qty)
+#       flash[:notice] = "Missing item reported."
+#     else
+#       flash[:alert] = "No missing quantity to report."
+#     end
 
-    redirect_to reservation_path(reservation)
-  end
+#     redirect_to reservation_path(reservation)
+#   end
 
   def resolve
     report = @workspace.missing_reports.find(params[:id])
