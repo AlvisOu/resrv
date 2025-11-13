@@ -24,7 +24,7 @@ class EmailVerificationsController < ApplicationController
     @user = User.find_by(id: session[:unverified_user_id])
     # If no user is found, redirect them to the signup page.
     unless @user
-      redirect_to new_user_path, alert: 'Invalid session. Please sign up again.'
+      redirect_to signup_path, alert: 'Invalid session. Please sign up again.'
     end
   end
 end

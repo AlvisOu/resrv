@@ -124,6 +124,17 @@ class WorkspacesController < ApplicationController
 
   end
 
+  def edit
+  end
+
+  def update
+    if @workspace.update(workspace_params)
+      redirect_to @workspace, notice: "Workspace updated successfully."
+    else
+      render :edit, status: :unprocessable_entity
+    end
+  end
+
   private
 
   def set_workspace

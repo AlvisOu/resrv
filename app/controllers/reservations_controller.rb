@@ -80,8 +80,9 @@ class ReservationsController < ApplicationController
 
     def return_items
         unless current_user_is_owner?(@workspace)
-            redirect_to @workspace, alert: "Not authorized."
+            return redirect_to @workspace, alert: "Not authorized."
         end
+
         item = @reservation.item
         quantity_to_return = params[:quantity_to_return].to_i
         if quantity_to_return <= 0
@@ -114,15 +115,15 @@ class ReservationsController < ApplicationController
                     end
                 end
             end
-            redirect_to @workspace, notice: "#{quantity_to_return} #{item.name}(s) returned successfully."
+            return redirect_to @workspace, notice: "#{quantity_to_return} #{item.name}(s) returned successfully."
         rescue => e
-            redirect_to @workspace, alert: "Failed to update status: #{e.message}"
+            return redirect_to @workspace, alert: "Failed to update status: #{e.message}"
         end
     end
 
     def undo_return_items
         unless current_user_is_owner?(@workspace)
-            redirect_to @workspace, alert: "Not authorized."
+            return redirect_to @workspace, alert: "Not authorized."
         end
         item = @reservation.item
         quantity_to_undo = params[:quantity_to_undo].to_i
@@ -137,13 +138,14 @@ class ReservationsController < ApplicationController
 
         begin
             ActiveRecord::Base.transaction do
-                @reservation.update!(returned_count: current_returned - quantity_to_undo)
+            @reservation.update!(returned_count: current_returned - quantity_to_undo)
             end
-            redirect_to @workspace, notice: "Undo return of #{quantity_to_undo} #{item.name}(s) successful."
+            return redirect_to @workspace, notice: "Undo return of #{quantity_to_undo} #{item.name}(s) successful."
         rescue => e
-            redirect_to @workspace, alert: "Failed to update status: #{e.message}"
+            return redirect_to @workspace, alert: "Failed to update status: #{e.message}"
         end
     end
+
 
     private
 
