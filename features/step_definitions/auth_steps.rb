@@ -55,11 +55,3 @@ Given('I am logged out') do
   end
   visit path_to('the home page')
 end
-
-Given('a user named {string} exists') do |full_name|
-  first, last = full_name.split(' ', 2)
-  @user = User.find_or_create_by!(email: "#{first.downcase}.#{last.downcase}@example.com") do |u|
-    u.name = full_name
-    u.password = 'password'
-  end
-end
