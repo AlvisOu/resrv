@@ -59,7 +59,7 @@ Resrv::Application.routes.draw do
 
   # == Missing Items ==
   resources :workspaces do
-    resources :missing_reports, only: [:index, :create] do
+    resources :missing_reports, only: [:index] do
       member do
         patch :resolve
       end

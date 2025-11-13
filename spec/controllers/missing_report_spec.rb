@@ -104,42 +104,6 @@ RSpec.describe MissingReportsController, type: :controller do
   end
 
   # -------------------------------------------------------------------
-  # CREATE
-  # -------------------------------------------------------------------
-  describe "POST #create" do
-    context "when missing quantity > 0" do
-      it "creates a missing report and decrements item quantity" do
-        expect {
-          post :create, params: {
-            workspace_id: workspace.id,
-            reservation_id: reservation.id
-          }
-        }.to change(MissingReport, :count).by(1)
-
-        expect(item.reload.quantity).to eq(3) # 5 original - missing_qty(2)
-        expect(response).to redirect_to(reservation_path(reservation))
-        expect(flash[:notice]).to eq("Missing item reported.")
-      end
-    end
-
-    context "when missing quantity == 0" do
-      before { reservation.update!(returned_count: 3) } # full return
-
-      it "does not create a missing report and flashes alert" do
-        expect {
-          post :create, params: {
-            workspace_id: workspace.id,
-            reservation_id: reservation.id
-          }
-        }.not_to change(MissingReport, :count)
-
-        expect(response).to redirect_to(reservation_path(reservation))
-        expect(flash[:alert]).to eq("No missing quantity to report.")
-      end
-    end
-  end
-
-  # -------------------------------------------------------------------
   # RESOLVE
   # -------------------------------------------------------------------
   describe "PATCH #resolve" do
