@@ -56,7 +56,21 @@ Given(/^my reservation has (\d+) items where (\d+) were returned$/) do |total_qu
 end
 
 Given(/^the reservation has ended over 30 minutes ago$/) do
-  @reservation.update!(end_time: 40.minutes.ago)
+  item = @reservation.item
+  item_start_time = item.start_time
+  item_end_time = item.end_time
+  reservation_end_time = [item_end_time, 40.minutes.ago].min
+  reservation_start_time = reservation_end_time - 1.hour
+
+  if reservation_start_time < item_start_time
+    reservation_start_time = item_start_time
+    reservation_end_time = reservation_start_time + 1.hour
+  end
+  
+  @reservation.update!(
+    start_time: reservation_start_time,
+    end_time: reservation_end_time
+  )
 end
 
 # --- Whens ---
