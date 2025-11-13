@@ -1,14 +1,15 @@
 require "rails_helper"
 
 RSpec.describe ReservationsController, type: :controller do
+  fixed_time = Time.zone.local(2025, 1, 1, 0, 0, 0)
   let(:workspace) { Workspace.create!(name: "Lab") }
   let(:item) do
     Item.create!(
       name: "Mic",
       workspace: workspace,
       quantity: 2,
-      start_time: Time.zone.now.beginning_of_day,
-      end_time: Time.zone.now.change(hour: 15)
+      start_time: fixed_time + 6.hour,
+      end_time: fixed_time + 23.hour
     )
   end
   let(:user) do
@@ -24,8 +25,8 @@ RSpec.describe ReservationsController, type: :controller do
     Reservation.create!(
       user: user,
       item: item,
-      start_time: Time.zone.now.change(hour: 11),
-      end_time: Time.zone.now.change(hour: 12),
+      start_time: fixed_time + 11.hour,
+      end_time: fixed_time + 12.hour,
       quantity: 1,
       returned_count: 0
     )
@@ -164,7 +165,7 @@ RSpec.describe ReservationsController, type: :controller do
     end
 
     it "creates a late return penalty" do
-      reservation.update_columns(end_time: Time.zone.now.change(hour: 14))
+      reservation.update_columns(end_time: fixed_time + 14.hour)
 
       patch :return_items, params: { id: reservation.id, quantity_to_return: 1 }
 
