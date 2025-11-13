@@ -99,6 +99,8 @@ RSpec.describe WorkspacesController, type: :controller do
   # -------------------------------------------------------------------
   describe "GET #show" do
     before do
+      allow(Time.zone).to receive(:now)
+      .and_return(Time.zone.now.beginning_of_day + 12.hours)
       UserToWorkspace.create!(user: user, workspace: workspace, role: "owner")
 
       @item = Item.create!(
