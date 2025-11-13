@@ -45,4 +45,152 @@ Then /^(?:|I )should see my pending reservation$/ do
   page.should have_content("1")
 end
 
-# --- Actions ---
+
+Given('an expired in-cart hold for {string} exists for {string}') do |item_name, full_name|
+  item = Item.find_by!(name: item_name)
+  user = User.find_by!(name: full_name)
+
+  start_t = Time.zone.now + 30.minutes
+  end_t   = start_t + 15.minutes
+
+  @expired_hold = Reservation.create!(
+    user: user,
+    item: item,
+    start_time: start_t,
+    end_time: end_t,
+    quantity: 1,
+    in_cart: true,
+    hold_expires_at: 10.minutes.ago
+  )
+
+  # sanity check it exists
+  expect(Reservation.where(id: @expired_hold.id)).to exist
+end
+
+When('I run the PurgeExpiredHolds job') do
+  PurgeExpiredHoldsJob.perform_now
+end
+
+Then('the expired in-cart hold should be removed') do
+  expect(Reservation.where(id: @expired_hold.id)).not_to exist
+end
+
+# A tiny cart double the service expects
+class TestCart
+  attr_reader :groups, :cleared
+  def initialize(groups)      # { workspace => [segments] }
+    @groups = groups
+    @cleared = []
+  end
+  def merged_segments_by_workspace
+    @groups
+  end
+  def clear_workspace!(workspace_id)
+    @cleared << workspace_id
+  end
+end
+
+def tz_parse_today(hhmm)
+  Time.zone.parse("#{Time.zone.today} #{hhmm}")
+end
+
+Given('an empty checkout cart for workspace {int}') do |wid|
+  @cart = TestCart.new({})      # no groups -> segments.blank? hits
+  @workspace_id = wid
+end
+
+Given('a checkout cart for {string} with a segment for {string} from {string} to {string} qty {int}') do |ws_name, item_name, s_str, e_str, q|
+  ws = Workspace.find_by!(name: ws_name)
+  item = Item.find_by!(name: item_name, workspace: ws)
+  s = tz_parse_today(s_str)
+  e = tz_parse_today(e_str)
+  seg = { item: item, start_time: s, end_time: e, quantity: q }
+  @cart = TestCart.new({ ws => [seg] })
+  @workspace_id = ws.id
+end
+
+# Make the named user appear blocked from reserving in the named workspace.
+Given(/^the user "([^"]+)" is blocked in "([^"]+)"$/) do |full_name, ws_name|
+  user = User.find_by!(name: full_name)
+  ws   = Workspace.find_by!(name: ws_name)
+
+  # No RSpec mocks needed—override the instance method for this user.
+  user.define_singleton_method(:blocked_from_reserving_in?) do |workspace|
+    workspace.id == ws.id
+  end
+
+  @user = user
+end
+
+
+Given('{string} has quantity {int}') do |item_name, qty|
+  item = Item.find_by!(name: item_name)
+  item.update!(quantity: qty)
+end
+
+Given('another user has a reservation for {string} from {string} to {string} qty {int}') do |item_name, s_str, e_str, q|
+  other = User.find_or_create_by!(email: 'other@example.com') { |u| u.name = 'Other User'; u.password = 'password' }
+  item  = Item.find_by!(name: item_name)
+  Reservation.create!(
+    user: other, item: item,
+    start_time: tz_parse_today(s_str),
+    end_time:   tz_parse_today(e_str),
+    quantity:   q,
+    in_cart:    false
+  )
+end
+
+Given('the user {string} has an in-cart hold for {string} from {string} to {string} qty {int}') do |full_name, item_name, s_str, e_str, q|
+  u    = User.find_by!(name: full_name)
+  item = Item.find_by!(name: item_name)
+  Reservation.create!(
+    user: u, item: item,
+    start_time: tz_parse_today(s_str),
+    end_time:   tz_parse_today(e_str),
+    quantity:   q,
+    in_cart:    true,
+    hold_expires_at: 30.minutes.from_now # not expired -> considered in convert_user_holds!
+  )
+end
+
+
+When('I run checkout for {string} and workspace {string}') do |full_name, ws_name|
+  user = @user || User.find_by!(name: full_name)   # <-- reuse the overridden instance
+  ws   = Workspace.find_by!(name: ws_name)
+  @service = CheckoutService.new(@cart, user, ws.id)
+  @result  = @service.call
+end
+
+When('I run checkout for {string} and workspace {int}') do |full_name, wid|
+  user = @user || User.find_by!(name: full_name)
+  @service = CheckoutService.new(@cart, user, wid)
+  @result  = @service.call
+end
+
+
+Then('the checkout should fail with {string}') do |message|
+  expect(@result).to be(false)
+  expect(@service.errors.join("\n")).to include(message)
+end
+
+Then('no new reservations should exist for {string}') do |full_name|
+  user = User.find_by!(name: full_name)
+  expect(Reservation.where(user: user).count).to eq(Reservation.where(user: user, in_cart: true).count)
+end
+
+When('I call the private capacity helper for {string} from {string} to {string} qty {int}') do |item_name, s_str, e_str, q|
+  item = Item.find_by!(name: item_name)
+  s = tz_parse_today(s_str)
+  e = tz_parse_today(e_str)
+  # a harmless cart/workspace to build the service object
+  @service ||= CheckoutService.new(TestCart.new({}), @user, @workspace&.id || @workspace_id)
+  @cap_ok = @service.send(:capacity_available?, item, s, e, q)
+end
+
+Then('it should report capacity available') do
+  expect(@cap_ok).to be(true)
+end
+
+Then('it should report capacity unavailable') do
+  expect(@cap_ok).to be(false)
+end
