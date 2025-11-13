@@ -27,7 +27,11 @@ Resrv::Application.routes.draw do
   resources :workspaces, only: [:index, :new, :create, :show, :edit, :update] do
     resource :user_to_workspace, only: [:create, :destroy]
     resources :items, only: [:new, :create, :edit, :update, :destroy]
-    resources :missing_reports, only: [:index, :create], controller: 'missing_reports'
+    resources :missing_reports, only: [:index, :create] do
+      member do
+        patch :resolve
+      end
+    end
   end
 
   # == Reservation Routes ==
@@ -51,18 +55,9 @@ Resrv::Application.routes.draw do
 
   # == Cart Routes ==
   resource  :cart, only: [:show] do
-    post :checkout   # <= NEW
+    post :checkout
   end
   resources :cart_items, only: [:create, :update, :destroy] do
     delete :remove_range, on: :collection
-  end
-
-  # == Missing Items ==
-  resources :workspaces do
-    resources :missing_reports, only: [:index] do
-      member do
-        patch :resolve
-      end
-    end
   end
 end
