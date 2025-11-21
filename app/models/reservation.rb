@@ -16,23 +16,9 @@ class Reservation < ApplicationRecord
   # Real, checked-out reservations (not in-cart holds)
   scope :checked_out, -> { where(in_cart: false) }
 
-  # Holds that are still active (TTL not expired)
-  scope :active_holds, -> { where(in_cart: true).where("hold_expires_at IS NOT NULL AND hold_expires_at > ?", Time.zone.now) }
-
   # For capacity math: count real reservations + active holds, ignore expired holds
   scope :active_for_capacity, -> {
     where("(in_cart = FALSE) OR (in_cart = TRUE AND hold_expires_at IS NOT NULL AND hold_expires_at > ?)", Time.zone.now)
-  }
-
-  # Convenience finder for a specific user's active hold window
-  scope :active_holds_for, ->(user_id:, item_id:, start_time:, end_time:) {
-    where(
-      user_id: user_id,
-      item_id: item_id,
-      start_time: start_time,
-      end_time: end_time,
-      in_cart: true
-    ).where("hold_expires_at IS NOT NULL AND hold_expires_at > ?", Time.zone.now)
   }
 
   def self.notify_and_purge_expired_holds!

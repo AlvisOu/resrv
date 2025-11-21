@@ -125,12 +125,6 @@ RSpec.describe Cart, type: :service do
       expect(models.first[:item]).to eq(item)
       expect(models.first[:workspace]).to eq(workspace)
     end
-
-    it "groups by workspace" do
-      grouped = cart.grouped_by_workspace
-      expect(grouped.keys).to include(workspace)
-      expect(grouped.values.flatten.first[:item]).to eq(item)
-    end
   end
 
   describe "#merge_segments_for_item" do

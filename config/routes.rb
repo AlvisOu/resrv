@@ -27,7 +27,7 @@ Resrv::Application.routes.draw do
   resources :workspaces, only: [:index, :new, :create, :show, :edit, :update] do
     resource :user_to_workspace, only: [:create, :destroy]
     resources :items, only: [:new, :create, :edit, :update, :destroy]
-    resources :missing_reports, only: [:index, :create] do
+    resources :missing_reports, only: [:index] do
       member do
         patch :resolve
       end

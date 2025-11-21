@@ -68,10 +68,6 @@ class Cart
     end
   end
 
-  def grouped_by_workspace
-    entries_with_models.group_by { _1[:workspace] }
-  end
-
   def total_count
     entries.sum { _1["quantity"].to_i }
   end
