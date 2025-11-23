@@ -21,10 +21,12 @@
           <td><%= reservation.end_time.in_time_zone.strftime("%b %d, %I:%M %p") %></td>
           <td><%= reservation.quantity %></td>
           <td>
-            <%= link_to "Cancel", reservation_path(reservation),
-                        method: :delete,
-                        data: { confirm: "Are you sure you want to cancel this reservation?" },
-                        class: "btn btn-danger btn-sm" %>
+            <% if reservation.start_time > Time.current %>
+              <%= link_to "Cancel", reservation_path(reservation),
+                          method: :delete,
+                          data: { confirm: "Are you sure you want to cancel this reservation?" },
+                          class: "btn btn-danger btn-sm" %>
+            <% end %>
           </td>
         </tr>
       <% end %>

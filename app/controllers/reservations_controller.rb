@@ -45,6 +45,12 @@ class ReservationsController < ApplicationController
 
     def destroy
         reservation = current_user.reservations.find(params[:id])
+
+        if reservation.start_time <= Time.current
+            flash[:alert] = "You cannot cancel a reservation that has already started."
+            return redirect_to reservations_path
+        end
+
         reservation.destroy
         flash[:notice] = "Reservation canceled successfully."
         redirect_to reservations_path

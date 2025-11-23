@@ -82,13 +82,32 @@ RSpec.describe ReservationsController, type: :controller do
   # DESTROY
   # -------------------------------------------------------------------
   describe "DELETE #destroy" do
-    it "deletes user's own reservation" do
+    it "deletes user's own reservation if it is in the future" do
+      future_reservation = Reservation.create!(
+        user: user,
+        item: item,
+        start_time: 1.day.from_now.change(hour: 11),
+        end_time: 1.day.from_now.change(hour: 12),
+        quantity: 1,
+        returned_count: 0
+      )
+
       expect {
-        delete :destroy, params: { id: reservation.id }
+        delete :destroy, params: { id: future_reservation.id }
       }.to change(Reservation, :count).by(-1)
 
       expect(response).to redirect_to(reservations_path)
       expect(flash[:notice]).to eq("Reservation canceled successfully.")
+    end
+
+    it "prevents cancellation of started reservation" do
+      # reservation defined in let block is in the past (Jan 1 2025)
+      expect {
+        delete :destroy, params: { id: reservation.id }
+      }.not_to change(Reservation, :count)
+
+      expect(response).to redirect_to(reservations_path)
+      expect(flash[:alert]).to eq("You cannot cancel a reservation that has already started.")
     end
 
     it "raises error when deleting someone else's reservation" do
