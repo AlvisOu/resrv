@@ -1,39 +1,56 @@
 <h1>My Reservations</h1>
 
-<% if @reservations.any? %>
-  <table class="table table-bordered">
-    <thead>
-      <tr>
-        <th>Item</th>
-        <th>Workspace</th>
-        <th>Start Time</th>
-        <th>End Time</th>
-        <th>Quantity</th>
-        <th>Actions</th>
-      </tr>
-    </thead>
-    <tbody>
-      <% @reservations.each do |reservation| %>
-        <tr id="reservation_<%= reservation.id %>">
-          <td><%= reservation.item.name %></td>
-          <td><%= reservation.item.workspace.name %></td>
-          <td><%= reservation.start_time.in_time_zone.strftime("%b %d, %I:%M %p") %></td>
-          <td><%= reservation.end_time.in_time_zone.strftime("%b %d, %I:%M %p") %></td>
-          <td><%= reservation.quantity %></td>
-          <td>
-            <% if reservation.start_time > Time.current %>
-              <%= link_to "Cancel", reservation_path(reservation),
-                          method: :delete,
-                          data: { confirm: "Are you sure you want to cancel this reservation?" },
-                          class: "btn btn-danger btn-sm" %>
-            <% end %>
-          </td>
-        </tr>
-      <% end %>
-    </tbody>
-  </table>
-<% else %>
+<%
+  now = Time.current
+  current_res = @reservations.select { |r| r.start_time <= now && r.end_time >= now }
+  future_res  = @reservations.select { |r| r.start_time > now }
+  past_res    = @reservations.select { |r| r.end_time < now }.reverse
+%>
+
+<% if @reservations.empty? %>
   <p>You have no reservations yet.</p>
+<% else %>
+  <% [
+       ["Current Reservations", current_res],
+       ["Future Reservations", future_res],
+       ["Past Reservations", past_res]
+     ].each do |title, list| %>
+    
+    <% if list.any? %>
+      <h3 class="mt-4"><%= title %></h3>
+      <table class="table table-bordered" style="table-layout: fixed;">
+        <thead>
+          <tr>
+            <th style="width: 22%;">Item</th>
+            <th style="width: 22%;">Workspace</th>
+            <th style="width: 20%;">Start Time</th>
+            <th style="width: 20%;">End Time</th>
+            <th style="width: 8%;">Quantity</th>
+            <th style="width: 8%;">Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          <% list.each do |reservation| %>
+            <tr id="reservation_<%= reservation.id %>">
+              <td><%= reservation.item.name %></td>
+              <td><%= reservation.item.workspace.name %></td>
+              <td><%= reservation.start_time.in_time_zone.strftime("%b %d, %I:%M %p") %></td>
+              <td><%= reservation.end_time.in_time_zone.strftime("%b %d, %I:%M %p") %></td>
+              <td><%= reservation.quantity %></td>
+              <td>
+                <% if reservation.start_time > Time.current %>
+                  <%= link_to "Cancel", reservation_path(reservation),
+                              method: :delete,
+                              data: { confirm: "Are you sure you want to cancel this reservation?" },
+                              class: "btn btn-danger btn-sm" %>
+                <% end %>
+              </td>
+            </tr>
+          <% end %>
+        </tbody>
+      </table>
+    <% end %>
+  <% end %>
 <% end %>
 
 <hr>

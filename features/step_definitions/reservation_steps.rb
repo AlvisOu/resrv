@@ -13,8 +13,8 @@ Given /^(?:|I )have an existing reservation$/ do
     @reservation = Reservation.create!(
       user: @current_user,
       item: item,
-      start_time: today.noon + 2.hours,
-      end_time:   today.noon + 3.hours
+      start_time: (today + 1.day).beginning_of_day + 14.hours,
+      end_time:   (today + 1.day).beginning_of_day + 15.hours
     )
 end
 Given(/^I have a reservation in "([^"]*)" for "([^"]*)"$/) do |workspace_name, item_name|

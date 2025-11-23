@@ -100,10 +100,28 @@ RSpec.describe ReservationsController, type: :controller do
       expect(flash[:notice]).to eq("Reservation canceled successfully.")
     end
 
-    it "prevents cancellation of started reservation" do
+    it "prevents cancellation of past reservation" do
       # reservation defined in let block is in the past (Jan 1 2025)
       expect {
         delete :destroy, params: { id: reservation.id }
+      }.not_to change(Reservation, :count)
+
+      expect(response).to redirect_to(reservations_path)
+      expect(flash[:alert]).to eq("You cannot cancel a reservation that has already started.")
+    end
+
+    it "prevents cancellation of ongoing reservation" do
+      ongoing_reservation = Reservation.create!(
+        user: user,
+        item: item,
+        start_time: 1.hour.ago,
+        end_time: 1.hour.from_now,
+        quantity: 1,
+        returned_count: 0
+      )
+
+      expect {
+        delete :destroy, params: { id: ongoing_reservation.id }
       }.not_to change(Reservation, :count)
 
       expect(response).to redirect_to(reservations_path)
