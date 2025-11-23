@@ -20,7 +20,7 @@
           <%= button_to "Mark as Read", mark_as_read_notification_path(note), method: :post, class: "btn btn-sm btn-outline-secondary" %>
           <% end %>
 
-          <%= button_to "Delete", notification_path(note), method: :delete, data: { confirm: "Are you sure you want to delete this notification?" }, class: "btn btn-sm btn-outline-danger" %>
+          <%= button_to "Delete", notification_path(note), method: :delete, class: "btn btn-sm btn-outline-danger" %>
       </div>
     </div>
   <% end %>
