@@ -1,6 +1,7 @@
 class ReservationsController < ApplicationController
     before_action :require_user
-    before_action :set_reservation_and_workspace, only: [:mark_no_show, :return_items, :undo_return_items]
+    before_action :set_reservation_and_workspace, only: [:mark_no_show, :return_items, :undo_return_items, :show, :owner_cancel]
+    before_action :authorize_owner!, only: [:show, :owner_cancel]
 
     def availability
         item = Item.find(params[:item_id])
@@ -33,6 +34,9 @@ class ReservationsController < ApplicationController
         ).time_slots
 
         render json: { slots: slots }
+    end
+
+    def show
     end
 
     def index
@@ -152,6 +156,22 @@ class ReservationsController < ApplicationController
         end
     end
 
+    def owner_cancel
+        Reservation.transaction do
+            user = @reservation.user
+            workspace = @reservation.item.workspace
+            @reservation.destroy!
+            Notification.create!(
+                user: user,
+                reservation: nil,
+                message: "Your reservation in #{workspace.name} was canceled by the workspace owner."
+            )
+        end
+        redirect_to @workspace, notice: "Reservation canceled and user notified."
+    rescue => e
+        redirect_to @workspace, alert: "Failed to cancel reservation: #{e.message}"
+    end
+
 
     private
 
@@ -164,5 +184,11 @@ class ReservationsController < ApplicationController
         remainder = (time.min % 15)
         return time.change(sec: 0) if remainder.zero? && time.sec.zero?
         time.change(sec: 0) + (15 - remainder).minutes
+    end
+
+    def authorize_owner!
+        return if current_user_is_owner?(@workspace)
+
+        redirect_to @workspace, alert: "Not authorized."
     end
 end

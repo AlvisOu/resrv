@@ -35,12 +35,13 @@ Resrv::Application.routes.draw do
   end
 
   # == Reservation Routes ==
-  resources :reservations, only: [:index, :create, :destroy] do
+  resources :reservations, only: [:index, :create, :destroy, :show] do
     get :availability, on: :collection
     member do
       patch :mark_no_show
       patch :return_items
       patch :undo_return_items
+      patch :owner_cancel
     end
   end
 

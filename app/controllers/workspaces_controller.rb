@@ -102,7 +102,10 @@ class WorkspacesController < ApplicationController
         t = floor_to_15(s)
         while t < e
           key = t.iso8601
-          @booking_tooltips[r.item_id][key] << "#{r.user.name} ×#{r.quantity}"
+          @booking_tooltips[r.item_id][key] << {
+            id: r.id,
+            label: "#{r.user.name} ×#{r.quantity}"
+          }
           t += 15.minutes
         end
       end
@@ -121,6 +124,36 @@ class WorkspacesController < ApplicationController
 
     @unresolved_reports = @workspace.missing_reports.where(resolved: false).includes(:item, reservation: :user)
     @resolved_reports   = @workspace.missing_reports.where(resolved: true).includes(:item, reservation: :user)
+
+    if is_owner
+      @filter_day =
+        begin
+          Date.iso8601(params[:filter_day]) if params[:filter_day].present?
+        rescue ArgumentError
+          nil
+        end || today
+
+      day_start = @tz.local(@filter_day.year, @filter_day.month, @filter_day.day, 0, 0, 0)
+      day_end   = day_start.end_of_day
+
+      @filter_item_id = params[:filter_item_id].presence
+
+      upcoming_scope = Reservation
+        .joins(:item)
+        .includes(:user, :item)
+        .where(items: { workspace_id: @workspace.id })
+        .where("reservations.start_time >= ?", @tz.now)
+
+      if params[:filter_day].present?
+        upcoming_scope = upcoming_scope.where(reservations: { start_time: day_start..day_end })
+      end
+
+      if @filter_item_id
+        upcoming_scope = upcoming_scope.where(items: { id: @filter_item_id })
+      end
+
+      @upcoming_reservations = upcoming_scope.order(:start_time)
+    end
 
   end
 

@@ -1,0 +1,22 @@
+<h2>Reservation Details</h2>
+
+<div class="card" style="padding:16px; max-width:720px;">
+  <p><strong>User:</strong> <%= @reservation.user.name %> (<%= @reservation.user.email %>)</p>
+  <p><strong>Workspace:</strong> <%= @reservation.item.workspace.name %></p>
+  <p><strong>Item:</strong> <%= @reservation.item.name %></p>
+  <p><strong>Quantity:</strong> <%= @reservation.quantity %></p>
+  <p><strong>Starts:</strong> <%= @reservation.start_time.strftime("%b %d, %Y %I:%M %p") %></p>
+  <p><strong>Ends:</strong> <%= @reservation.end_time.strftime("%b %d, %Y %I:%M %p") %></p>
+  <% if @reservation.no_show? %>
+    <p class="text-danger"><strong>No-show marked</strong></p>
+  <% end %>
+
+  <div style="display:flex; gap:10px; flex-wrap:wrap; margin-top:12px;">
+    <%= button_to "Cancel Reservation",
+                  owner_cancel_reservation_path(@reservation),
+                  method: :patch,
+                  class: "btn btn-danger",
+                  data: { confirm: "Cancel this reservation and notify the user?" } %>
+    <%= link_to "Back to Workspace", @workspace, class: "btn btn-secondary" %>
+  </div>
+</div>
