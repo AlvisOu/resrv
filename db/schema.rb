@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2025_11_12_170000) do
+ActiveRecord::Schema[8.0].define(version: 2025_11_24_000000) do
   create_table "items", force: :cascade do |t|
     t.string "name"
     t.integer "quantity"
@@ -46,6 +46,8 @@ ActiveRecord::Schema[8.0].define(version: 2025_11_12_170000) do
     t.integer "reservation_id"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.integer "penalty_id"
+    t.index ["penalty_id"], name: "index_notifications_on_penalty_id"
     t.index ["reservation_id"], name: "index_notifications_on_reservation_id"
     t.index ["user_id"], name: "index_notifications_on_user_id"
   end
@@ -58,6 +60,10 @@ ActiveRecord::Schema[8.0].define(version: 2025_11_12_170000) do
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.integer "workspace_id"
+    t.string "appeal_state", default: "none", null: false
+    t.text "appeal_message"
+    t.datetime "appealed_at"
+    t.datetime "appeal_resolved_at"
     t.index ["reservation_id"], name: "index_penalties_on_reservation_id"
     t.index ["user_id"], name: "index_penalties_on_user_id"
     t.index ["workspace_id"], name: "index_penalties_on_workspace_id"
@@ -119,6 +125,7 @@ ActiveRecord::Schema[8.0].define(version: 2025_11_12_170000) do
   add_foreign_key "missing_reports", "items"
   add_foreign_key "missing_reports", "reservations"
   add_foreign_key "missing_reports", "workspaces"
+  add_foreign_key "notifications", "penalties"
   add_foreign_key "notifications", "reservations"
   add_foreign_key "notifications", "users"
   add_foreign_key "penalties", "reservations"

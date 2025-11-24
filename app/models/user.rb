@@ -65,13 +65,13 @@ class User < ApplicationRecord
 
     def blocked_from_reserving_in?(workspace)
         penalties.active.any? do |penalty|
-            penalty.reservation.item.workspace_id == workspace.id
+            penalty_workspace_id(penalty) == workspace.id
         end
     end
 
     def penalty_expiry_for(workspace)
         penalties.active
-            .select { |p| p.reservation.item.workspace_id == workspace.id }
+            .select { |p| penalty_workspace_id(p) == workspace.id }
             .map(&:expires_at)
             .max
     end
@@ -82,4 +82,7 @@ class User < ApplicationRecord
         self.email = email.downcase if email.present?
     end
 
+    def penalty_workspace_id(penalty)
+        penalty.workspace_id || penalty.reservation&.item&.workspace_id
+    end
 end

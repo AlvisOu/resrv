@@ -52,6 +52,13 @@ Resrv::Application.routes.draw do
       delete :delete_all
     end
   end
+  resources :penalties, only: [] do
+    member do
+      post :appeal
+      patch :forgive
+      patch :shorten
+    end
+  end
 
   # == Cart Routes ==
   resource  :cart, only: [:show] do

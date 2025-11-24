@@ -76,6 +76,11 @@ RSpec.describe Penalty, type: :model do
         penalty = Penalty.new(base_attributes.merge(reason: "no_show"))
         expect(penalty).to be_valid
       end
+
+      it "defaults appeal_state to none" do
+        penalty = Penalty.create!(base_attributes)
+        expect(penalty.appeal_state).to eq("none")
+      end
     end
 
     context "with invalid attributes" do
@@ -104,6 +109,12 @@ RSpec.describe Penalty, type: :model do
       it "is valid without an expiration date" do
         penalty = Penalty.new(base_attributes.merge(expires_at: nil))
         expect(penalty).to be_valid # This should pass if expires_at is optional
+      end
+
+      it "is invalid with an unknown appeal_state" do
+        penalty = Penalty.new(base_attributes.merge(appeal_state: "invalid"))
+        expect(penalty).not_to be_valid
+        expect(penalty.errors[:appeal_state]).to include("is not included in the list")
       end
     end
   end
@@ -154,11 +165,29 @@ RSpec.describe Penalty, type: :model do
         expect(penalty.no_show?).to be false
       end
     end
+
+    describe "appeal helpers" do
+      it "is pending when appeal_state is pending" do
+        penalty = Penalty.new(base_attributes.merge(appeal_state: "pending"))
+        expect(penalty.appeal_pending?).to be true
+        expect(penalty.appealed?).to be true
+      end
+
+      it "is not appealed when appeal_state is none" do
+        penalty = Penalty.new(base_attributes.merge(appeal_state: "none"))
+        expect(penalty.appeal_pending?).to be false
+        expect(penalty.appealed?).to be false
+      end
+    end
   end
 
   describe "constants" do
     it "has valid reasons defined" do
       expect(Penalty::VALID_REASONS).to match_array(["late_return", "no_show"])
+    end
+
+    it "has appeal states defined" do
+      expect(Penalty::APPEAL_STATES).to match_array(["none", "pending", "resolved"])
     end
   end
 end

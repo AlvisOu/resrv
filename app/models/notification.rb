@@ -1,6 +1,7 @@
 class Notification < ApplicationRecord
   belongs_to :user
   belongs_to :reservation, optional: true
+  belongs_to :penalty, optional: true
 
   validates :user, presence: true
   validates :message, presence: true

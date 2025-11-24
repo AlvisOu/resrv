@@ -9,8 +9,9 @@ class UsersController < ApplicationController
     @user = current_user
     @workspace_penalties = current_user.penalties
       .active
-      .includes(reservation: { item: :workspace })
-      .group_by { |p| p.reservation.item.workspace }
+      .includes(:workspace, reservation: { item: :workspace })
+      .group_by { |p| p.workspace || p.reservation&.item&.workspace }
+      .reject { |workspace, _| workspace.nil? }
   end
 
   def update

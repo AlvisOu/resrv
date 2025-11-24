@@ -15,12 +15,50 @@
       <strong><%= note.message %></strong><br>
       <small><%= note.created_at.strftime('%b %d, %Y %I:%M %p') %></small><br>
 
+      <% if note.penalty.present? %>
+        <% penalty = note.penalty %>
+        <div style="margin-top:6px; color:#555;">
+          <div>Penalty reason: <strong><%= penalty.reason.humanize %></strong></div>
+          <% if penalty.expires_at.present? %>
+            <div>Expires: <%= penalty.expires_at.strftime('%b %d, %Y %I:%M %p') %></div>
+          <% end %>
+          <% if penalty.appeal_message.present? %>
+            <div>Appeal note: "<%= penalty.appeal_message %>"</div>
+          <% end %>
+        </div>
+
+        <% if penalty.appeal_pending? && penalty.workspace.present? && current_user_is_owner?(penalty.workspace) %>
+          <div style="display:flex; gap:10px; flex-wrap:wrap; align-items:center; margin-top:14px;">
+            <%= form_with url: shorten_penalty_path(penalty), method: :patch, local: true, style: "display:flex; gap:8px; align-items:center; margin:0; flex-wrap:nowrap;" do %>
+              <input type="number"
+                     name="shorten_hours"
+                     id="shorten_hours_<%= penalty.id %>"
+                     min="1"
+                     class="form-control form-control-sm"
+                     placeholder="Hours to reduce"
+                     style="width:170px; flex:0 0 auto; display:inline-block;" />
+              <button type="submit" class="btn btn-sm btn-outline-primary" style="flex:0 0 auto; margin:0;">Shorten</button>
+            <% end %>
+
+            <%= button_to "Remove Penalty",
+                          forgive_penalty_path(penalty),
+                          method: :patch,
+                          class: "btn btn-sm btn-outline-danger",
+                          data: { confirm: "Remove this penalty for #{penalty.user.name}?" } %>
+          </div>
+        <% end %>
+      <% end %>
+
       <div style="display: flex; gap: 8px; margin-top: 6px;">
           <% unless note.read %>
           <%= button_to "Mark as Read", mark_as_read_notification_path(note), method: :post, class: "btn btn-sm btn-outline-secondary" %>
           <% end %>
 
-          <%= button_to "Delete", notification_path(note), method: :delete, class: "btn btn-sm btn-outline-danger" %>
+          <%= button_to "Delete",
+                        notification_path(note),
+                        method: :delete,
+                        data: { confirm: "Delete this notification?" },
+                        class: "btn btn-sm btn-outline-danger" %>
       </div>
     </div>
   <% end %>

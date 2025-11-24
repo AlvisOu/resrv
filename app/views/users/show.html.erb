@@ -16,7 +16,23 @@
             <span>
               <strong><%= penalty.reason.titleize %></strong>
               — expires <%= penalty.expires_at.strftime("%b %d, %Y %I:%M %p") %>
+              <% if penalty.appeal_pending? %>
+                <span class="badge bg-warning text-dark ms-2">Appeal pending</span>
+              <% elsif penalty.appeal_state == "resolved" %>
+                <span class="badge bg-success ms-2">Appeal reviewed</span>
+              <% end %>
+              <% if penalty.appeal_message.present? %>
+                <div class="text-muted" style="font-size: 0.9em;">Your note: "<%= penalty.appeal_message %>"</div>
+              <% end %>
             </span>
+            <% if penalty.appeal_state == "none" %>
+              <%= form_with url: appeal_penalty_path(penalty), method: :post, local: true, style: "display:flex; align-items:center; gap:10px; margin:0; flex-wrap:nowrap;" do %>
+                <%= text_field_tag :appeal_message, nil, placeholder: "Optional note", class: "form-control form-control-sm", style: "width:240px; display:inline-block; flex:0 0 auto;" %>
+                <%= submit_tag "Appeal", class: "btn btn-sm btn-outline-primary", style: "flex:0 0 auto; margin:0;" %>
+              <% end %>
+            <% elsif penalty.appeal_state == "resolved" %>
+              <span class="text-muted" style="font-size: 0.9em;">Owner has already reviewed this penalty.</span>
+            <% end %>
           </li>
         <% end %>
       </ul>

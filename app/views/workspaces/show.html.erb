@@ -6,6 +6,17 @@
     You are blocked from making reservations in this workspace due to a
     <%= @penalty.reason.humanize.downcase %>.
     You’ll regain access after <strong><%= @penalty.expires_at.strftime("%B %-d at %-I:%M %p") %></strong>.
+
+    <% if @penalty.appeal_pending? %>
+      <div style="margin-top: 6px; color:#92400e;">Appeal submitted — waiting on owner review.</div>
+    <% elsif @penalty.appeal_state == "resolved" %>
+      <div style="margin-top: 6px; color:#065f46;">Appeal reviewed by owner.</div>
+    <% else %>
+      <%= form_with url: appeal_penalty_path(@penalty), method: :post, local: true, style: "margin-top:10px; display:flex; flex-direction:column; gap:8px; max-width:480px;" do %>
+        <%= text_field_tag :appeal_message, nil, placeholder: "Share context (optional)", class: "form-control form-control-sm", style: "width:100%;" %>
+        <%= submit_tag "Appeal Penalty", class: "btn btn-sm btn-outline-dark", style: "align-self:flex-start; margin-top:6px;" %>
+      <% end %>
+    <% end %>
   </div>
 <% end %>
 
