@@ -42,3 +42,29 @@ Feature: Notification
     And I press "Delete All" and accept the alert
     Then I should see "All notifications deleted."
     And I should see "You have no notifications."
+
+  @javascript @owner_notification
+  Scenario: Owner resolves a penalty appeal from notifications
+    Given I am logged in as a workspace owner of "Lerner Auditorium"
+    And a pending penalty appeal notification exists for "Lerner Auditorium"
+    When I go to my notifications page
+    And I press "Remove Penalty" for "Appealed penalty in Lerner Auditorium" and accept the alert
+    Then I should see "Penalty removed."
+
+  @javascript @owner_notification
+  Scenario: Owner shortens a penalty from notifications
+    Given I am logged in as a workspace owner of "Lerner Auditorium"
+    And a pending penalty appeal notification exists for "Lerner Auditorium"
+    When I go to my notifications page
+    And I fill in "shorten_hours" with "2"
+    And I press "Shorten"
+    Then I should see "Penalty end time reduced."
+
+  @user_notification
+  Scenario: User submits a penalty appeal from workspace
+    Given I am logged in as a standard user of "Lerner Auditorium"
+    And I have an active penalty in "Lerner Auditorium"
+    When I go to my "Lerner Auditorium" workspace
+    And I fill in "appeal_message" with "Please review my case"
+    And I press "Appeal Penalty"
+    Then I should see "Appeal sent to the workspace owner."

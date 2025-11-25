@@ -52,6 +52,34 @@ Given(/^I have a reservation in "([^"]*)" for "([^"]*)" with (\d+) reserved item
   )
 end
 
+Given("another user's reservation exists in {string} for {string}") do |workspace_name, item_name|
+  workspace = Workspace.find_or_create_by!(name: workspace_name)
+  item = Item.find_or_create_by!(
+    name: item_name,
+    workspace: workspace,
+    quantity: 5,
+    start_time: Time.zone.now.beginning_of_day + 8.hours,
+    end_time: Time.zone.now.beginning_of_day + 22.hours
+  )
+  user = User.find_or_create_by!(email: "member@example.com") do |u|
+    u.name = "Member User"
+    u.password = "password"
+    u.email_verified_at = Time.current
+  end
+
+  @reservation = Reservation.create!(
+    user: user,
+    item: item,
+    start_time: Time.zone.now + 2.hours,
+    end_time: Time.zone.now + 3.hours,
+    quantity: 1
+  )
+end
+
+When("I visit that reservation page") do
+  visit reservation_path(@reservation)
+end
+
 # --- Sees ---
 Then /^(?:|I )should see the new reservation for "([^"]*)"$/ do |item_name|
   page.should have_content("My Reservations")

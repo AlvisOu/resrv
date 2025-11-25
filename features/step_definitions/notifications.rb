@@ -84,3 +84,37 @@ end
 Then("all notifications should be marked as read") do
   expect(page).to have_no_button("Mark as Read")
 end
+
+Given("a pending penalty appeal notification exists for {string}") do |workspace_name|
+  workspace = Workspace.find_or_create_by!(name: workspace_name)
+  member = User.find_or_create_by!(email: "appeal_member@example.com") do |u|
+    u.name = "Appeal Member"
+    u.password = "password"
+    u.email_verified_at = Time.current
+  end
+
+  penalty = Penalty.create!(
+    user: member,
+    workspace: workspace,
+    reason: "no_show",
+    expires_at: 3.days.from_now,
+    appeal_state: "pending",
+    appeal_message: "Please reconsider"
+  )
+
+  Notification.create!(
+    user: @current_user,
+    penalty: penalty,
+    message: "Appealed penalty in #{workspace.name}"
+  )
+end
+
+Given("I have an active penalty in {string}") do |workspace_name|
+  workspace = Workspace.find_or_create_by!(name: workspace_name)
+  Penalty.create!(
+    user: @current_user,
+    workspace: workspace,
+    reason: "no_show",
+    expires_at: 3.days.from_now
+  )
+end

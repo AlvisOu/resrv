@@ -45,3 +45,11 @@ Feature: Owner Workflow for Workspace Management
     Then I should see "3 Mic(s) returned successfully."
     When I undo return of 2 items from the reservation
     Then I should see "Undo return of 2 Mic(s) successful."
+
+  @javascript
+  Scenario: Owner cancels a reservation from the detail page
+    Given I am logged in as a workspace owner of "Lerner Auditorium"
+    And another user's reservation exists in "Lerner Auditorium" for "Mic"
+    When I visit that reservation page
+    And I press "Cancel Reservation" and accept the alert
+    Then I should see "Reservation canceled and user notified."
