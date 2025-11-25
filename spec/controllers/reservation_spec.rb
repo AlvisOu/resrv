@@ -1,7 +1,9 @@
 require "rails_helper"
 
 RSpec.describe ReservationsController, type: :controller do
-  fixed_time = Time.zone.local(2025, 1, 1, 0, 0, 0)
+  include ActiveSupport::Testing::TimeHelpers
+
+  let(:fixed_time) { Time.zone.local(2025, 1, 1, 0, 0, 0) }
   let(:workspace) { Workspace.create!(name: "Lab") }
   let(:item) do
     Item.create!(
@@ -31,6 +33,8 @@ RSpec.describe ReservationsController, type: :controller do
       returned_count: 0
     )
   end
+
+  around { |example| travel_to(fixed_time) { example.run } }
 
   before do
     session[:user_id] = user.id
@@ -101,7 +105,7 @@ RSpec.describe ReservationsController, type: :controller do
     end
 
     it "prevents cancellation of past reservation" do
-      # reservation defined in let block is in the past (Jan 1 2025)
+      reservation.update!(start_time: fixed_time - 1.hour, end_time: fixed_time)
       expect {
         delete :destroy, params: { id: reservation.id }
       }.not_to change(Reservation, :count)
@@ -130,7 +134,7 @@ RSpec.describe ReservationsController, type: :controller do
 
     it "raises error when deleting someone else's reservation" do
       outsider = User.create!(name: "Bob", email: "bob@example.com", password: "pw", password_confirmation: "pw")
-      other_res = Reservation.create!(user: outsider, item: item, start_time: 3.hours.from_now, end_time: 4.hours.from_now)
+      other_res = Reservation.create!(user: outsider, item: item, start_time: item.start_time + 1.hour, end_time: item.start_time + 2.hours)
 
       expect {
         delete :destroy, params: { id: other_res.id }
@@ -202,7 +206,8 @@ RSpec.describe ReservationsController, type: :controller do
     end
 
     it "creates a late return penalty" do
-      reservation.update_columns(end_time: fixed_time + 14.hour)
+      reservation.update_columns(end_time: fixed_time + 12.hour)
+      allow(Time).to receive(:current).and_return(fixed_time + 15.hours)
 
       patch :return_items, params: { id: reservation.id, quantity_to_return: 1 }
 
@@ -263,6 +268,55 @@ RSpec.describe ReservationsController, type: :controller do
       allow(controller).to receive(:current_user_is_owner?).and_return(false)
 
       patch :undo_return_items, params: { id: reservation.id, quantity_to_undo: 1 }
+      expect(response).to redirect_to(workspace)
+      expect(flash[:alert]).to eq("Not authorized.")
+    end
+  end
+
+  # -------------------------------------------------------------------
+  # show (owner-only)
+  # -------------------------------------------------------------------
+  describe "GET #show" do
+    it "renders for an owner" do
+      allow(controller).to receive(:current_user_is_owner?).and_return(true)
+
+      get :show, params: { id: reservation.id }
+
+      expect(response).to have_http_status(:ok)
+      expect(assigns(:reservation)).to eq(reservation)
+    end
+
+    it "redirects non-owners" do
+      allow(controller).to receive(:current_user_is_owner?).and_return(false)
+
+      get :show, params: { id: reservation.id }
+
+      expect(response).to redirect_to(workspace)
+      expect(flash[:alert]).to eq("Not authorized.")
+    end
+  end
+
+  # -------------------------------------------------------------------
+  # owner_cancel
+  # -------------------------------------------------------------------
+  describe "PATCH #owner_cancel" do
+    before { allow(controller).to receive(:current_user_is_owner?).and_return(true) }
+
+    it "cancels the reservation and notifies user" do
+      expect {
+        patch :owner_cancel, params: { id: reservation.id }
+      }.to change(Reservation, :count).by(-1)
+       .and change(Notification, :count).by(1)
+
+      expect(Notification.last.message).to include("was canceled by the workspace owner")
+      expect(response).to redirect_to(workspace)
+    end
+
+    it "redirects non-owners" do
+      allow(controller).to receive(:current_user_is_owner?).and_return(false)
+
+      patch :owner_cancel, params: { id: reservation.id }
+
       expect(response).to redirect_to(workspace)
       expect(flash[:alert]).to eq("Not authorized.")
     end
