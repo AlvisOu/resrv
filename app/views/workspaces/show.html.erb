@@ -32,103 +32,20 @@
 <p style="font-size:16px;">Owner: <%= @workspace.owner&.name %></p>
 
 <hr>
+
 <% is_owner = @current_join&.role == 'owner' %>
-<% if is_owner %>
-  <div class="current-activity-section">
-    <h3 class="section-heading">Current Activity at <%= @tz.now.strftime("%-I:%M %p %Z") %></h3>
-    <% if @current_activity.any? %>
-      <table class="activity-table">
-        <thead>
-          <tr>
-            <th>Item</th>
-            <th>User</th>
-            <th>Quantity</th>
-            <th>Starts</th>
-            <th>Ends</th>
-            <th>No Show</th>
-            <th>Return Items</th>
-          </tr>
-        </thead>
-        <tbody>
-          <% @current_activity.each do |reservation| %>
-            <tr>
-              <td><%= reservation.item.name %></td>
-              <td><%= reservation.user.name %></td>
-              <td><%= reservation.quantity %></td>
-              <td><%= reservation.start_time.strftime("%-I:%M %p") %></td>
-              <td><%= reservation.end_time.strftime("%-I:%M %p") %></td>
-              <td>
-                <div class="activity-actions">
-                  <% if reservation.no_show? %>
-                    <%= button_to "Undo No Show",
-                                  mark_no_show_reservation_path(reservation),
-                                  method: :patch,
-                                  class: "btn-action-revert" %>
-                  <% else %>
-                    <%= button_to "Mark No Show",
-                                  mark_no_show_reservation_path(reservation),
-                                  method: :patch,
-                                  class: "btn-action-warn",
-                                  data: { confirm: "Are you sure? This will mark '#{reservation.user.name}' as a 'No Show'." } %>
-                  <% end %>
-                </div>
-              </td>
-              <td>
-                <div class="return-form-wrapper">
-                  <%
-                    total = reservation.quantity
-                    returned = reservation.returned_count
-                    still_missing = total - returned
-                  %>
-
-                  <% if still_missing > 0 %>
-                    <%= form_with(url: return_items_reservation_path(reservation), method: :patch, class: "return-form") do |f| %>
-                      <%= number_field_tag :quantity_to_return, nil,
-                            placeholder: "Qty",
-                            class: "return-input",
-                            min: 1,
-                            max: still_missing %>
-                      <%= f.submit "Return", class: "btn-action-revert" %>
-                    <% end %>
-                  <% elsif returned > 0 %>
-                    <%= form_with(url: undo_return_items_reservation_path(reservation), method: :patch, class: "return-form") do |f| %>
-                      <%= number_field_tag :quantity_to_undo, nil,
-                            placeholder: "Qty",
-                            class: "return-input",
-                            min: 1,
-                            max: returned %>
-                      <%= f.submit "Undo", class: "btn-action-warn" %>
-                    <% end %>
-                  <% end %>
-
-                  <%# --- STATUS MESSAGE --- %>
-                  <% if still_missing == 0 %>
-                    <span class="status-note-complete">All items returned</span>
-                  <% else %>
-                    <span class="status-note">(<%= still_missing %> / <%= total %> missing)</span>
-                  <% end %>
-                </div>
-              </td>
-            </tr>
-          <% end %>
-        </tbody>
-      </table>
-    <% else %>
-      <p>No current activity in this workspace.</p>
-    <% end %>
-  </div>
-<% end %>
 
 <% slots = @slots %>
 
 <style>
+  /* (unchanged styles, keeping everything as you had it) */
 
   /* floating tooltip for owner hover */
   #slot-tooltip {
     position: fixed;
     z-index: 9999;
     pointer-events: none;
-    background: #111827;      /* gray-900 */
+    background: #111827;
     color: #fff;
     font-size: 12px;
     line-height: 1.4;
@@ -193,7 +110,6 @@
     border: 1px solid #d1d5db;
   }
 
-  /* meanings */
   .slot.available   { background: #22c55e33; }
   .slot.unavailable { background: #ef444466; }
   .slot.selected    { background: #f59e0b66; }
@@ -388,10 +304,8 @@
              elsif used == 0
                s[:available] ? 'available' : 'unavailable'
              elsif used < total && s[:available]
-               # some reserved, some still free
                'partial'
              else
-               # all reserved, or cannot fit requested quantity
                'unavailable'
              end
 
@@ -437,6 +351,91 @@
       <%= "disabled" if @penalty %>>
       Add to Cart
     </button>
+  </div>
+<% end %>
+
+<% if is_owner %>
+  <div class="current-activity-section">
+    <h3 class="section-heading">Current Reservations at <%= @tz.now.strftime("%-I:%M %p %Z") %></h3>
+    <% if @current_activity.any? %>
+      <table class="activity-table">
+        <thead>
+          <tr>
+            <th>Item</th>
+            <th>User</th>
+            <th>Quantity</th>
+            <th>Starts</th>
+            <th>Ends</th>
+            <th>No Show</th>
+            <th>Return Items</th>
+          </tr>
+        </thead>
+        <tbody>
+          <% @current_activity.each do |reservation| %>
+            <tr>
+              <td><%= reservation.item.name %></td>
+              <td><%= reservation.user.name %></td>
+              <td><%= reservation.quantity %></td>
+              <td><%= reservation.start_time.strftime("%-I:%M %p") %></td>
+              <td><%= reservation.end_time.strftime("%-I:%M %p") %></td>
+              <td>
+                <div class="activity-actions">
+                  <% if reservation.no_show? %>
+                    <%= button_to "Undo No Show",
+                                  mark_no_show_reservation_path(reservation),
+                                  method: :patch,
+                                  class: "btn-action-revert" %>
+                  <% else %>
+                    <%= button_to "Mark No Show",
+                                  mark_no_show_reservation_path(reservation),
+                                  method: :patch,
+                                  class: "btn-action-warn",
+                                  data: { confirm: "Are you sure? This will mark '#{reservation.user.name}' as a 'No Show'." } %>
+                  <% end %>
+                </div>
+              </td>
+              <td>
+                <div class="return-form-wrapper">
+                  <%
+                    total = reservation.quantity
+                    returned = reservation.returned_count
+                    still_missing = total - returned
+                  %>
+
+                  <% if still_missing > 0 %>
+                    <%= form_with(url: return_items_reservation_path(reservation), method: :patch, class: "return-form") do |f| %>
+                      <%= number_field_tag :quantity_to_return, nil,
+                            placeholder: "Qty",
+                            class: "return-input",
+                            min: 1,
+                            max: still_missing %>
+                      <%= f.submit "Return", class: "btn-action-revert" %>
+                    <% end %>
+                  <% elsif returned > 0 %>
+                    <%= form_with(url: undo_return_items_reservation_path(reservation), method: :patch, class: "return-form") do |f| %>
+                      <%= number_field_tag :quantity_to_undo, nil,
+                            placeholder: "Qty",
+                            class: "return-input",
+                            min: 1,
+                            max: returned %>
+                      <%= f.submit "Undo", class: "btn-action-warn" %>
+                    <% end %>
+                  <% end %>
+
+                  <% if still_missing == 0 %>
+                    <span class="status-note-complete">All items returned</span>
+                  <% else %>
+                    <span class="status-note">(<%= still_missing %> / <%= total %> missing)</span>
+                  <% end %>
+                </div>
+              </td>
+            </tr>
+          <% end %>
+        </tbody>
+      </table>
+    <% else %>
+      <p>No current activity in this workspace.</p>
+    <% end %>
   </div>
 <% end %>
 
