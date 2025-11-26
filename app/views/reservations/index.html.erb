@@ -1,4 +1,4 @@
-<h1>My Reservations</h1>
+<h1 class="mb-4">My Reservations</h1>
 
 <%
   now = Time.current
@@ -8,7 +8,7 @@
 %>
 
 <% if @reservations.empty? %>
-  <p>You have no reservations yet.</p>
+  <div class="alert alert-info">You have no reservations yet.</div>
 <% else %>
   <% [
        ["Current Reservations", current_res],
@@ -17,44 +17,48 @@
      ].each do |title, list| %>
     
     <% if list.any? %>
-      <h3 class="mt-4"><%= title %></h3>
-      <table class="table table-bordered" style="table-layout: fixed;">
-        <thead>
-          <tr>
-            <th style="width: 22%;">Item</th>
-            <th style="width: 22%;">Workspace</th>
-            <th style="width: 20%;">Start Time</th>
-            <th style="width: 20%;">End Time</th>
-            <th style="width: 8%;">Quantity</th>
-            <th style="width: 8%;">Actions</th>
-          </tr>
-        </thead>
-        <tbody>
-          <% list.each do |reservation| %>
-            <tr id="reservation_<%= reservation.id %>">
-              <td><%= reservation.item.name %></td>
-              <td><%= reservation.item.workspace.name %></td>
-              <td><%= reservation.start_time.in_time_zone.strftime("%b %d, %I:%M %p") %></td>
-              <td><%= reservation.end_time.in_time_zone.strftime("%b %d, %I:%M %p") %></td>
-              <td><%= reservation.quantity %></td>
-              <td>
-                <% if reservation.start_time > Time.current %>
-                  <%= link_to "Cancel", reservation_path(reservation),
-                              method: :delete,
-                              data: { confirm: "Are you sure you want to cancel this reservation?" },
-                              class: "btn btn-danger btn-sm" %>
-                <% end %>
-              </td>
-            </tr>
-          <% end %>
-        </tbody>
-      </table>
+      <h3 class="section-title mt-5"><%= title %></h3>
+      <div class="card shadow-sm">
+        <div class="card-body p-0">
+          <table class="table table-hover mb-0" style="table-layout: fixed;">
+            <thead class="thead-light">
+              <tr>
+                <th style="width: 22%; border-top: none;">Item</th>
+                <th style="width: 22%; border-top: none;">Workspace</th>
+                <th style="width: 20%; border-top: none;">Start Time</th>
+                <th style="width: 20%; border-top: none;">End Time</th>
+                <th style="width: 8%; border-top: none;">Qty</th>
+                <th style="width: 8%; border-top: none;">Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              <% list.each do |reservation| %>
+                <tr id="reservation_<%= reservation.id %>">
+                  <td class="align-middle font-weight-bold"><%= reservation.item.name %></td>
+                  <td class="align-middle"><%= reservation.item.workspace.name %></td>
+                  <td class="align-middle"><%= reservation.start_time.in_time_zone.strftime("%b %d, %I:%M %p") %></td>
+                  <td class="align-middle"><%= reservation.end_time.in_time_zone.strftime("%b %d, %I:%M %p") %></td>
+                  <td class="align-middle"><%= reservation.quantity %></td>
+                  <td class="align-middle">
+                    <% if reservation.start_time > Time.current %>
+                      <%= link_to "Cancel", reservation_path(reservation),
+                                  method: :delete,
+                                  data: { confirm: "Are you sure you want to cancel this reservation?" },
+                                  class: "btn btn-outline-danger btn-sm" %>
+                    <% end %>
+                  </td>
+                </tr>
+              <% end %>
+            </tbody>
+          </table>
+        </div>
+      </div>
     <% end %>
   <% end %>
 <% end %>
 
-<hr>
-
-<div class="text-center mt-3">
-  <%= link_to "← Back to Workspaces", workspaces_path, class: "btn btn-secondary" %>
+<div class="text-center mt-5 mb-5">
+  <%= link_to workspaces_path, class: "btn btn-secondary" do %>
+    <i class="fas fa-arrow-left"></i> Back to Workspaces
+  <% end %>
 </div>

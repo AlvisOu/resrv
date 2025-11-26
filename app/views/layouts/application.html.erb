@@ -15,50 +15,54 @@
   </head>
   <body>
     <header>
-      <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+      <nav class="navbar navbar-expand-lg navbar-light bg-white sticky-top">
         <div class="container">
-          <%= link_to "resrv", root_path, class: "navbar-brand" %>
+          <%= link_to root_path, class: "navbar-brand font-weight-bold text-primary" do %>
+            <span style="font-size: 1.5rem;">📅</span> resrv
+          <% end %>
           <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
             <span class="navbar-toggler-icon"></span>
           </button>
           <div class="collapse navbar-collapse" id="navbarNav">
-            <ul class="navbar-nav ml-auto">
+            <ul class="navbar-nav ml-auto align-items-center">
               <% if logged_in? %>
-                <li class="nav-item">
-                  <%= link_to notifications_path, class: "nav-link position-relative" do %>
-                    🔔
+                <li class="nav-item mx-2">
+                  <%= link_to notifications_path, class: "nav-link position-relative text-dark" do %>
+                    <span style="font-size: 1.2rem;">🔔</span>
                     <% unread_count = current_user.notifications.where(read: false).count %>
                     <% if unread_count > 0 %>
-                      <span id="unread-count" class="badge badge-pill badge-danger position-absolute" style="top: 0; right: 0; font-size: 0.7rem;">
+                      <span id="unread-count" class="badge badge-pill badge-danger position-absolute" style="top: 0; right: -5px; font-size: 0.7rem;">
                         <%= unread_count %>
                       </span>
                     <% end %>
                   <% end %>
                 </li>
-                <li class="nav-item">
-                  <%= link_to "My Reservations", reservations_path, class: "nav-link" %>
+                <li class="nav-item mx-2">
+                  <%= link_to "My Reservations", reservations_path, class: "nav-link font-weight-medium" %>
                 </li>
-                <li class="nav-item">
-                  <%= link_to cart_display, cart_path, class: "nav-link" %>
+                <li class="nav-item mx-2">
+                  <%= link_to cart_path, class: "nav-link" do %>
+                    <%= cart_display %>
+                  <% end %>
                 </li>
 
-                <li class="nav-item dropdown">
-                  <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                <li class="nav-item dropdown ml-3">
+                  <a class="nav-link dropdown-toggle btn btn-light rounded-pill px-3" href="#" id="navbarDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
                     <%= current_user.name %>
                   </a>
-                  <div class="dropdown-menu dropdown-menu-right" aria-labelledby="navbarDropdown">
+                  <div class="dropdown-menu dropdown-menu-right shadow border-0" aria-labelledby="navbarDropdown">
                     <%= link_to "My Profile", profile_path, class: "dropdown-item" %>
                     <div class="dropdown-divider"></div>
-                    <%= link_to "Log Out", logout_path, class: "dropdown-item", method: :delete %>
+                    <%= link_to "Log Out", logout_path, class: "dropdown-item text-danger", method: :delete %>
                   </div>
                 </li>
 
               <% else %>
                 <li class="nav-item">
-                  <%= link_to "Log In", login_path, class: "nav-link" %>
+                  <%= link_to "Log In", login_path, class: "nav-link font-weight-bold" %>
                 </li>
-                <li class="nav-item">
-                  <%= link_to "Sign Up", signup_path, class: "btn btn-primary" %>
+                <li class="nav-item ml-2">
+                  <%= link_to "Sign Up", signup_path, class: "btn btn-primary px-4 rounded-pill" %>
                 </li>
               <% end %>
             </ul>
@@ -66,12 +70,18 @@
         </div>
       </nav>
     </header>
-    <div class="container mt-4">
+    <div class="container mt-5 mb-5" style="min-height: 80vh;">
       <main id="main">
         <%= render 'layouts/flash' %>
         <%= yield %>
       </main>
     </div>
+
+    <footer class="bg-white py-4 mt-auto border-top">
+      <div class="container text-center text-muted">
+        <p class="mb-0">&copy; <%= Time.current.year %> resrv. All rights reserved.</p>
+      </div>
+    </footer>
     
     <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js" integrity="sha384-DfXdz2htPH0lsSSs5nCTpuj/zy4C+OGpamoFVy38MVBnE+IbbVYUew+OrCXaRkfj" crossorigin="anonymous"></script>
     <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.1/dist/umd/popper.min.js" integrity="sha384-9/reFTGAW83EW2RDu2S0VKaIzap3H66lZH81PoYlFhbGU+6BZp6G7niu735Sk7lN" crossorigin="anonymous"></script>
