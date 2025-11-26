@@ -17,10 +17,15 @@
     <% end %>
   </div>
 
-  <div class="hero-meta">
-    <p class="meta-label">Workspace ID</p>
-    <p class="meta-value"><%= @workspace.id %></p>
-  </div>
+  <% if @current_join.nil? || @current_join.role == 'user' %>
+    <div class="hero-meta">
+      <%= button_to (@current_join ? "Unbookmark" : "Bookmark"),
+                    workspace_user_to_workspace_path(@workspace),
+                    method: (@current_join ? :delete : :post),
+                    class: "btn-gold",
+                    data: (@current_join ? { confirm: "Remove this workspace from your bookmarks?" } : {}) %>
+    </div>
+  <% end %>
 </div>
 
 <% if @penalty && !current_user_is_owner?(@workspace) %>
@@ -258,7 +263,7 @@
   }
   .link-inline { color: #0ea5e9; text-decoration: none; font-weight: 600; }
   .link-inline:hover { text-decoration: underline; }
-  .hero-meta { text-align: right; color: #6b7280; font-size: 13px; }
+  .hero-meta { text-align: right; color: #6b7280; font-size: 15px; }
   .meta-label { margin: 0; text-transform: uppercase; letter-spacing: 0.05em; font-weight: 700; }
   .meta-value { margin: 2px 0 0 0; font-size: 18px; color: #0f172a; font-weight: 700; }
   .separator { color: #cbd5e1; margin: 0 6px; }
@@ -288,6 +293,17 @@
     color: #111827;
     font-weight: 600;
     cursor: pointer;
+  }
+  .btn-gold {
+    background: linear-gradient(135deg, #fbbf24, #f59e0b);
+    color: #78350f;
+    border: none;
+    padding: 8px 8px;
+    border-radius: 999px;
+    font-weight: 700;
+    cursor: pointer;
+    min-width: 140px;
+    text-align: center;
   }
 
   .owner-mode .slot { cursor: pointer; pointer-events: auto; transform: none; }
@@ -570,16 +586,27 @@
 <hr>
 
 <% if @current_join %>
+<<<<<<< Updated upstream
   <% unless @current_join.role == 'owner' %>
     <%= button_to "Leave This Workspace",
                   workspace_user_to_workspace_path(@workspace),
                   method: :delete,
                   data: { confirm: "Are you sure you want to leave this workspace?" } %>
+=======
+  <% if @current_join.role == 'owner' %>
+    <div class="delete-panel">
+      <div>
+        <h4>Delete workspace</h4>
+        <p class="text-muted" style="margin:0;">This removes the workspace for all members.</p>
+      </div>
+      <%= button_to "Delete Workspace",
+                    workspace_user_to_workspace_path(@workspace),
+                    method: :delete,
+                    class: "btn-danger-solid",
+                    data: { confirm: "OWNER: Are you sure? This will permanently delete this workspace for ALL members." } %>
+    </div>
+>>>>>>> Stashed changes
   <% end %>
-<% else %>
-  <%= button_to "Join Workspace as User",
-                workspace_user_to_workspace_path(@workspace),
-                method: :post %>
 <% end %>
 
 <br>
