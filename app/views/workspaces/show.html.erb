@@ -198,7 +198,7 @@
   .slot.unavailable { background: #ef444466; }
   .slot.selected    { background: #f59e0b66; }
   .slot.outside     { background: #9ca3af55; cursor: not-allowed; }
-
+  .slot.partial     { background: #facc1533; }
   .slot:hover { transform: scale(1.02); }
 
   .item-name { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-size: 15px; }
@@ -324,9 +324,14 @@
 
 <div class="legend">
   <span class="key"><span class="swatch" style="background:#22c55e33;"></span>Available</span>
-  <% unless is_owner %>
+
+  <% if is_owner %>
+    <span class="key"><span class="swatch" style="background:#facc1533;"></span>Partially Reserved</span>
+  <% else %>
+    <span class="key"><span class="swatch" style="background:#facc1533;"></span>Partially Reserved</span>
     <span class="key"><span class="swatch" style="background:#f59e0b66;"></span>Your Selection</span>
   <% end %>
+
   <span class="key"><span class="swatch" style="background:#ef444466;"></span>Unavailable</span>
 </div>
 
@@ -365,21 +370,32 @@
               <button class="qty-btn qty-up" type="button" aria-label="Increase">▲</button>
               <button class="qty-btn qty-down" type="button" aria-label="Decrease">▼</button>
             </div>
-            <span class="qty-display" data-count="0">0</span>
+            <span class="qty-display" data-count="1">1</span>
             <span class="qty-cap">/ <%= item.quantity || 0 %></span>
           </div>
         <% end %>
       </div>
 
       <% row[:slots].each do |s| %>
-        <% klass =
-          if !s[:within_window]
-            'outside'
-          elsif s[:available]
-            'available'
-          else
-            'unavailable'
-          end
+        <% total = (s[:total_quantity] || 0).to_i
+           used  = (s[:used_quantity]  || 0).to_i
+
+           klass =
+             if !s[:within_window]
+               'outside'
+             elsif total <= 0
+               'unavailable'
+             elsif used == 0
+               s[:available] ? 'available' : 'unavailable'
+             elsif used < total && s[:available]
+               # some reserved, some still free
+               'partial'
+             else
+               # all reserved, or cannot fit requested quantity
+               'unavailable'
+             end
+
+           base_state = %w[available partial].include?(klass) ? klass : nil
         %>
 
         <% start_iso = s[:start].iso8601 %>
@@ -387,18 +403,18 @@
         <% bookings_str = owner_bookings.present? ? owner_bookings.map { |b| b[:label] }.join(', ') : nil %>
 
         <div class="cell" style="padding:0;"
-            <%# expose bookings for owner hover (no visual change) %>
-            <% if is_owner && bookings_str.present? %>
-              data-bookings="<%= bookings_str %>"
-              data-time-label="<%= s[:start].strftime('%-I:%M %p') %>–<%= s[:end].strftime('%-I:%M %p') %>"
-              data-item-name="<%= item.name %>"
-            <% end %>>
+             <% if is_owner && bookings_str.present? %>
+               data-bookings="<%= bookings_str %>"
+               data-time-label="<%= s[:start].strftime('%-I:%M %p') %>–<%= s[:end].strftime('%-I:%M %p') %>"
+               data-item-name="<%= item.name %>"
+             <% end %>>
           <div
             class="slot <%= klass %>"
             data-item-id="<%= item.id %>"
             data-start="<%= start_iso %>"
             data-end="<%= s[:end].iso8601 %>"
             data-within-window="<%= s[:within_window] %>"
+            <% if base_state %> data-base-state="<%= base_state %>" <% end %>
             <% if is_owner && owner_bookings.present? %>
               data-reservations='<%= raw owner_bookings.to_json %>'
             <% end %>
@@ -406,8 +422,7 @@
               title="<%= "#{item.name} — #{s[:start].strftime('%-I:%M %p')}–#{s[:end].strftime('%-I:%M %p')}" %>"
             <% end %>
           ></div>
-</div>
-
+        </div>
       <% end %>
     <% end %>
   </div>
@@ -591,15 +606,21 @@
     const isOwner = <%= is_owner ? 'true' : 'false' %>;
     if (isOwner) return; // owners don't interact
 
-    // Initialize quantity button disabled states
+    // Initialize quantity button disabled states (min = 1)
     document.querySelectorAll('.qty-wrap').forEach(wrap => {
       const capText = wrap.querySelector('.qty-cap')?.textContent || "/ 0";
       const cap = parseInt(capText.replace("/", "").trim(), 10) || 0;
       const upBtn = wrap.querySelector('.qty-up');
       const downBtn = wrap.querySelector('.qty-down');
-      if (upBtn) upBtn.disabled = (cap <= 0);
-      if (downBtn) downBtn.disabled = true;
+      const display = wrap.querySelector('.qty-display');
+
+      let count = parseInt(display.dataset.count || "1", 10);
+      if (count < 1) count = 1; // safety
+
+      if (upBtn)  upBtn.disabled   = (count >= cap);
+      if (downBtn) downBtn.disabled = (count <= 1);
     });
+
 
     document.addEventListener('click', function (e) {
       // Slot toggling
@@ -608,16 +629,26 @@
         // block clicks on red (unavailable) and gray (outside)
         if (slot.classList.contains('unavailable') || slot.classList.contains('outside')) return;
 
-        // toggle green <-> orange
-        if (slot.classList.contains('available')) {
-          slot.classList.remove('available');
+        const baseState =
+          slot.dataset.baseState ||
+          (slot.classList.contains('partial') ? 'partial' : 'available');
+
+        if (!slot.classList.contains('selected')) {
+          // available or partial -> selected
+          slot.classList.remove('available', 'partial');
           slot.classList.add('selected');
-        } else if (slot.classList.contains('selected')) {
+        } else {
+          // selected -> revert to original base state
           slot.classList.remove('selected');
-          slot.classList.add('available');
+          if (baseState === 'partial') {
+            slot.classList.add('partial');
+          } else {
+            slot.classList.add('available');
+          }
         }
         return;
       }
+
 
       // Quantity controls
       const up = e.target.closest('.qty-up');
@@ -631,17 +662,17 @@
         const capText = wrap.querySelector('.qty-cap')?.textContent || "/ 0";
         const cap = parseInt(capText.replace("/", "").trim(), 10) || 0;
 
-        let count = parseInt(display.dataset.count || "0", 10);
+        let count = parseInt(display.dataset.count || "1", 10);
         if (up && count < cap) count += 1;
-        if (down && count > 0) count -= 1;
+        if (down && count > 1) count -= 1;
 
         display.dataset.count = String(count);
         display.textContent = String(count);
 
         const upBtn = wrap.querySelector('.qty-up');
         const downBtn = wrap.querySelector('.qty-down');
-        if (upBtn) upBtn.disabled = (count >= cap);
-        if (downBtn) downBtn.disabled = (count <= 0);
+        if (upBtn)  upBtn.disabled   = (count >= cap);
+        if (downBtn) downBtn.disabled = (count <= 1);
 
         // Repaint this item's row based on backend availability for selected quantity
         const selectedDay = document.getElementById('selected-day')?.dataset.day; // YYYY-MM-DD
@@ -662,14 +693,39 @@
 
               const wasSelected = el.classList.contains('selected');
 
-              el.classList.remove('available','selected','unavailable','outside');
+              el.classList.remove('available', 'selected', 'unavailable', 'outside', 'partial');
+
+              let baseClass;
 
               if (!s.within_window) {
-                el.classList.add('outside');                   // gray
-              } else if (s.available) {
-                el.classList.add(wasSelected ? 'selected' : 'available'); // keep orange if user picked
+                baseClass = 'outside';
               } else {
-                el.classList.add('unavailable');               // red
+                const total = (s.total_quantity ?? 0);
+                const used  = (s.used_quantity  ?? 0);
+
+                if (total <= 0) {
+                  baseClass = 'unavailable';
+                } else if (used === 0) {
+                  baseClass = s.available ? 'available' : 'unavailable';
+                } else if (used < total && s.available) {
+                  baseClass = 'partial';
+                } else {
+                  baseClass = 'unavailable';
+                }
+              }
+
+              if (wasSelected &&
+                  baseClass !== 'outside' &&
+                  baseClass !== 'unavailable') {
+                el.classList.add('selected');
+              } else {
+                el.classList.add(baseClass);
+              }
+
+              if (baseClass === 'available' || baseClass === 'partial') {
+                el.dataset.baseState = baseClass;
+              } else {
+                delete el.dataset.baseState;
               }
             });
           })
@@ -691,7 +747,8 @@
         const selections = selected.map(el => {
           const itemId = parseInt(el.dataset.itemId, 10);
           const wrap = document.querySelector(`.qty-wrap[data-item-id="${itemId}"]`);
-          const qty = wrap ? parseInt(wrap.querySelector('.qty-display')?.dataset.count || "1", 10) : 1;
+          let qty = wrap ? parseInt(wrap.querySelector('.qty-display')?.dataset.count || "1", 10) : 1;
+          if (!qty || qty < 1) qty = 1; // hard floor
           const workspaceId = wrap ? parseInt(wrap.dataset.workspaceId || "0", 10) : 0;
 
           return {
@@ -720,7 +777,9 @@
             selected.forEach(el => {
               el.classList.remove('selected');
               el.classList.add('available');
+              el.dataset.baseState = 'available';
             });
+
 
             // Update navbar "Cart (N)" if present
             const navLink = document.querySelector('a[href="/cart"]');

@@ -162,4 +162,13 @@ class Cart
     def clear_workspace!(workspace_id)
         @backing["entries"].delete_if { |h| h["workspace_id"].to_i == workspace_id.to_i }
     end
+
+    def total_count
+      entries.sum { _1["quantity"].to_i }
+    end
+
+    # Number of reservation segments in the cart (after merging contiguous entries)
+    def reservations_count
+      merged_segments_by_workspace.values.flatten.size
+    end
 end

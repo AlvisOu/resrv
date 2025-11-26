@@ -14,13 +14,13 @@ class CartItemsController < ApplicationController
     # 2) Also place/refresh DB holds (10 min TTL)
     selections.each { |attrs| upsert_hold!(current_user, attrs) }
 
-    render json: { ok: true, total: cart.total_count }
+    render json: { ok: true, total: cart.reservations_count }
   end
 
   def update
     cart = Cart.load(session, current_user.id)
     cart.update!(params[:id], quantity: params[:quantity])
-    render json: { ok: true, total: cart.total_count }
+    render json: { ok: true, total: cart.reservations_count }
   rescue ArgumentError
     render json: { ok: false, error: "Invalid cart index" }, status: :unprocessable_entity
   end
@@ -28,7 +28,7 @@ class CartItemsController < ApplicationController
   def destroy
     cart = Cart.load(session, current_user.id)
     cart.remove!(params[:id])
-    render json: { ok: true, total: cart.total_count }
+    render json: { ok: true, total: cart.reservations_count }
   end
 
   def remove_range
@@ -50,7 +50,7 @@ class CartItemsController < ApplicationController
 
     respond_to do |format|
       format.html { redirect_to cart_path(workspace_id: params[:workspace_id]), notice: "Removed from cart." }
-      format.json { render json: { ok: true, total: cart.total_count } }
+      format.json { render json: { ok: true, total: cart.reservations_count } }
     end
   end
 
@@ -70,9 +70,17 @@ class CartItemsController < ApplicationController
     ).order(id: :desc).first
 
     if hold.present?
-      # refresh TTL and quantity
+      # ❗️OLD: overwrote quantity
+      # hold.update!(
+      #   quantity: quantity,
+      #   hold_expires_at: 10.minutes.from_now
+      # )
+
+      # ✅ NEW: accumulate quantity so it stays in sync with cart segments
+      new_quantity = hold.quantity.to_i + quantity
+
       hold.update!(
-        quantity: quantity,
+        quantity: new_quantity,
         hold_expires_at: 10.minutes.from_now
       )
     else

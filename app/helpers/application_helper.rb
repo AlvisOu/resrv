@@ -1,10 +1,12 @@
 module ApplicationHelper
-  # A helper to display the cart link text
   def cart_display
-    cart = Cart.load(session, current_user&.id) rescue nil
-    
-    if cart && cart.total_count > 0
-      "Cart (#{cart.total_count})"
+    return "Cart" unless current_user
+
+    cart  = Cart.load(session, current_user.id)
+    count = cart.reservations_count  # 👈 use segments count, not quantity sum
+
+    if count.positive?
+      "Cart (#{count})"
     else
       "Cart"
     end
