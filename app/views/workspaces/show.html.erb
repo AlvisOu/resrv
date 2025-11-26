@@ -1,35 +1,51 @@
-<h1><%= @workspace.name %></h1>
-
-<% if @penalty && !current_user_is_owner?(@workspace) %>
-  <div class="alert alert-warning" style="margin-top: 1rem; background-color: #fef3c7; border: 1px solid #f59e0b; padding: 1rem; border-radius: 8px;">
-    <strong>⚠️ Penalty Notice:</strong>
-    You are blocked from making reservations in this workspace due to a
-    <%= @penalty.reason.humanize.downcase %>.
-    You’ll regain access after <strong><%= @penalty.expires_at.strftime("%B %-d at %-I:%M %p") %></strong>.
-
-    <% if @penalty.appeal_pending? %>
-      <div style="margin-top: 6px; color:#92400e;">Appeal submitted — waiting on owner review.</div>
-    <% elsif @penalty.appeal_state == "resolved" %>
-      <div style="margin-top: 6px; color:#065f46;">Appeal reviewed by owner.</div>
-    <% else %>
-      <%= form_with url: appeal_penalty_path(@penalty), method: :post, local: true, style: "margin-top:10px; display:flex; flex-direction:column; gap:8px; max-width:480px;" do %>
-        <%= text_field_tag :appeal_message, nil, placeholder: "Share context (optional)", class: "form-control form-control-sm", style: "width:100%;" %>
-        <%= submit_tag "Appeal Penalty", class: "btn btn-sm btn-outline-dark", style: "align-self:flex-start; margin-top:6px;" %>
+<div class="workspace-hero">
+  <div>
+    <h1 class="workspace-title"><%= @workspace.name %></h1>
+    <p class="workspace-meta">
+      <strong>Owner:</strong> <%= @workspace.owner&.name || "Unassigned" %>
+      <% if @workspace.respond_to?(:description) && @workspace.description.present? %>
+        <span class="separator">•</span>
+        <%= @workspace.description %>
       <% end %>
+    </p>
+
+    <% if current_user_is_owner?(@workspace) %>
+      <div class="hero-actions">
+        <%= link_to "View Missing Items", workspace_missing_reports_path(@workspace), class: "btn-pill" %>
+        <%= link_to "Edit Workspace", edit_workspace_path(@workspace), class: "link-inline" %>
+      </div>
     <% end %>
   </div>
-<% end %>
 
-<% if current_user_is_owner?(@workspace) %>
-  <div style="margin-bottom: 1rem;">
-    <%= link_to "View Missing Items", workspace_missing_reports_path(@workspace), class: "btn btn-warning" %>
+  <div class="hero-meta">
+    <p class="meta-label">Workspace ID</p>
+    <p class="meta-value"><%= @workspace.id %></p>
+  </div>
+</div>
+
+<% if @penalty && !current_user_is_owner?(@workspace) %>
+  <div class="banner-warning">
+    <div class="banner-icon">⚠️</div>
+    <div>
+      <p class="banner-title">Penalty Notice</p>
+      <p class="banner-body">
+        You are blocked from making reservations in this workspace due to a
+        <%= @penalty.reason.humanize.downcase %>. You’ll regain access after
+        <strong><%= @penalty.expires_at.strftime("%B %-d at %-I:%M %p") %></strong>.
+      </p>
+      <% if @penalty.appeal_pending? %>
+        <p class="banner-subtle">Appeal submitted — waiting on owner review.</p>
+      <% elsif @penalty.appeal_state == "resolved" %>
+        <p class="banner-subtle success">Appeal reviewed by owner.</p>
+      <% else %>
+        <%= form_with url: appeal_penalty_path(@penalty), method: :post, local: true, html: { class: "appeal-form" } do %>
+          <%= text_field_tag :appeal_message, nil, placeholder: "Share context (optional)", class: "form-control" %>
+          <%= submit_tag "Appeal Penalty", class: "btn-ghost" %>
+        <% end %>
+      <% end %>
+    </div>
   </div>
 <% end %>
-
-<%= link_to "Rename Workspace", edit_workspace_path(@workspace), class: "button" if current_user_is_owner?(@workspace) %>
-<p style="font-size:16px;"><strong>Description:</strong> <%= @workspace.name %> ===> Edit later</p>
-<p style="font-size:16px;">ID: <%= @workspace.id %></p>
-<p style="font-size:16px;">Owner: <%= @workspace.owner&.name %></p>
 
 <hr>
 <% is_owner = @current_join&.role == 'owner' %>
@@ -220,6 +236,60 @@
   }
   .btn-primary:hover { filter: brightness(1.05); }
 
+  .workspace-hero {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 16px;
+    padding: 18px 0 10px;
+  }
+  .workspace-title { margin: 0; font-size: 28px; color: #0f172a; }
+  .workspace-meta { margin: 6px 0 0 0; color: #475569; font-size: 15px; }
+  .hero-actions { margin-top: 12px; display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+  .btn-pill {
+    display: inline-block;
+    padding: 8px 14px;
+    background: #fcd34d;
+    color: #92400e;
+    border-radius: 999px;
+    font-weight: 700;
+    text-decoration: none;
+    border: 1px solid #f59e0b;
+  }
+  .link-inline { color: #0ea5e9; text-decoration: none; font-weight: 600; }
+  .link-inline:hover { text-decoration: underline; }
+  .hero-meta { text-align: right; color: #6b7280; font-size: 13px; }
+  .meta-label { margin: 0; text-transform: uppercase; letter-spacing: 0.05em; font-weight: 700; }
+  .meta-value { margin: 2px 0 0 0; font-size: 18px; color: #0f172a; font-weight: 700; }
+  .separator { color: #cbd5e1; margin: 0 6px; }
+
+  .banner-warning {
+    display: flex;
+    gap: 12px;
+    border: 1px solid #f59e0b;
+    background: #fef3c7;
+    padding: 12px 14px;
+    border-radius: 12px;
+    margin-bottom: 14px;
+  }
+  .banner-icon { font-size: 20px; }
+  .banner-title { margin: 0; font-weight: 700; color: #92400e; }
+  .banner-body { margin: 4px 0 8px 0; color: #92400e; }
+  .banner-subtle { margin: 0; color: #92400e; font-size: 13px; }
+  .banner-subtle.success { color: #065f46; }
+  .appeal-form { display: flex; flex-direction: column; gap: 8px; max-width: 420px; }
+  .appeal-form .form-control { width: 100%; padding: 8px 10px; border:1px solid #d1d5db; border-radius: 8px; }
+  .btn-ghost {
+    width: fit-content;
+    padding: 8px 12px;
+    border: 1px solid #111827;
+    border-radius: 8px;
+    background: #fff;
+    color: #111827;
+    font-weight: 600;
+    cursor: pointer;
+  }
+
   .owner-mode .slot { cursor: pointer; pointer-events: auto; transform: none; }
   .owner-mode .slot:hover { transform: none; }
 
@@ -288,6 +358,26 @@
   }
   .return-form { display: flex; gap: 6px; }
   .return-input { width: 50px; padding: 4px 6px; font-size: 13px; border: 1px solid #d1d5db; border-radius: 6px; }
+
+  .delete-panel {
+    margin-top: 24px;
+    padding: 16px;
+    border: 1px solid #fca5a5;
+    background: #fef2f2;
+    border-radius: 12px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+  }
+  .btn-danger-solid {
+    background: #b91c1c;
+    color: #fff;
+    border: none;
+    padding: 10px 14px;
+    border-radius: 10px;
+    cursor: pointer;
+  }
 </style>
 
 <% today    = @tz.today %>
@@ -481,11 +571,17 @@
 
 <% if @current_join %>
   <% if @current_join.role == 'owner' %>
-    <%= button_to "Delete This Workspace",
-                  workspace_user_to_workspace_path(@workspace),
-                  method: :delete,
-                  class: "button-danger",
-                  data: { confirm: "OWNER: Are you sure? This will permanently delete this workspace for ALL members." } %>
+    <div class="delete-panel">
+      <div>
+        <h4>Delete workspace</h4>
+        <p class="text-muted" style="margin:0;">This removes the workspace for all members.</p>
+      </div>
+      <%= button_to "Delete Workspace",
+                    workspace_user_to_workspace_path(@workspace),
+                    method: :delete,
+                    class: "btn-danger-solid",
+                    data: { confirm: "OWNER: Are you sure? This will permanently delete this workspace for ALL members." } %>
+    </div>
   <% else %>
     <%= button_to "Leave This Workspace",
                   workspace_user_to_workspace_path(@workspace),
