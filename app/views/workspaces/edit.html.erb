@@ -31,6 +31,21 @@
             <%= form.submit "Save Changes", class: "btn btn-primary btn-lg btn-block" %>
           </div>
         <% end %>
+
+        <div class="mt-5 pt-4 border-top">
+          <h5 class="text-danger mb-3">Danger Zone</h5>
+          <div class="d-flex justify-content-between align-items-center p-3 bg-light rounded border border-danger">
+            <div>
+              <h6 class="mb-1 text-danger">Delete this workspace</h6>
+              <p class="mb-0 small text-muted">This action cannot be undone.</p>
+            </div>
+            <%= button_to "Delete Workspace",
+                          workspace_user_to_workspace_path(@workspace),
+                          method: :delete,
+                          class: "btn btn-outline-danger btn-sm",
+                          data: { confirm: "OWNER: Are you sure? This will permanently delete this workspace for ALL members." } %>
+          </div>
+        </div>
       </div>
       <div class="card-footer bg-light text-center py-3">
         <%= link_to "Cancel", workspace_path(@workspace), class: "text-muted text-decoration-none" %>

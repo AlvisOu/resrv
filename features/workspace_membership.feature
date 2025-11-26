@@ -24,7 +24,8 @@ Feature: Workspace Membership
     Scenario: Owner leaves (and deletes) their workspace
       Given I am logged in as a workspace owner of "Lerner Auditorium"
       When I go to the "Lerner Auditorium" workspace page
-      And I click "Delete This Workspace"
+      And I click "Edit Workspace"
+      And I click "Delete Workspace"
       Then I should see "Workspace 'Lerner Auditorium' was permanently deleted."
       And I should be on the home page
       When I go to my owned/bookmarked workspaces
