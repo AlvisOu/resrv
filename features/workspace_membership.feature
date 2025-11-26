@@ -17,7 +17,7 @@ Feature: Workspace Membership
     Scenario: Standard user leaves a workspace
       Given I am logged in as a standard user of "Butler Library"
       When I go to my owned/bookmarked workspaces
-      And I click "Butler Library"
+      And I open the workspace "Butler Library"
       And I click "Leave This Workspace"
       Then I should see "You have left Butler Library"
 
