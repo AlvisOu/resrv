@@ -1,40 +1,30 @@
-<h2><%= @item.name %> — Item Details</h2>
+<div class="item-edit-shell">
+  <div class="item-edit-left">
+    <p class="eyebrow">Item</p>
+    <h1 class="item-title"><%= @item.name %></h1>
+    <p class="item-subtitle">Edit details and availability for <strong><%= @workspace.name %></strong>.</p>
 
-<div style="display:flex; flex-direction:row; align-items:stretch; gap:2rem; flex-wrap:nowrap;">
-  <!-- Left column: reusable edit form -->
-  <div class="md:w-1/2 w-full">
     <%= render 'form' %>
-    <%= link_to "Back to Workspace", workspace_path(@workspace), class: "btn-secondary" %>
+
+
   </div>
 
-  <!-- Right column: analytics chart -->
-  <div style="flex:1; min-width:400px; align-self:stretch; display:flex; flex-direction:column; justify-content:flex-start;">
-    <% if @busyness_index.present? %>
-      <div style="margin-bottom:0.75rem;">
+  <div class="item-edit-right">
+    <div class="mini-card">
+      <% if @busyness_index.present? %>
         <% if @busyness_index > 120 %>
-          <p style="font-weight:500; color:#dc2626;">
-            Busier than usual today (<%= @busyness_index %>% of normal)
-          </p>
+          <p class="trend-badge busy">Busier than usual (<%= @busyness_index %>% of normal)</p>
         <% elsif @busyness_index < 80 %>
-          <p style="font-weight:500; color:#2563eb;">
-            Quieter than usual today (<%= @busyness_index %>% of normal)
-          </p>
+          <p class="trend-badge calm">Quieter than usual (<%= @busyness_index %>% of normal)</p>
         <% else %>
-          <p style="font-weight:500; color:#16a34a;">
-            About average activity (<%= @busyness_index %>% of normal)
-          </p>
+          <p class="trend-badge normal">About average activity (<%= @busyness_index %>% of normal)</p>
         <% end %>
+      <% end %>
+      <div class="chart-container">
+        <canvas id="usageChart"></canvas>
       </div>
-    <% end %>
-
-    <!-- Chart always gets a fixed height -->
-    <div class="chart-container"
-        style="flex-grow:1; width:100%; min-height:400px; height:400px;">
-      <canvas id="usageChart"></canvas>
     </div>
   </div>
-
-
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -108,3 +98,35 @@
     });
   });
 </script>
+
+<style>
+  .item-edit-shell {
+    display: grid;
+    grid-template-columns: minmax(320px, 520px) minmax(320px, 1fr);
+    gap: 24px;
+    align-items: start;
+  }
+  .item-edit-left {
+    background: #fff;
+    border: 1px solid #e5e7eb;
+    border-radius: 16px;
+    padding: 22px 20px;
+    box-shadow: 0 12px 32px rgba(15,23,42,0.08);
+  }
+  .item-edit-right {
+    background: #fff;
+    border: 1px solid #e5e7eb;
+    border-radius: 16px;
+    padding: 18px;
+    box-shadow: 0 10px 28px rgba(15,23,42,0.06);
+  }
+  .item-title { margin: 4px 0 4px; font-size: 26px; color: #0f172a; }
+  .item-subtitle { margin: 0 0 14px 0; color: #475569; font-size: 15px; }
+  .eyebrow { margin:0; text-transform:uppercase; letter-spacing:.05em; color:#9ca3af; font-size:12px; font-weight:700; }
+  .mini-card { display:flex; flex-direction:column; gap:10px; }
+  .chart-container { width: 100%; min-height: 320px; height: 320px; }
+  .trend-badge { margin:0; font-weight:600; }
+  .trend-badge.busy { color:#dc2626; }
+  .trend-badge.calm { color:#2563eb; }
+  .trend-badge.normal { color:#16a34a; }
+</style>

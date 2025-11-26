@@ -1,60 +1,149 @@
-<h1>My Reservations</h1>
+<div class="row justify-content-center">
+  <div class="col-lg-10">
+    <div class="d-flex align-items-center mb-4">
+      <h1 class="h3 mb-0 mr-3">My Reservations</h1>
+      <span class="badge badge-pill badge-primary"><%= @reservations.count %> total</span>
+    </div>
 
-<%
-  now = Time.current
-  current_res = @reservations.select { |r| r.start_time <= now && r.end_time >= now }
-  future_res  = @reservations.select { |r| r.start_time > now }
-  past_res    = @reservations.select { |r| r.end_time < now }.reverse
-%>
+    <%
+      now = Time.current
+      upcoming_res = @reservations.select { |r| r.end_time >= now }
+      past_res     = @reservations.select { |r| r.end_time < now }.reverse
+    %>
 
-<% if @reservations.empty? %>
-  <p>You have no reservations yet.</p>
-<% else %>
-  <% [
-       ["Current Reservations", current_res],
-       ["Future Reservations", future_res],
-       ["Past Reservations", past_res]
-     ].each do |title, list| %>
-    
-    <% if list.any? %>
-      <h3 class="mt-4"><%= title %></h3>
-      <table class="table table-bordered" style="table-layout: fixed;">
-        <thead>
-          <tr>
-            <th style="width: 22%;">Item</th>
-            <th style="width: 22%;">Workspace</th>
-            <th style="width: 20%;">Start Time</th>
-            <th style="width: 20%;">End Time</th>
-            <th style="width: 8%;">Quantity</th>
-            <th style="width: 8%;">Actions</th>
-          </tr>
-        </thead>
-        <tbody>
-          <% list.each do |reservation| %>
-            <tr id="reservation_<%= reservation.id %>">
-              <td><%= reservation.item.name %></td>
-              <td><%= reservation.item.workspace.name %></td>
-              <td><%= reservation.start_time.in_time_zone.strftime("%b %d, %I:%M %p") %></td>
-              <td><%= reservation.end_time.in_time_zone.strftime("%b %d, %I:%M %p") %></td>
-              <td><%= reservation.quantity %></td>
-              <td>
-                <% if reservation.start_time > Time.current %>
-                  <%= link_to "Cancel", reservation_path(reservation),
-                              method: :delete,
-                              data: { confirm: "Are you sure you want to cancel this reservation?" },
-                              class: "btn btn-danger btn-sm" %>
-                <% end %>
-              </td>
-            </tr>
-          <% end %>
-        </tbody>
-      </table>
+    <% if @reservations.empty? %>
+      <div class="text-center py-5 bg-white rounded shadow-sm">
+        <div class="mb-3 text-muted" style="font-size: 3rem;">📅</div>
+        <h5 class="text-muted">No reservations yet</h5>
+        <p class="text-muted mb-4">You haven't made any reservations.</p>
+        <%= link_to "Browse Workspaces", workspaces_path, class: "btn btn-primary" %>
+      </div>
+    <% else %>
+      <div class="card shadow-sm mb-4">
+        <div class="card-header bg-white border-bottom-0 pt-4 pb-0">
+          <ul class="nav nav-tabs card-header-tabs" id="reservationTabs" role="tablist">
+            <li class="nav-item">
+              <a class="nav-link active" id="upcoming-tab" data-toggle="tab" href="#upcoming" role="tab" aria-controls="upcoming" aria-selected="true">
+                Upcoming <span class="badge badge-light ml-1"><%= upcoming_res.count %></span>
+              </a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" id="history-tab" data-toggle="tab" href="#history" role="tab" aria-controls="history" aria-selected="false">
+                History <span class="badge badge-light ml-1"><%= past_res.count %></span>
+              </a>
+            </li>
+          </ul>
+        </div>
+
+        <div class="card-body p-0">
+          <div class="tab-content" id="reservationTabsContent">
+            <!-- Upcoming Tab -->
+            <div class="tab-pane fade show active" id="upcoming" role="tabpanel" aria-labelledby="upcoming-tab">
+              <% if upcoming_res.any? %>
+                <div class="table-responsive">
+                  <table class="table table-hover align-middle mb-0">
+                    <thead class="thead-light">
+                      <tr>
+                        <th scope="col" style="width: 25%;">Item</th>
+                        <th scope="col" style="width: 20%;">Workspace</th>
+                        <th scope="col" style="width: 30%;">Time</th>
+                        <th scope="col" style="width: 10%;">Qty</th>
+                        <th scope="col" style="width: 15%;">Actions</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <% upcoming_res.each do |reservation| %>
+                        <tr id="reservation_<%= reservation.id %>">
+                          <td class="font-weight-bold text-dark">
+                            <%= reservation.item.name %>
+                            <% if reservation.start_time <= now && reservation.end_time >= now %>
+                              <span class="badge badge-success ml-2">Active Now</span>
+                            <% end %>
+                          </td>
+                          <td class="text-muted"><%= reservation.item.workspace.name %></td>
+                          <td class="text-muted small">
+                            <div class="d-flex flex-column">
+                              <span><%= reservation.start_time.in_time_zone.strftime("%b %d, %Y") %></span>
+                              <span><%= reservation.start_time.in_time_zone.strftime("%-I:%M %p") %> – <%= reservation.end_time.in_time_zone.strftime("%-I:%M %p") %></span>
+                            </div>
+                          </td>
+                          <td>
+                            <span class="badge badge-light border px-2 py-1"><%= reservation.quantity %></span>
+                          </td>
+                          <td>
+                            <% if reservation.start_time > now %>
+                              <%= button_to reservation_path(reservation),
+                                            method: :delete,
+                                            data: { confirm: "Are you sure you want to cancel this reservation?" },
+                                            class: "btn btn-sm btn-outline-danger" do %>
+                                Cancel
+                              <% end %>
+                            <% else %>
+                              <span class="text-muted small">Cannot cancel</span>
+                            <% end %>
+                          </td>
+                        </tr>
+                      <% end %>
+                    </tbody>
+                  </table>
+                </div>
+              <% else %>
+                <div class="text-center py-5">
+                  <p class="text-muted">No upcoming reservations.</p>
+                  <%= link_to "Make a Reservation", workspaces_path, class: "btn btn-sm btn-outline-primary" %>
+                </div>
+              <% end %>
+            </div>
+
+            <!-- History Tab -->
+            <div class="tab-pane fade" id="history" role="tabpanel" aria-labelledby="history-tab">
+              <% if past_res.any? %>
+                <div class="table-responsive">
+                  <table class="table table-hover align-middle mb-0">
+                    <thead class="thead-light">
+                      <tr>
+                        <th scope="col" style="width: 25%;">Item</th>
+                        <th scope="col" style="width: 20%;">Workspace</th>
+                        <th scope="col" style="width: 30%;">Time</th>
+                        <th scope="col" style="width: 10%;">Qty</th>
+                        <th scope="col" style="width: 15%;">Status</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <% past_res.each do |reservation| %>
+                        <tr id="reservation_<%= reservation.id %>" class="text-muted">
+                          <td><%= reservation.item.name %></td>
+                          <td><%= reservation.item.workspace.name %></td>
+                          <td class="small">
+                            <div class="d-flex flex-column">
+                              <span><%= reservation.start_time.in_time_zone.strftime("%b %d, %Y") %></span>
+                              <span><%= reservation.start_time.in_time_zone.strftime("%-I:%M %p") %> – <%= reservation.end_time.in_time_zone.strftime("%-I:%M %p") %></span>
+                            </div>
+                          </td>
+                          <td><%= reservation.quantity %></td>
+                          <td>
+                            <span class="badge badge-secondary">Completed</span>
+                          </td>
+                        </tr>
+                      <% end %>
+                    </tbody>
+                  </table>
+                </div>
+              <% else %>
+                <div class="text-center py-5">
+                  <p class="text-muted">No past reservations.</p>
+                </div>
+              <% end %>
+            </div>
+          </div>
+        </div>
+      </div>
     <% end %>
-  <% end %>
-<% end %>
-
-<hr>
-
-<div class="text-center mt-3">
-  <%= link_to "← Back to Workspaces", workspaces_path, class: "btn btn-secondary" %>
+    
+    <div class="text-center mt-4 mb-5">
+      <%= link_to workspaces_path, class: "text-muted text-decoration-none" do %>
+        ← Back to Workspaces
+      <% end %>
+    </div>
+  </div>
 </div>

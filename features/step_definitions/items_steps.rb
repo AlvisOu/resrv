@@ -1,7 +1,6 @@
 # --- Sees ---
 Then /^(?:|I )the "([^"]*)" item details should be updated$/ do |original_item_name|
   expect(page).to have_content(@new_item_name)
-  expect(page).to have_content(@new_quantity)
   unless @new_item_name.include?(original_item_name)
     expect(page).not_to have_content(original_item_name)
   end

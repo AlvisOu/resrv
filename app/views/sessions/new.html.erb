@@ -1,23 +1,89 @@
-<h1>Log In</h1>
+<div class="auth-shell">
+  <div class="auth-card">
+    <h1 class="auth-title">Welcome Back</h1>
+    <p class="auth-subtitle">Log in to view your workspaces and reservations.</p>
 
-<%= form_with(scope: :session, url: login_path) do |form| %>
+    <%= form_with(scope: :session, url: login_path, html: { class: "auth-form" }) do |form| %>
+      <div class="field">
+        <%= form.label :email, "Email", class: "form-label" %>
+        <%= form.email_field :email, class: "form-control", placeholder: "you@example.com", required: true %>
+      </div>
 
-  <div class="field">
-    <%= form.label :email %><br>
-    <%= form.email_field :email %>
+      <div class="field">
+        <%= form.label :password, "Password", class: "form-label" %>
+        <%= form.password_field :password, class: "form-control", placeholder: "••••••••", required: true %>
+      </div>
+
+      <div class="actions">
+        <%= form.submit "Log In", class: "btn-primary-wide" %>
+      </div>
+
+      <div class="auth-links">
+        <%= link_to "Sign up", signup_path %>
+        <span class="divider">•</span>
+        <%= link_to "Forgot password?", new_password_reset_path %>
+      </div>
+    <% end %>
   </div>
+</div>
 
-  <div class="field">
-    <%= form.label :password %><br>
-    <%= form.password_field :password %>
-  </div>
-
-  <div class="actions">
-    <%= form.submit "Log In" %>
-  </div>
-
-  <div class="field">
-    <%= link_to "Sign up", signup_path %> |
-    <%= link_to "Forgot password?", new_password_reset_path %>
-  </div>
-<% end %>
+<style>
+  .auth-shell {
+    min-height: 70vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #f8fafc;
+    padding: 24px;
+  }
+  .auth-card {
+    width: 100%;
+    max-width: 480px;
+    background: #fff;
+    border-radius: 14px;
+    border: 1px solid #e5e7eb;
+    box-shadow: 0 10px 30px rgba(15, 23, 42, 0.08);
+    padding: 28px 26px;
+  }
+  .auth-title {
+    margin: 0 0 6px 0;
+    font-size: 26px;
+    color: #0f172a;
+  }
+  .auth-subtitle {
+    margin: 0 0 20px 0;
+    color: #475569;
+    font-size: 15px;
+  }
+  .auth-form .field { margin-bottom: 16px; }
+  .auth-form .form-label { display: block; margin-bottom: 6px; color: #111827; font-weight: 600; }
+  .auth-form .form-control {
+    width: 100%;
+    padding: 10px 12px;
+    border-radius: 10px;
+    border: 1px solid #d1d5db;
+    font-size: 15px;
+  }
+  .auth-form .form-control:focus { outline: 2px solid #111827; border-color: #111827; }
+  .btn-primary-wide {
+    width: 100%;
+    background: #111827;
+    color: #fff;
+    border: none;
+    padding: 12px;
+    border-radius: 10px;
+    font-size: 15px;
+    cursor: pointer;
+  }
+  .btn-primary-wide:hover { filter: brightness(1.05); }
+  .auth-links {
+    margin-top: 12px;
+    display: flex;
+    justify-content: center;
+    gap: 8px;
+    color: #6b7280;
+    font-size: 14px;
+  }
+  .auth-links a { color: #111827; text-decoration: none; font-weight: 600; }
+  .auth-links .divider { color: #9ca3af; }
+</style>

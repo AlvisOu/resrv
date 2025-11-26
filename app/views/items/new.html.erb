@@ -1,3 +1,61 @@
-<h2>Add New Item</h2>
-<%= render 'form' %>
-<%= link_to "Back to Workspace", workspace_path(@workspace) %>
+<div class="auth-shell">
+  <div class="auth-card">
+    <h1 class="auth-title">Add a new item</h1>
+    <p class="auth-subtitle">
+      Add inventory and availability for <strong><%= @workspace.name %></strong>.
+    </p>
+
+    <%= render 'form' %>
+  </div>
+</div>
+
+<style>
+  .auth-shell {
+    min-height: 70vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #f8fafc;
+    padding: 32px;
+  }
+  .auth-card {
+    width: 100%;
+    max-width: 560px;
+    background: #fff;
+    border-radius: 16px;
+    border: 1px solid #e5e7eb;
+    box-shadow: 0 12px 32px rgba(15, 23, 42, 0.12);
+    padding: 28px 26px;
+  }
+  .auth-title { margin: 0 0 6px 0; font-size: 26px; color: #0f172a; }
+  .auth-subtitle { margin: 0 0 20px 0; color: #475569; font-size: 15px; }
+  .auth-links { display:flex; justify-content:center; gap:8px; color:#6b7280; font-size:14px; }
+  .auth-links a { color:#0ea5e9; font-weight:600; text-decoration:none; }
+  .auth-links a:hover { text-decoration:underline; }
+  .btn-primary-wide {
+    width: 100%;
+    background: linear-gradient(135deg, #111827, #1f2937);
+    color: #fff;
+    border: none;
+    padding: 12px;
+    border-radius: 10px;
+    font-size: 15px;
+    cursor: pointer;
+  }
+  .btn-primary-wide:hover { filter: brightness(1.05); }
+  .btn-danger-solid {
+    background: #b91c1c;
+    color: #fff;
+    border: none;
+    padding: 10px 14px;
+    border-radius: 10px;
+    cursor: pointer;
+  }
+  .styled-form .form-label { display:block; margin-bottom:6px; color:#111827; font-weight:600; }
+  .styled-form .form-control { width:100%; padding:10px 12px; border:1px solid #d1d5db; border-radius:10px; font-size:15px; }
+  .styled-form .form-control:focus { outline:2px solid #111827; border-color:#111827; }
+  .styled-form .two-up { display:flex; gap:12px; flex-wrap:wrap; }
+  .styled-form .two-up > div { flex:1; min-width:200px; }
+  .styled-form .field { margin-bottom: 14px; }
+  .styled-form .hint { color:#6b7280; font-size:12px; margin-top:4px; }
+</style>

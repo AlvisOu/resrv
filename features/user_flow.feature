@@ -7,7 +7,7 @@ Background:
 @javascript
 Scenario: Make a microphone reservation
   When I go to my owned/bookmarked workspaces
-  And  I click "Lerner Auditorium"
+  And  I open the workspace "Lerner Auditorium"
   Then I should see "Mic"
   When I adjust the quantity for "Mic"
   And I press an available time slot for "Mic"

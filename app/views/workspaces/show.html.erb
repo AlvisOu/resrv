@@ -1,35 +1,56 @@
-<h1><%= @workspace.name %></h1>
-
-<% if @penalty && !current_user_is_owner?(@workspace) %>
-  <div class="alert alert-warning" style="margin-top: 1rem; background-color: #fef3c7; border: 1px solid #f59e0b; padding: 1rem; border-radius: 8px;">
-    <strong>⚠️ Penalty Notice:</strong>
-    You are blocked from making reservations in this workspace due to a
-    <%= @penalty.reason.humanize.downcase %>.
-    You’ll regain access after <strong><%= @penalty.expires_at.strftime("%B %-d at %-I:%M %p") %></strong>.
-
-    <% if @penalty.appeal_pending? %>
-      <div style="margin-top: 6px; color:#92400e;">Appeal submitted — waiting on owner review.</div>
-    <% elsif @penalty.appeal_state == "resolved" %>
-      <div style="margin-top: 6px; color:#065f46;">Appeal reviewed by owner.</div>
-    <% else %>
-      <%= form_with url: appeal_penalty_path(@penalty), method: :post, local: true, style: "margin-top:10px; display:flex; flex-direction:column; gap:8px; max-width:480px;" do %>
-        <%= text_field_tag :appeal_message, nil, placeholder: "Share context (optional)", class: "form-control form-control-sm", style: "width:100%;" %>
-        <%= submit_tag "Appeal Penalty", class: "btn btn-sm btn-outline-dark", style: "align-self:flex-start; margin-top:6px;" %>
+<div class="workspace-hero">
+  <div>
+    <h1 class="workspace-title"><%= @workspace.name %></h1>
+    <p class="workspace-meta">
+      <strong>Owner:</strong> <%= @workspace.owner&.name || "Unassigned" %>
+      <% if @workspace.respond_to?(:description) && @workspace.description.present? %>
+        <span class="separator">•</span>
+        <%= @workspace.description %>
       <% end %>
+    </p>
+
+    <% if current_user_is_owner?(@workspace) %>
+      <div class="hero-actions">
+        <%= link_to "View Missing Items", workspace_missing_reports_path(@workspace), class: "btn-pill" %>
+        <%= link_to "Edit Workspace", edit_workspace_path(@workspace), class: "link-inline" %>
+      </div>
     <% end %>
   </div>
-<% end %>
 
-<% if current_user_is_owner?(@workspace) %>
-  <div style="margin-bottom: 1rem;">
-    <%= link_to "View Missing Items", workspace_missing_reports_path(@workspace), class: "btn btn-warning" %>
+  <% if @current_join.nil? || @current_join.role == 'user' %>
+    <div class="hero-meta">
+      <%= button_to (@current_join ? "Unbookmark" : "Bookmark"),
+                    workspace_user_to_workspace_path(@workspace),
+                    method: (@current_join ? :delete : :post),
+                    class: "btn-gold",
+                    data: (@current_join ? { confirm: "Remove this workspace from your bookmarks?" } : {}) %>
+    </div>
+  <% end %>
+</div>
+
+<% if @penalty && !current_user_is_owner?(@workspace) %>
+  <div class="banner-warning">
+    <div class="banner-icon">⚠️</div>
+    <div>
+      <p class="banner-title">Penalty Notice</p>
+      <p class="banner-body">
+        You are blocked from making reservations in this workspace due to a
+        <%= @penalty.reason.humanize.downcase %>. You’ll regain access after
+        <strong><%= @penalty.expires_at.strftime("%B %-d at %-I:%M %p") %></strong>.
+      </p>
+      <% if @penalty.appeal_pending? %>
+        <p class="banner-subtle">Appeal submitted — waiting on owner review.</p>
+      <% elsif @penalty.appeal_state == "resolved" %>
+        <p class="banner-subtle success">Appeal reviewed by owner.</p>
+      <% else %>
+        <%= form_with url: appeal_penalty_path(@penalty), method: :post, local: true, html: { class: "appeal-form" } do %>
+          <%= text_field_tag :appeal_message, nil, placeholder: "Share context (optional)", class: "form-control" %>
+          <%= submit_tag "Appeal Penalty", class: "btn-ghost" %>
+        <% end %>
+      <% end %>
+    </div>
   </div>
 <% end %>
-
-<%= link_to "Rename Workspace", edit_workspace_path(@workspace), class: "button" if current_user_is_owner?(@workspace) %>
-<p style="font-size:16px;"><strong>Description:</strong> <%= @workspace.name %> ===> Edit later</p>
-<p style="font-size:16px;">ID: <%= @workspace.id %></p>
-<p style="font-size:16px;">Owner: <%= @workspace.owner&.name %></p>
 
 <hr>
 
@@ -81,49 +102,59 @@
   .schedule-grid {
     display: grid;
     grid-template-columns:
-      260px
-      140px
-      repeat(<%= slots.size %>, 90px);
-    min-width: calc(260px + 140px + <%= slots.size %> * 90px);
+      160px
+      110px
+      repeat(<%= slots.size %>, 10px);
+    min-width: calc(160px + 110px + <%= slots.size %> * 10px);
   }
   .cell {
-    padding: 10px;
-    border-right: 1px solid #f0f0f0;
-    border-bottom: 1px solid #f0f0f0;
+    padding: 6px;
+    border-right: 1px solid #e5e7eb;
+    border-bottom: 1px solid #e5e7eb;
     background: #fff;
-    font-size: 14px;
+    font-size: 13px;
     line-height: 1.25;
     box-sizing: border-box;
   }
-  .cell.sticky-1 { position: sticky; left: 0; background: #fafafa; font-weight: 600; z-index: 3; }
-  .cell.sticky-2 { position: sticky; left: 260px; background: #fafafa; font-weight: 600; z-index: 3; border-left: 1px solid #e5e7eb; }
-  .time-cell { text-align: center; font-weight: 700; background: #fafafa; position: sticky; top: 0; z-index: 2; font-size: 13px; }
-  .corner { position: sticky; top: 0; left: 0; z-index: 4; background: #fafafa; font-weight:700; }
-  .corner-2 { position: sticky; top: 0; left: 260px; z-index: 4; background: #fafafa; font-weight:700; }
+  .cell.sticky-1 { position: sticky; left: 0; background: #fff; font-weight: 600; z-index: 3; border-right: 1px solid #e5e7eb; }
+  .cell.sticky-2 { position: sticky; left: 160px; background: #fff; font-weight: 600; z-index: 3; border-right: 1px solid #e5e7eb; border-left: none; }
+  .time-cell { text-align: center; font-weight: 600; background: #f9fafb; position: sticky; top: 0; z-index: 2; font-size: 12px; color: #6b7280; padding: 8px 0; }
+  .corner { position: sticky; top: 0; left: 0; z-index: 4; background: #f9fafb; font-weight:700; color: #374151; }
+  .corner-2 { position: sticky; top: 0; left: 160px; z-index: 4; background: #f9fafb; font-weight:700; color: #374151; }
 
   .slot {
     cursor: pointer;
-    height: 34px;
-    border-radius: 6px;
-    margin: 8px;
-    transition: transform 0.02s ease-in-out, background-color 0.15s ease-in-out;
-    border: 1px solid #d1d5db;
+    height: 32px;
+    margin: 0;
+    border-radius: 0;
+    border: none;
+    transition: background-color 0.1s ease;
   }
 
-  .slot.available   { background: #22c55e33; }
-  .slot.unavailable { background: #ef444466; }
-  .slot.selected    { background: #f59e0b66; }
-  .slot.outside     { background: #9ca3af55; cursor: not-allowed; }
-  .slot.partial     { background: #facc1533; }
-  .slot:hover { transform: scale(1.02); }
+  /* meanings */
+  .slot.available   { 
+    background: #86efac;
+    border-right: 0.5px solid #4ade80;
+  } /* green-100 */
+  .slot.available:hover { background: #4ade80; }
+  
+  .slot.unavailable { background: #f3f4f6; /* gray-100 */ 
+                      background-image: repeating-linear-gradient(45deg, transparent, transparent 5px, #e5e7eb 5px, #e5e7eb 10px); }
+  
+  .slot.selected    { background: #3b82f6; } /* blue-500 */
+  .slot.selected:hover { background: #2563eb; }
+  
+  .slot.outside     { background: #f9fafb; cursor: not-allowed; }
 
-  .item-name { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-size: 15px; }
-  .qty-wrap { display:flex; align-items:center; gap:10px; }
-  .qty-controls { display:inline-flex; flex-direction:column; gap:6px; }
+  .slot:hover { transform: none; }
+
+  .item-name { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-size: 13px; }
+  .qty-wrap { display:flex; align-items:center; gap:4px; }
+  .qty-controls { display:inline-flex; flex-direction:column; gap:2px; }
   .qty-btn {
-    width:30px; height:22px; line-height:20px; text-align:center;
-    border:1px solid #d1d5db; border-radius:6px; background:#fff; cursor:pointer;
-    user-select:none; font-size:14px;
+    width:24px; height:20px; line-height:18px; text-align:center;
+    border:1px solid #d1d5db; border-radius:4px; background:#fff; cursor:pointer;
+    user-select:none; font-size:12px;
   }
   .qty-btn:disabled { opacity: 0.45; cursor: not-allowed; }
   .qty-display { font-weight:700; min-width: 1.8rem; text-align:center; font-size:15px; }
@@ -135,6 +166,71 @@
     padding: 10px 16px; font-size: 15px; border-radius: 8px; cursor: pointer;
   }
   .btn-primary:hover { filter: brightness(1.05); }
+
+  .workspace-hero {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 16px;
+    padding: 18px 0 10px;
+  }
+  .workspace-title { margin: 0; font-size: 28px; color: #0f172a; }
+  .workspace-meta { margin: 6px 0 0 0; color: #475569; font-size: 15px; }
+  .hero-actions { margin-top: 12px; display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+  .btn-pill {
+    display: inline-block;
+    padding: 8px 14px;
+    background: #fcd34d;
+    color: #92400e;
+    border-radius: 999px;
+    font-weight: 700;
+    text-decoration: none;
+    border: 1px solid #f59e0b;
+  }
+  .link-inline { color: #0ea5e9; text-decoration: none; font-weight: 600; }
+  .link-inline:hover { text-decoration: underline; }
+  .hero-meta { text-align: right; color: #6b7280; font-size: 15px; }
+  .meta-label { margin: 0; text-transform: uppercase; letter-spacing: 0.05em; font-weight: 700; }
+  .meta-value { margin: 2px 0 0 0; font-size: 18px; color: #0f172a; font-weight: 700; }
+  .separator { color: #cbd5e1; margin: 0 6px; }
+
+  .banner-warning {
+    display: flex;
+    gap: 12px;
+    border: 1px solid #f59e0b;
+    background: #fef3c7;
+    padding: 12px 14px;
+    border-radius: 12px;
+    margin-bottom: 14px;
+  }
+  .banner-icon { font-size: 20px; }
+  .banner-title { margin: 0; font-weight: 700; color: #92400e; }
+  .banner-body { margin: 4px 0 8px 0; color: #92400e; }
+  .banner-subtle { margin: 0; color: #92400e; font-size: 13px; }
+  .banner-subtle.success { color: #065f46; }
+  .appeal-form { display: flex; flex-direction: column; gap: 8px; max-width: 420px; }
+  .appeal-form .form-control { width: 100%; padding: 8px 10px; border:1px solid #d1d5db; border-radius: 8px; }
+  .btn-ghost {
+    width: fit-content;
+    padding: 8px 12px;
+    border: 1px solid #111827;
+    border-radius: 8px;
+    background: #fff;
+    color: #111827;
+    font-weight: 600;
+    cursor: pointer;
+  }
+  .btn-gold {
+    background: linear-gradient(135deg, #fbbf24, #f59e0b);
+    color: #78350f;
+    border: none;
+    padding: 8px 8px;
+    border-radius: 999px;
+    font-weight: 700;
+    cursor: pointer;
+    min-width: 140px;
+    text-align: center;
+  }
 
   .owner-mode .slot { cursor: pointer; pointer-events: auto; transform: none; }
   .owner-mode .slot:hover { transform: none; }
@@ -204,6 +300,26 @@
   }
   .return-form { display: flex; gap: 6px; }
   .return-input { width: 50px; padding: 4px 6px; font-size: 13px; border: 1px solid #d1d5db; border-radius: 6px; }
+
+  .delete-panel {
+    margin-top: 24px;
+    padding: 16px;
+    border: 1px solid #fca5a5;
+    background: #fef2f2;
+    border-radius: 12px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+  }
+  .btn-danger-solid {
+    background: #b91c1c;
+    color: #fff;
+    border: none;
+    padding: 10px 14px;
+    border-radius: 10px;
+    cursor: pointer;
+  }
 </style>
 
 <% today    = @tz.today %>
@@ -239,16 +355,19 @@
 </div>
 
 <div class="legend">
-  <span class="key"><span class="swatch" style="background:#22c55e33;"></span>Available</span>
+  <span class="key">
+    <span class="swatch" style="background:#86efac; border:1px solid #4ade80;"></span>
+    Available
+  </span>
 
   <% if is_owner %>
     <span class="key"><span class="swatch" style="background:#facc1533;"></span>Partially Reserved</span>
   <% else %>
     <span class="key"><span class="swatch" style="background:#facc1533;"></span>Partially Reserved</span>
-    <span class="key"><span class="swatch" style="background:#f59e0b66;"></span>Your Selection</span>
+    <span class="key"><span class="swatch" style="background:#3b82f6;"></span>Your Selection</span>
   <% end %>
 
-  <span class="key"><span class="swatch" style="background:#ef444466;"></span>Unavailable</span>
+  <span class="key"><span class="swatch" style="background:#f3f4f6; background-image: repeating-linear-gradient(45deg, transparent, transparent 5px, #e5e7eb 5px, #e5e7eb 10px);"></span>Unavailable</span>
 </div>
 
 <% if is_owner %>
@@ -262,8 +381,13 @@
     <!-- Header -->
     <div class="cell corner sticky-1">Item</div>
     <div class="cell corner-2 sticky-2">Quantity</div>
-    <% @slots.each do |slot| %>
-      <div class="cell time-cell"><%= slot.strftime("%-I:%M%P") %></div>
+    <% @slots.each_with_index do |slot, index| %>
+      <% if index % 8 == 0 %>
+        <% span = [@slots.size - index, 8].min %>
+        <div class="cell time-cell" style="grid-column: span <%= span %>; text-align: left; padding-left: 5px; border-left: 1px solid #d1d5db;">
+          <%= slot.strftime("%-I %p") %>
+        </div>
+      <% end %>
     <% end %>
 
     <!-- Rows from backend availability -->
@@ -491,28 +615,6 @@
   </div>
 <% end %>
 
-<hr>
-
-<% if @current_join %>
-  <% if @current_join.role == 'owner' %>
-    <%= button_to "Delete This Workspace",
-                  workspace_user_to_workspace_path(@workspace),
-                  method: :delete,
-                  class: "button-danger",
-                  data: { confirm: "OWNER: Are you sure? This will permanently delete this workspace for ALL members." } %>
-  <% else %>
-    <%= button_to "Leave This Workspace",
-                  workspace_user_to_workspace_path(@workspace),
-                  method: :delete,
-                  data: { confirm: "Are you sure you want to leave this workspace?" } %>
-  <% end %>
-<% else %>
-  <%= button_to "Join Workspace as User",
-                workspace_user_to_workspace_path(@workspace),
-                method: :post %>
-<% end %>
-
-<br>
 
 <script>
   (function ownerHoverTooltip(){

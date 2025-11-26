@@ -30,3 +30,15 @@ Given('a workspace item named {string} exists in {string}') do |item_name, ws_na
     it.end_time   = Time.zone.today.end_of_day
   end
 end
+
+When /^I open the workspace "([^"]*)"$/ do |workspace_name|
+  card = find('.card', text: workspace_name)
+  
+  if card.has_link?('View Workspace')
+    card.click_link('View Workspace')
+  elsif card.has_link?('Manage Workspace')
+    card.click_link('Manage Workspace')
+  else
+    raise "Could not find 'View Workspace' or 'Manage Workspace' link for #{workspace_name}"
+  end
+end

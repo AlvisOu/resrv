@@ -43,24 +43,65 @@ Given("I have {int} unread notifications: {string} and {string}") do |count, tit
     expect(@current_user.notifications.unread.count).to eq(count)
 end
 
+Given("I have {int} unread notifications") do |count|
+  @current_user.notifications.destroy_all
+  
+  if count > 0
+    workspace = Workspace.first || Workspace.create!(name: "Test Workspace")
+    item = Item.first || Item.create!(
+      name: "Test Item", 
+      quantity: 10, 
+      workspace: workspace,
+      start_time: Time.zone.now.beginning_of_day + 9.hours,
+      end_time: Time.zone.now.beginning_of_day + 17.hours
+    )
+    
+    count.times do |i|
+      reservation = Reservation.create!(
+        user: @current_user,
+        item: item,
+        start_time: Time.zone.now.beginning_of_day + 10.hours + i.hours,
+        end_time: Time.zone.now.beginning_of_day + 11.hours + i.hours,
+        in_cart: false
+      )
+      @current_user.notifications.create!(
+        message: "Notification #{i+1}", 
+        read: false,
+        reservation: reservation
+      )
+    end
+  end
+  
+  expect(@current_user.notifications.unread.count).to eq(count)
+end
+
 
 # --- Whens ---
 When("I click {string} for {string}") do |button_text, notification_message|
-    notification_text_element = find('strong', text: notification_message)
-    notification_block = notification_text_element.find(:xpath, '..')
+    notification_text_element = find('h5', text: notification_message)
+    notification_block = notification_text_element.find(:xpath, '..').find(:xpath, '..')
     within(notification_block) do
         click_button(button_text)
     end
 end
 
 When("I press {string} for {string} and accept the alert") do |button_text, notification_message|
-  notification_text_element = find('strong', text: notification_message)
-  notification_block = notification_text_element.find(:xpath, '..')
+  notification_text_element = find('h5', text: notification_message)
+  notification_block = notification_text_element.find(:xpath, '..').find(:xpath, '..')
 
   within(notification_block) do
     accept_alert do
       click_button(button_text)
     end
+  end
+end
+
+When("I press {string} for {string}") do |button_text, notification_message|
+  notification_text_element = find('h5', text: notification_message)
+  notification_block = notification_text_element.find(:xpath, '..').find(:xpath, '..')
+
+  within(notification_block) do
+    click_button(button_text)
   end
 end
 
@@ -76,8 +117,8 @@ Then("I should see an unread count of {string}") do |count|
 end
 
 Then("the {string} notification should be marked as read") do |notification_message|
-    notification_text_element = find('strong', text: notification_message)
-    notification_block = notification_text_element.find(:xpath, '..')
+    notification_text_element = find('h5', text: notification_message)
+    notification_block = notification_text_element.find(:xpath, '..').find(:xpath, '..')
     expect(notification_block).to have_no_button('Mark as Read')
 end
 

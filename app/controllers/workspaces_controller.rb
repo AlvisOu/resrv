@@ -179,7 +179,7 @@ class WorkspacesController < ApplicationController
   end
 
   def workspace_params
-    params.require(:workspace).permit(:name)
+    params.require(:workspace).permit(:name, :description)
   end
 
   def ceil_to_15(time)
