@@ -9,7 +9,7 @@ Feature: Workspace Membership
     Scenario: Standard user joins (bookmarks) a workspace
       Given I am logged in as a standard user of "My First Workspace"
       When I go to the "Butler Library" workspace page
-      And I click "Join Workspace"
+      And I click "Bookmark"
       Then I should see "You have successfully joined"
       When I go to my owned/bookmarked workspaces
       Then I should see "Butler Library"
@@ -18,7 +18,7 @@ Feature: Workspace Membership
       Given I am logged in as a standard user of "Butler Library"
       When I go to my owned/bookmarked workspaces
       And I open the workspace "Butler Library"
-      And I click "Leave This Workspace"
+      And I click "Unbookmark"
       Then I should see "You have left Butler Library"
 
     Scenario: Owner leaves (and deletes) their workspace
