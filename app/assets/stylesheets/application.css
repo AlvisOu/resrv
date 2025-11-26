@@ -102,3 +102,29 @@ h1, h2, h3, h4, h5, h6 {
   -webkit-box-orient: vertical;
   overflow: hidden;
 }
+
+.nav-icon-link {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.icon-badge {
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  font-size: 0.6rem;
+}
+
+.icon-badge.dot {
+  padding: 4px;
+  right: 0;
+}
+
+.main-content {
+  min-height: 80vh;
+}
+
+.nav-user-dropdown {
+  font-size: 0.9rem;
+}

@@ -18,51 +18,68 @@
       <nav class="navbar navbar-expand-lg navbar-light bg-white sticky-top">
         <div class="container">
           <%= link_to root_path, class: "navbar-brand font-weight-bold text-primary" do %>
-            <h1>resrv</h1>
+            <h2>resrv</h2>
           <% end %>
-          <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+          <button class="navbar-toggler border-0" type="button" data-toggle="collapse" data-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
             <span class="navbar-toggler-icon"></span>
           </button>
           <div class="collapse navbar-collapse" id="navbarNav">
             <ul class="navbar-nav ml-auto align-items-center">
               <% if logged_in? %>
                 <li class="nav-item mx-2">
-                  <%= link_to notifications_path, class: "nav-link position-relative text-dark" do %>
-                    <span style="font-size: 1.2rem;">🔔</span>
+                  <%= link_to reservations_path, class: "nav-link position-relative nav-icon-link", title: "My Reservations" do %>
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                      <path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                    </svg>
+                    <% if current_user.reservations.respond_to?(:upcoming) && current_user.reservations.upcoming.any? %>
+                      <span class="icon-badge dot badge badge-success rounded-circle"></span>
+                    <% end %>
+                  <% end %>
+                </li>
+                <li class="nav-item mx-2">
+                  <%= link_to notifications_path, class: "nav-link position-relative nav-icon-link" do %>
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                      <path stroke-linecap="round" stroke-linejoin="round" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
+                    </svg>
+
                     <% unread_count = current_user.notifications.where(read: false).count %>
                     <% if unread_count > 0 %>
-                      <span id="unread-count" class="badge badge-pill badge-danger position-absolute" style="top: 0; right: -5px; font-size: 0.7rem;">
-                        <%= unread_count %>
+                      <span class="icon-badge badge badge-danger badge-pill" id="unread-count">
+                        <%= unread_count > 9 ? '9+' : unread_count %>
                       </span>
                     <% end %>
                   <% end %>
                 </li>
                 <li class="nav-item mx-2">
-                  <%= link_to "My Reservations", reservations_path, class: "nav-link font-weight-medium" %>
-                </li>
-                <li class="nav-item mx-2">
-                  <%= link_to cart_path, class: "nav-link" do %>
-                    <%= cart_display %>
+                  <%= link_to cart_path, class: "nav-link position-relative nav-icon-link", title: "Cart" do %>
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                      <path stroke-linecap="round" stroke-linejoin="round" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
+                    </svg>
+
+                    <% cart_count = Cart.load(session, current_user&.id).total_count %>
+                    <% if cart_count > 0 %>
+                      <span class="icon-badge badge badge-primary badge-pill">
+                        <%= cart_count > 9 ? '9+' : cart_count %>
+                      </span>
+                    <% end %>
                   <% end %>
                 </li>
-
-                <li class="nav-item dropdown ml-3">
-                  <a class="nav-link dropdown-toggle btn btn-light rounded-pill px-3" href="#" id="navbarDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                <li class="nav-item dropdown ml-3 pl-3 border-left">
+                  <a class="nav-link dropdown-toggle btn btn-light rounded-pill px-3 shadow-sm font-weight-bold text-dark nav-user-dropdown" href="#" id="navbarDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
                     <%= current_user.name %>
                   </a>
-                  <div class="dropdown-menu dropdown-menu-right shadow border-0" aria-labelledby="navbarDropdown">
+                  <div class="dropdown-menu dropdown-menu-right shadow-lg border-0 mt-2" aria-labelledby="navbarDropdown">
                     <%= link_to "My Profile", profile_path, class: "dropdown-item" %>
                     <div class="dropdown-divider"></div>
                     <%= link_to "Log Out", logout_path, class: "dropdown-item text-danger", method: :delete %>
                   </div>
                 </li>
-
               <% else %>
                 <li class="nav-item">
-                  <%= link_to "Log In", login_path, class: "nav-link font-weight-bold" %>
+                  <%= link_to "Log In", login_path, class: "nav-link font-weight-bold text-dark" %>
                 </li>
                 <li class="nav-item ml-2">
-                  <%= link_to "Sign Up", signup_path, class: "btn btn-primary px-4 rounded-pill" %>
+                  <%= link_to "Sign Up", signup_path, class: "btn btn-dark px-4 rounded-pill shadow-sm" %>
                 </li>
               <% end %>
             </ul>
@@ -70,7 +87,7 @@
         </div>
       </nav>
     </header>
-    <div class="container mt-5 mb-5" style="min-height: 80vh;">
+    <div class="container mt-5 mb-5 main-content">
       <main id="main">
         <%= render 'layouts/flash' %>
         <%= yield %>
