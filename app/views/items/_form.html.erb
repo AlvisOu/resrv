@@ -1,58 +1,39 @@
-<%= form_with model: [@workspace, @item], local: true do |f| %>
-  <div>
-    <%= f.label :name, "Item Name" %><br>
-    <%= f.text_field :name, required: true %>
+<%= form_with model: [@workspace, @item], local: true, html: { class: "styled-form" } do |f| %>
+  <div class="field">
+    <%= f.label :name, "Item Name", class: "form-label" %>
+    <%= f.text_field :name, required: true, class: "form-control", placeholder: "e.g., Camera Kit" %>
   </div>
 
-  <div>
-    <%= f.label :quantity, "Quantity" %><br>
-    <%= f.number_field :quantity, min: 0, required: true %>
+  <div class="field">
+    <%= f.label :quantity, "Quantity", class: "form-label" %>
+    <%= f.number_field :quantity, min: 0, required: true, class: "form-control", placeholder: "10" %>
   </div>
 
-  <div>
-    <%= f.label :start_time, "Available From" %><br>
-    <%= f.time_select :start_time, minute_step: 15 %>
+  <div class="field two-up">
+    <div>
+      <%= f.label :start_time, "Available From", class: "form-label" %>
+      <%= f.time_select :start_time, minute_step: 15, class: "form-control" %>
+    </div>
+    <div>
+      <%= f.label :end_time, "Available Until", class: "form-label" %>
+      <%= f.time_select :end_time, minute_step: 15, class: "form-control" %>
+    </div>
   </div>
 
-  <div>
-    <%= f.label :end_time, "Available Until" %><br>
-    <%= f.time_select :end_time, minute_step: 15 %>
+  <div class="actions" style="margin-top:14px;">
+    <%= f.submit "Save Item", class: "btn-primary-wide" %>
   </div>
-
-  <br>
-  <%= f.submit "Confirm", class: "btn-primary" %>
-  
-  <script>
-    document.addEventListener("DOMContentLoaded", () => {
-      const form = document.querySelector("form[action*='items']");
-      if (!form) return;
-
-      const inputs = form.querySelectorAll("input, select, textarea");
-
-      inputs.forEach((input) => {
-        input.addEventListener("change", () => {
-          input.dataset.changed = "true";
-          input.style.backgroundColor = "#fff8e1";  // soft yellow
-          input.style.borderColor = "#facc15";      // amber
-        });
-      });
-
-      form.addEventListener("submit", () => {
-        inputs.forEach((input) => {
-          if (input.dataset.changed === "true") {
-            input.style.backgroundColor = "";
-            input.style.borderColor = "";
-            delete input.dataset.changed;
-          }
-        });
-      });
-    });
-  </script>
-
 <% end %>
 
 <% if @item.persisted? %>
-  <%= form_with model: [@workspace, @item], method: :delete, local: true do |f| %>
-    <%= f.submit "Delete", data: { confirm: "Are you sure you want to delete this item?" }, class: "btn-danger" %>
-  <% end %>
+  <div style="margin-top: 12px; text-align:right;">
+    <%= form_with model: [@workspace, @item], method: :delete, local: true do |f| %>
+      <%= f.submit "Delete Item", data: { confirm: "Are you sure you want to delete this item?" }, class: "btn-danger-solid" %>
+    <% end %>
+  </div>
 <% end %>
+<style>
+  .styled-form .form-label { display:block; margin-bottom:6px; color:#111827; font-weight:600; }
+  .styled-form .form-control { width:100%; padding:10px 12px; border:1px solid #d1d5db; border-radius:10px; font-size:15px; }
+  .styled-form .two-up { display:grid; gap:12px; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); align-items:end; }
+</style>
