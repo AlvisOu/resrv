@@ -1,42 +1,108 @@
-<h1>Sign Up</h1>
+<div class="auth-shell">
+  <div class="auth-card">
+    <h1 class="auth-title">Create your account</h1>
+    <p class="auth-subtitle">Join your workspaces and start booking.</p>
 
-<%= form_with(model: @user) do |form| %>
-  <% if @user.errors.any? %>
-    <div style="color: red">
-      <h2><%= pluralize(@user.errors.count, "error") %> prohibited this user from being saved:</h2>
-      <ul>
-        <% @user.errors.full_messages.each do |message| %>
-          <li><%= message %></li>
-        <% end %>
-      </ul>
-    </div>
-  <% end %>
+    <% if @user.errors.any? %>
+      <div class="alert alert-danger" style="margin-bottom: 16px;">
+        <strong><%= pluralize(@user.errors.count, "error") %> prevented signup:</strong>
+        <ul style="margin: 8px 0 0 18px; color:#991b1b;">
+          <% @user.errors.full_messages.each do |message| %>
+            <li><%= message %></li>
+          <% end %>
+        </ul>
+      </div>
+    <% end %>
 
-  <div class="field">
-    <%= form.label :name %><br>
-    <%= form.text_field :name %>
+    <%= form_with(model: @user, html: { class: "auth-form" }) do |form| %>
+      <div class="field">
+        <%= form.label :name, "Full name", class: "form-label" %>
+        <%= form.text_field :name, class: "form-control", placeholder: "Alex Johnson", required: true %>
+      </div>
+
+      <div class="field">
+        <%= form.label :email, "Email", class: "form-label" %>
+        <%= form.email_field :email, class: "form-control", placeholder: "you@example.com", required: true %>
+      </div>
+
+      <div class="field">
+        <%= form.label :password, "Password", class: "form-label" %>
+        <%= form.password_field :password, class: "form-control", placeholder: "••••••••", required: true %>
+      </div>
+
+      <div class="field">
+        <%= form.label :password_confirmation, "Confirm password", class: "form-label" %>
+        <%= form.password_field :password_confirmation, class: "form-control", placeholder: "Match your password", required: true %>
+      </div>
+
+      <div class="actions">
+        <%= form.submit "Create Account", class: "btn-primary-wide" %>
+      </div>
+
+      <div class="auth-links">
+        <span>Already have an account?</span>
+        <%= link_to "Log In", login_path %>
+      </div>
+    <% end %>
   </div>
+</div>
 
-  <div class="field">
-    <%= form.label :email %><br>
-    <%= form.email_field :email %>
-  </div>
-
-  <div class="field">
-    <%= form.label :password %><br>
-    <%= form.password_field :password %>
-  </div>
-
-  <div class="field">
-    <%= form.label :password_confirmation %><br>
-    <%= form.password_field :password_confirmation %>
-  </div>
-
-  <div class="actions">
-    <%= form.submit "Create Account" %>
-  </div>
-
-  <div class="field">
-    <%= link_to "Log In", login_path %>
-  </div>
-<% end %>
+<style>
+  .auth-shell {
+    min-height: 70vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #f8fafc;
+    padding: 24px;
+  }
+  .auth-card {
+    width: 100%;
+    max-width: 520px;
+    background: #fff;
+    border-radius: 14px;
+    border: 1px solid #e5e7eb;
+    box-shadow: 0 10px 30px rgba(15, 23, 42, 0.08);
+    padding: 28px 26px;
+  }
+  .auth-title {
+    margin: 0 0 6px 0;
+    font-size: 26px;
+    color: #0f172a;
+  }
+  .auth-subtitle {
+    margin: 0 0 20px 0;
+    color: #475569;
+    font-size: 15px;
+  }
+  .auth-form .field { margin-bottom: 16px; }
+  .auth-form .form-label { display: block; margin-bottom: 6px; color: #111827; font-weight: 600; }
+  .auth-form .form-control {
+    width: 100%;
+    padding: 10px 12px;
+    border-radius: 10px;
+    border: 1px solid #d1d5db;
+    font-size: 15px;
+  }
+  .auth-form .form-control:focus { outline: 2px solid #111827; border-color: #111827; }
+  .btn-primary-wide {
+    width: 100%;
+    background: #111827;
+    color: #fff;
+    border: none;
+    padding: 12px;
+    border-radius: 10px;
+    font-size: 15px;
+    cursor: pointer;
+  }
+  .btn-primary-wide:hover { filter: brightness(1.05); }
+  .auth-links {
+    margin-top: 12px;
+    display: flex;
+    justify-content: center;
+    gap: 8px;
+    color: #6b7280;
+    font-size: 14px;
+  }
+  .auth-links a { color: #111827; text-decoration: none; font-weight: 600; }
+</style>
