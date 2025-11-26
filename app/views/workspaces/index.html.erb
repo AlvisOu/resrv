@@ -27,12 +27,12 @@
     <div class="row">
       <% @workspaces.each do |workspace| %>
         <div class="col-md-4">
-          <div class="card workspace-card h-100">
+          <div class="card workspace-card h-100 position-relative">
             <div class="card-body d-flex flex-column">
               <h5 class="card-title"><%= workspace.name %></h5>
-              <p class="card-text text-muted">ID: <%= workspace.id %></p>
+              <p class="card-text text-muted line-clamp-2"><%= workspace.description %></p>
               <div class="mt-auto">
-                <%= link_to "View Workspace", workspace_path(workspace), class: "btn btn-outline-primary btn-block" %>
+                <%= link_to "View Workspace", workspace_path(workspace), class: "btn btn-outline-primary btn-block stretched-link" %>
               </div>
             </div>
           </div>
@@ -60,7 +60,7 @@
               </div>
               <p class="card-text text-muted line-clamp-2"><%= workspace.description %></p>
               <div class="mt-auto">
-                <%= link_to "Manage Workspace", workspace_path(workspace), class: "btn btn-primary btn-block stretched-link" %>
+                <%= link_to "Manage Workspace", workspace_path(workspace), class: "btn btn-primary btn-block" %>
               </div>
             </div>
           </div>
@@ -74,13 +74,13 @@
     <div class="row">
       <% @joined_workspaces.each do |workspace| %>
         <div class="col-md-4">
-          <div class="card workspace-card h-100">
+          <div class="card workspace-card h-100 position-relative">
             <div class="card-body d-flex flex-column">
               <div class="d-flex justify-content-between align-items-start">
                 <h5 class="card-title"><%= workspace.name %></h5>
                 <span class="badge badge-secondary">Member</span>
               </div>
-              <p class="card-text text-muted">Book resources and view availability.</p>
+              <p class="card-text text-muted line-clamp-2"><%= workspace.description %></p>
               <div class="mt-auto">
                 <%= link_to "View Workspace", workspace_path(workspace), class: "btn btn-outline-primary btn-block" %>
               </div>
