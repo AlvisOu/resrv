@@ -583,33 +583,6 @@
   </div>
 <% end %>
 
-<hr>
-
-<% if @current_join %>
-<<<<<<< Updated upstream
-  <% unless @current_join.role == 'owner' %>
-    <%= button_to "Leave This Workspace",
-                  workspace_user_to_workspace_path(@workspace),
-                  method: :delete,
-                  data: { confirm: "Are you sure you want to leave this workspace?" } %>
-=======
-  <% if @current_join.role == 'owner' %>
-    <div class="delete-panel">
-      <div>
-        <h4>Delete workspace</h4>
-        <p class="text-muted" style="margin:0;">This removes the workspace for all members.</p>
-      </div>
-      <%= button_to "Delete Workspace",
-                    workspace_user_to_workspace_path(@workspace),
-                    method: :delete,
-                    class: "btn-danger-solid",
-                    data: { confirm: "OWNER: Are you sure? This will permanently delete this workspace for ALL members." } %>
-    </div>
->>>>>>> Stashed changes
-  <% end %>
-<% end %>
-
-<br>
 
 <script>
   (function ownerHoverTooltip(){
