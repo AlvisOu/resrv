@@ -13,7 +13,7 @@ Feature: User Registration
     And I fill in "user[password_confirmation]" with "password123"
     And I press "Create Account"
     Then I should see "Welcome! Please check your email for a verification code."
-    And I should see "Verify Your Email"
+    And I should see "Verify your email"
     When I fill in the verification code for "new@example.com"
     And I press "Verify"
     Then I should see "Email verified successfully."
