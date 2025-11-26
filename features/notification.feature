@@ -23,7 +23,7 @@ Feature: Notification
   @javascript
   Scenario: Delete a single notification
     When I go to my notifications page
-    And I press "Delete" for "Reservation Confirmed" and accept the alert
+    And I press "Delete" for "Reservation Confirmed"
     Then I should see "Notification deleted."
     And I should not see "Reservation Confirmed"
     And I should see "Item Returned"

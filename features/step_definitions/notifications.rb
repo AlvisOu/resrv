@@ -96,6 +96,15 @@ When("I press {string} for {string} and accept the alert") do |button_text, noti
   end
 end
 
+When("I press {string} for {string}") do |button_text, notification_message|
+  notification_text_element = find('h5', text: notification_message)
+  notification_block = notification_text_element.find(:xpath, '..').find(:xpath, '..')
+
+  within(notification_block) do
+    click_button(button_text)
+  end
+end
+
 
 # --- Sees ---
 Then("I should see an unread count of {string}") do |count|

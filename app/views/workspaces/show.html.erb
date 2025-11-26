@@ -215,8 +215,11 @@
   }
 
   /* meanings */
-  .slot.available   { background: #ecfdf5; } /* green-50 */
-  .slot.available:hover { background: #d1fae5; }
+  .slot.available   { 
+    background: #86efac;
+    border-right: 0.5px solid #4ade80;
+  } /* green-100 */
+  .slot.available:hover { background: #4ade80; }
   
   .slot.unavailable { background: #f3f4f6; /* gray-100 */ 
                       background-image: repeating-linear-gradient(45deg, transparent, transparent 5px, #e5e7eb 5px, #e5e7eb 10px); }
@@ -435,7 +438,10 @@
 </div>
 
 <div class="legend">
-  <span class="key"><span class="swatch" style="background:#ecfdf5; border:1px solid #d1fae5;"></span>Available</span>
+  <span class="key">
+    <span class="swatch" style="background:#86efac; border:1px solid #4ade80;"></span>
+    Available
+  </span>
   <% unless is_owner %>
     <span class="key"><span class="swatch" style="background:#3b82f6;"></span>Your Selection</span>
   <% end %>
