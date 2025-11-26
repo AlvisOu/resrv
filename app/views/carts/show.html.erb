@@ -1,84 +1,135 @@
-<h1>Your Cart</h1>
+<div class="row justify-content-center">
+  <div class="col-lg-10">
+    <div class="d-flex align-items-center mb-4">
+      <h1 class="h3 mb-0 mr-3">Your Cart</h1>
+      <span class="badge badge-pill badge-primary"><%= @active_segments.count %> items</span>
+    </div>
 
-<% if @workspaces.blank? %>
-  <p>No items yet. Go add some!</p>
-<% else %>
-  <div class="workspace-tabs" style="display:flex; gap:.5rem; margin-bottom:1rem;">
-    <% @workspaces.each do |ws| %>
-      <% active = (ws.id == @active_workspace_id) %>
-      <%= link_to ws.name,
-                  cart_path(workspace_id: ws.id),
-                  class: "tab #{'active' if active}",
-                  style: "padding:.5rem .75rem; border:1px solid #e5e7eb; border-radius:8px; #{'background:#111;color:#fff;' if active}" %>
+    <% if @workspaces.blank? %>
+      <div class="text-center py-5 bg-white rounded shadow-sm">
+        <div class="mb-3 text-muted" style="font-size: 3rem;">🛒</div>
+        <h5 class="text-muted">Your cart is empty</h5>
+        <p class="text-muted mb-4">Looks like you haven't added any items yet.</p>
+        <%= link_to "Browse Workspaces", workspaces_path, class: "btn btn-primary" %>
+      </div>
+    <% else %>
+      <div class="card shadow-sm mb-4">
+        <div class="card-header bg-white border-bottom-0 pt-4 pb-0">
+          <ul class="nav nav-tabs card-header-tabs">
+            <% @workspaces.each do |ws| %>
+              <% active = (ws.id == @active_workspace_id) %>
+              <li class="nav-item">
+                <%= link_to ws.name,
+                            cart_path(workspace_id: ws.id),
+                            class: "nav-link #{'active font-weight-bold' if active} #{'text-muted' unless active}" %>
+              </li>
+            <% end %>
+          </ul>
+        </div>
+        
+        <div class="card-body">
+          <% if @penalty %>
+            <div class="alert alert-warning border-warning mb-4">
+              <div class="d-flex">
+                <div class="mr-3" style="font-size: 1.5rem;">⚠️</div>
+                <div class="flex-grow-1">
+                  <h5 class="alert-heading h6 font-weight-bold">Penalty Active</h5>
+                  <p class="mb-1 small">
+                    You are blocked from making reservations in this workspace due to a <strong><%= @penalty.reason.humanize %></strong>.
+                    Access will be restored on <strong><%= @penalty.expires_at.strftime("%B %-d at %-I:%M %p") %></strong>.
+                  </p>
+                  
+                  <% if @penalty.appeal_pending? %>
+                    <div class="text-warning font-weight-bold small mt-2">Appeal submitted — waiting on owner review.</div>
+                  <% elsif @penalty.appeal_state == "resolved" %>
+                    <div class="text-success font-weight-bold small mt-2">Appeal reviewed by the workspace owner.</div>
+                  <% else %>
+                    <div class="mt-2 pt-2 border-top border-warning">
+                      <%= form_with url: appeal_penalty_path(@penalty), method: :post, local: true, class: "form-inline" do %>
+                        <div class="input-group input-group-sm w-100" style="max-width: 400px;">
+                          <%= text_field_tag :appeal_message, nil, placeholder: "Optional note to owner", class: "form-control" %>
+                          <div class="input-group-append">
+                            <%= submit_tag "Appeal Penalty", class: "btn btn-outline-dark" %>
+                          </div>
+                        </div>
+                      <% end %>
+                    </div>
+                  <% end %>
+                </div>
+              </div>
+            </div>
+          <% end %>
+
+          <% if @active_segments.blank? %>
+            <div class="text-center py-5">
+              <p class="text-muted">No items in this workspace tab yet.</p>
+            </div>
+          <% else %>
+            <div class="table-responsive">
+              <table class="table table-hover align-middle mb-0">
+                <thead class="thead-light">
+                  <tr>
+                    <th scope="col" style="width: 40%;">Item</th>
+                    <th scope="col" style="width: 40%;">Time</th>
+                    <th scope="col" style="width: 10%;">Qty</th>
+                    <th scope="col" style="width: 10%;"></th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <% @active_segments.each do |seg| %>
+                    <tr>
+                      <td class="font-weight-bold text-dark">
+                        <%= seg[:item]&.name || content_tag(:span, "(deleted item)", class: "text-danger") %>
+                      </td>
+                      <td class="text-muted small">
+                        <div class="d-flex flex-column">
+                          <span><%= seg[:start_time]&.in_time_zone&.strftime("%b %-d, %Y") %></span>
+                          <span><%= seg[:start_time]&.in_time_zone&.strftime("%-I:%M %p") %> – <%= seg[:end_time]&.in_time_zone&.strftime("%-I:%M %p") %></span>
+                        </div>
+                      </td>
+                      <td>
+                        <span class="badge badge-light border px-2 py-1"><%= seg[:quantity] %></span>
+                      </td>
+                      <td class="text-right">
+                        <%= button_to remove_range_cart_items_path(
+                              item_id:      seg[:item]&.id,
+                              workspace_id: seg[:workspace]&.id,
+                              start_time:   seg[:start_time]&.iso8601,
+                              end_time:     seg[:end_time]&.iso8601
+                            ),
+                            method: :delete,
+                            form: { data: { turbo_confirm: "Remove this time range from your cart?" } },
+                            class: "btn btn-sm btn-outline-danger border-0",
+                            title: "Remove item" do %>
+                          <span aria-hidden="true">&times;</span> Remove
+                        <% end %>
+                      </td>
+                    </tr>
+                  <% end %>
+                </tbody>
+              </table>
+            </div>
+          <% end %>
+        </div>
+        
+        <% if @active_segments.present? %>
+          <div class="card-footer bg-light p-4">
+            <div class="d-flex justify-content-between align-items-center">
+              <%= link_to "← Continue Browsing", root_path, class: "text-muted text-decoration-none" %>
+              
+              <%= form_with url: checkout_cart_path, method: :post, local: true, id: "checkout-form" do %>
+                <%= hidden_field_tag :workspace_id, @active_workspace_id %>
+                <% disabled = @penalty.present? %>
+                <button type="submit"
+                        class="btn btn-primary btn-lg shadow-sm px-5 font-weight-bold"
+                        <%= "disabled" if disabled %>>
+                  <%= disabled ? "Blocked due to Penalty" : "resrv" %>
+                </button>
+              <% end %>
+            </div>
+          </div>
+        <% end %>
+      </div>
     <% end %>
   </div>
-
-  <% if @penalty %>
-    <div class="alert alert-warning" style="background-color: #fef3c7; border: 1px solid #f59e0b; padding: 1rem; border-radius: 8px; margin-bottom: 1rem;">
-      ⚠️ You are blocked from making reservations in this workspace due to a <strong><%= @penalty.reason.humanize %></strong>.
-      Access will be restored on <strong><%= @penalty.expires_at.strftime("%B %-d at %-I:%M %p") %></strong>.
-      <% if @penalty.appeal_pending? %>
-        <div style="margin-top:6px; color:#92400e;">Appeal submitted — waiting on owner review.</div>
-      <% elsif @penalty.appeal_state == "resolved" %>
-        <div style="margin-top:6px; color:#065f46;">Appeal reviewed by the workspace owner.</div>
-      <% else %>
-        <%= form_with url: appeal_penalty_path(@penalty), method: :post, local: true, style: "margin-top:8px; display:flex; flex-direction:column; gap:8px; max-width:480px;" do %>
-          <%= text_field_tag :appeal_message, nil, placeholder: "Optional note to owner", class: "form-control form-control-sm", style: "width:100%;" %>
-          <%= submit_tag "Appeal Penalty", class: "btn btn-sm btn-outline-dark", style: "align-self:flex-start; margin-top:6px;" %>
-        <% end %>
-      <% end %>
-    </div>
-  <% end %>
-
-  <% if @active_segments.blank? %>
-    <p>No items in this workspace tab yet.</p>
-  <% else %>
-    <table style="width:100%; border-collapse:collapse;">
-      <thead>
-        <tr>
-          <th align="left">Item</th>
-          <th align="left">Time</th>
-          <th align="left">Qty</th>
-        </tr>
-      </thead>
-        <tbody>
-        <% @active_segments.each_with_index do |seg, i| %>
-            <tr style="border-top:1px solid #eee;">
-            <td><%= seg[:item]&.name || "(deleted item)" %></td>
-            <td>
-                <%= seg[:start_time]&.in_time_zone&.strftime("%b %-d, %-I:%M %p") %> –
-                <%= seg[:end_time]&.in_time_zone&.strftime("%-I:%M %p") %>
-            </td>
-            <td><%= seg[:quantity] %></td>
-            <td style="text-align:right;">
-                <%= button_to "Remove",
-                    remove_range_cart_items_path(
-                        item_id:      seg[:item]&.id,
-                        workspace_id: seg[:workspace]&.id,
-                        start_time:   seg[:start_time]&.iso8601,
-                        end_time:     seg[:end_time]&.iso8601
-                    ),
-                    method: :delete,
-                    form: { data: { turbo_confirm: "Remove this time range from your cart?" } },
-                    class: "btn btn-sm btn-outline-danger" %>
-            </td>
-            </tr>
-        <% end %>
-        </tbody>
-    </table>
-
-    <div style="margin-top:1rem; display:flex; justify-content:flex-end; gap:.5rem;">
-    <%= form_with url: checkout_cart_path, method: :post, local: true, id: "checkout-form" do %>
-        <%= hidden_field_tag :workspace_id, @active_workspace_id %>
-        <% disabled = @penalty.present? %>
-        <button type="submit"
-                class="btn btn-primary"
-                style="padding:.6rem 1rem; border-radius:8px; background:#111; color:#fff; border:none; opacity: <%= disabled ? 0.6 : 1 %>;"
-                <%= "disabled" if disabled %>>
-          <%= disabled ? "Blocked due to Penalty" : "resrv" %>
-        </button>
-    <% end %>
-    <%= link_to "Continue Browsing", root_path, class: "btn" %>
-    </div>
-  <% end %>
-<% end %>
+</div>

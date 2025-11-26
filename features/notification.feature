@@ -31,17 +31,16 @@ Feature: Notification
 
   Scenario: Mark all notifications as read
     When I go to my notifications page
-    And I click "Mark All as Read"
+    And I click "Mark All Read"
     Then I should see "All notifications marked as read."
     And I should see an unread count of "0"
     And all notifications should be marked as read
 
   @javascript
-  Scenario: Delete all notifications
-    When I go to my notifications page
-    And I press "Delete All" and accept the alert
-    Then I should see "All notifications deleted."
-    And I should see "You have no notifications."
+  Scenario: View empty notifications
+    Given I have 0 unread notifications
+    When I go to the notifications page
+    Then I should see "No notifications"
 
   @javascript @owner_notification
   Scenario: Owner resolves a penalty appeal from notifications

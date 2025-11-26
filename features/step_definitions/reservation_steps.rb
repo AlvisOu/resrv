@@ -105,8 +105,8 @@ When(/^I press an available time slot for "([^"]+)"$/) do |item_name|
   expect(slot[:class]).to include("selected")
 end
 When(/^I click "cancel" on the reservation for "(.+)"$/) do |item_name|
-  within(:xpath, "//tr[td[contains(text(), '#{item_name}')]]") do
-    click_link("Cancel")
+  within(:xpath, "//tr[td[contains(., '#{item_name}')]]") do
+    click_button("Cancel")
   end
 end
 When(/^I mark the reservation as a no-show$/) do

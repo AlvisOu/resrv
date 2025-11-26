@@ -1,67 +1,101 @@
-<h2>Notifications</h2>
+<div class="row justify-content-center">
+  <div class="col-lg-8">
+    <div class="d-flex align-items-center mb-4">
+      <h1 class="h3 mb-0 mr-3">Notifications</h1>
+      <% unread_count = @notifications.count { |n| !n.read } %>
+      <% if unread_count > 0 %>
+        <span class="badge badge-pill badge-primary"><%= unread_count %> unread</span>
+      <% end %>
+    </div>
 
-<div class="mb-3 d-flex">
-  <div class="me-2">
-    <%= button_to "Mark All as Read", mark_all_as_read_notifications_path, method: :post, class: "btn btn-sm btn-outline-secondary" %>
-  </div>
-  <div>
-    <%= button_to "Delete All", delete_all_notifications_path, method: :delete, data: { confirm: "Are you sure you want to delete all notifications?" }, class: "btn btn-sm btn-outline-danger" %>
-  </div>
-</div>
-
-<% if @notifications.any? %>
-  <% @notifications.each do |note| %>
-    <div style="margin-bottom: 10px; padding: 10px; border: 1px solid gray; background: <%= note.read ? '#f8f8f8' : '#fff3cd' %>;">
-      <strong><%= note.message %></strong><br>
-      <small><%= note.created_at.strftime('%b %d, %Y %I:%M %p') %></small><br>
-
-      <% if note.penalty.present? %>
-        <% penalty = note.penalty %>
-        <div style="margin-top:6px; color:#555;">
-          <div>Penalty reason: <strong><%= penalty.reason.humanize %></strong></div>
-          <% if penalty.expires_at.present? %>
-            <div>Expires: <%= penalty.expires_at.strftime('%b %d, %Y %I:%M %p') %></div>
-          <% end %>
-          <% if penalty.appeal_message.present? %>
-            <div>Appeal note: "<%= penalty.appeal_message %>"</div>
-          <% end %>
+    <% if @notifications.any? %>
+      <div class="card shadow-sm mb-4">
+        <div class="card-header bg-white d-flex justify-content-between align-items-center py-3">
+          <h5 class="mb-0 text-muted small font-weight-bold text-uppercase">Recent Activity</h5>
+          <div class="btn-group">
+            <%= button_to mark_all_as_read_notifications_path, method: :post, class: "btn btn-outline-secondary btn-sm d-flex align-items-center" do %>
+              <i class="fas fa-check-double mr-2"></i> Mark All Read
+            <% end %>
+            <%= button_to delete_all_notifications_path, method: :delete, data: { confirm: "Are you sure you want to delete all notifications?" }, class: "btn btn-outline-danger btn-sm d-flex align-items-center" do %>
+              <i class="fas fa-trash-alt mr-2"></i> Clear All
+            <% end %>
+          </div>
         </div>
 
-        <% if penalty.appeal_pending? && penalty.workspace.present? && current_user_is_owner?(penalty.workspace) %>
-          <div style="display:flex; gap:10px; flex-wrap:wrap; align-items:center; margin-top:14px;">
-            <%= form_with url: shorten_penalty_path(penalty), method: :patch, local: true, style: "display:flex; gap:8px; align-items:center; margin:0; flex-wrap:nowrap;" do %>
-              <input type="number"
-                     name="shorten_hours"
-                     id="shorten_hours_<%= penalty.id %>"
-                     min="1"
-                     class="form-control form-control-sm"
-                     placeholder="Hours to reduce"
-                     style="width:170px; flex:0 0 auto; display:inline-block;" />
-              <button type="submit" class="btn btn-sm btn-outline-primary" style="flex:0 0 auto; margin:0;">Shorten</button>
-            <% end %>
+        <div class="list-group list-group-flush">
+          <% @notifications.each do |note| %>
+            <div class="list-group-item list-group-item-action flex-column align-items-start p-4 <%= 'bg-light' if note.read %>">
+              <div class="d-flex w-100 justify-content-between mb-2">
+                <h5 class="mb-1 <%= 'font-weight-bold text-dark' unless note.read %> <%= 'text-muted' if note.read %>"><%= note.message %></h5>
+                <small class="text-muted"><%= note.created_at.strftime('%b %d, %I:%M %p') %></small>
+              </div>
 
-            <%= button_to "Remove Penalty",
-                          forgive_penalty_path(penalty),
-                          method: :patch,
-                          class: "btn btn-sm btn-outline-danger",
-                          data: { confirm: "Remove this penalty for #{penalty.user.name}?" } %>
-          </div>
-        <% end %>
-      <% end %>
+              <% if note.penalty.present? %>
+                <% penalty = note.penalty %>
+                <div class="alert alert-warning mt-2 mb-3 p-3 border-warning">
+                  <div class="d-flex align-items-center mb-2">
+                    <i class="fas fa-exclamation-triangle mr-2 text-warning"></i>
+                    <strong class="text-dark">Penalty: <%= penalty.reason.humanize %></strong>
+                  </div>
+                  <% if penalty.expires_at.present? %>
+                    <div class="small text-muted mb-1">Expires: <%= penalty.expires_at.strftime('%b %d, %Y %I:%M %p') %></div>
+                  <% end %>
+                  <% if penalty.appeal_message.present? %>
+                    <div class="small text-muted">Appeal note: "<%= penalty.appeal_message %>"</div>
+                  <% end %>
 
-      <div style="display: flex; gap: 8px; margin-top: 6px;">
-          <% unless note.read %>
-          <%= button_to "Mark as Read", mark_as_read_notification_path(note), method: :post, class: "btn btn-sm btn-outline-secondary" %>
+                  <% if penalty.appeal_pending? && penalty.workspace.present? && current_user_is_owner?(penalty.workspace) %>
+                    <div class="mt-3 pt-3 border-top border-warning">
+                      <div class="d-flex flex-wrap align-items-center gap-2">
+                        <%= form_with url: shorten_penalty_path(penalty), method: :patch, local: true, class: "form-inline mr-2" do %>
+                          <div class="input-group input-group-sm">
+                            <input type="number" name="shorten_hours" id="shorten_hours_<%= penalty.id %>" min="1" class="form-control" placeholder="Hours" style="width: 80px;">
+                            <div class="input-group-append">
+                              <button type="submit" class="btn btn-outline-primary">Shorten</button>
+                            </div>
+                          </div>
+                        <% end %>
+
+                        <%= button_to forgive_penalty_path(penalty),
+                                      method: :patch,
+                                      class: "btn btn-sm btn-danger",
+                                      data: { confirm: "Remove this penalty for #{penalty.user.name}?" } do %>
+                          Remove Penalty
+                        <% end %>
+                      </div>
+                    </div>
+                  <% end %>
+                </div>
+              <% end %>
+
+              <div class="d-flex justify-content-end mt-3 align-items-center">
+                <% unless note.read %>
+                  <%= button_to mark_as_read_notification_path(note), method: :post, class: "btn btn-sm btn-outline-primary mr-2 d-flex align-items-center" do %>
+                    <i class="fas fa-check mr-1"></i> Mark as Read
+                  <% end %>
+                <% end %>
+                
+                <%= button_to notification_path(note),
+                              method: :delete,
+                              data: { confirm: "Delete this notification?" },
+                              class: "btn btn-sm btn-outline-secondary d-flex align-items-center" do %>
+                  <i class="fas fa-trash mr-1"></i> Delete
+                <% end %>
+              </div>
+            </div>
           <% end %>
-
-          <%= button_to "Delete",
-                        notification_path(note),
-                        method: :delete,
-                        data: { confirm: "Delete this notification?" },
-                        class: "btn btn-sm btn-outline-danger" %>
+        </div>
       </div>
-    </div>
-  <% end %>
-<% else %>
-  <p>You have no notifications.</p>
-<% end %>
+    <% else %>
+      <div class="text-center py-5 bg-white rounded shadow-sm">
+        <div class="mb-3 text-muted" style="font-size: 3rem;">
+          <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
+          </svg>
+        </div>
+        <h5 class="text-muted">No notifications</h5>
+        <p class="text-muted small">You're all caught up!</p>
+      </div>
+    <% end %>
+  </div>
+</div>
