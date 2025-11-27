@@ -4,8 +4,8 @@
     <p class="workspace-meta">
       <strong>Owner:</strong> <%= @workspace.owner&.name || "Unassigned" %>
       <% if @workspace.respond_to?(:description) && @workspace.description.present? %>
-        <span class="separator">•</span>
-        <%= @workspace.description %>
+        <br>
+        <strong>Description:</strong> <%= @workspace.description %>
       <% end %>
     </p>
 
