@@ -24,9 +24,9 @@
             <span class="navbar-toggler-icon"></span>
           </button>
           <div class="collapse navbar-collapse" id="navbarNav">
-            <ul class="navbar-nav ml-auto align-items-center">
+            <ul class="navbar-nav ml-auto navbar-nav-custom">
               <% if logged_in? %>
-                <li class="nav-item mx-2">
+                <li class="nav-item mx-2 nav-icon-item">
                   <%= link_to reservations_path, class: "nav-link position-relative nav-icon-link", title: "My Reservations" do %>
                     <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                       <path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
@@ -36,7 +36,7 @@
                     <% end %>
                   <% end %>
                 </li>
-                <li class="nav-item mx-2">
+                <li class="nav-item mx-2 nav-icon-item">
                   <%= link_to notifications_path, class: "nav-link position-relative nav-icon-link" do %>
                     <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                       <path stroke-linecap="round" stroke-linejoin="round" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
@@ -50,7 +50,7 @@
                     <% end %>
                   <% end %>
                 </li>
-                <li class="nav-item mx-2">
+                <li class="nav-item mx-2 nav-icon-item">
                   <%= link_to cart_path, class: "nav-link position-relative nav-icon-link" do %>
                     <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                       <path stroke-linecap="round" stroke-linejoin="round" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
@@ -64,7 +64,7 @@
                     <% end %>
                   <% end %>
                 </li>
-                <li class="nav-item dropdown ml-3 pl-3 border-left">
+                <li class="nav-item dropdown user-menu-item">
                   <a class="nav-link dropdown-toggle btn btn-light rounded-pill px-3 shadow-sm font-weight-bold text-dark nav-user-dropdown" href="#" id="navbarDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
                     <%= current_user.name %>
                   </a>
