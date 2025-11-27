@@ -1,22 +1,124 @@
-<h2>Reservation Details</h2>
+<div class="reservation-shell">
+  <div class="reservation-hero">
+    <div>
+      <p class="eyebrow">Reservation</p>
+      <h1 class="title">Reservation Details</h1>
+      <p class="subhead">Review the booking, timing, and actions below.</p>
+    </div>
+    <div class="status-pill <%= @reservation.no_show? ? 'pill-danger' : 'pill-safe' %>">
+      <%= @reservation.no_show? ? "No Show" : "Confirmed" %>
+    </div>
+  </div>
 
-<div class="card" style="padding:16px; max-width:720px;">
-  <p><strong>User:</strong> <%= @reservation.user.name %> (<%= @reservation.user.email %>)</p>
-  <p><strong>Workspace:</strong> <%= @reservation.item.workspace.name %></p>
-  <p><strong>Item:</strong> <%= @reservation.item.name %></p>
-  <p><strong>Quantity:</strong> <%= @reservation.quantity %></p>
-  <p><strong>Starts:</strong> <%= @reservation.start_time.strftime("%b %d, %Y %I:%M %p") %></p>
-  <p><strong>Ends:</strong> <%= @reservation.end_time.strftime("%b %d, %Y %I:%M %p") %></p>
-  <% if @reservation.no_show? %>
-    <p class="text-danger"><strong>No-show marked</strong></p>
-  <% end %>
+  <div class="reservation-card">
+    <div class="meta-grid">
+      <div class="meta">
+        <p class="label">User</p>
+        <p class="value"><%= @reservation.user.name %> (<%= @reservation.user.email %>)</p>
+      </div>
+      <div class="meta">
+        <p class="label">Workspace</p>
+        <p class="value"><%= @reservation.item.workspace.name %></p>
+      </div>
+      <div class="meta">
+        <p class="label">Item</p>
+        <p class="value"><%= @reservation.item.name %></p>
+      </div>
+      <div class="meta">
+        <p class="label">Quantity</p>
+        <p class="value"><%= @reservation.quantity %></p>
+      </div>
+      <div class="meta">
+        <p class="label">Starts</p>
+        <p class="value"><%= @reservation.start_time.strftime("%b %d, %Y %I:%M %p") %></p>
+      </div>
+      <div class="meta">
+        <p class="label">Ends</p>
+        <p class="value"><%= @reservation.end_time.strftime("%b %d, %Y %I:%M %p") %></p>
+      </div>
+    </div>
 
-  <div style="display:flex; gap:10px; flex-wrap:wrap; margin-top:12px;">
-    <%= button_to "Cancel Reservation",
-                  owner_cancel_reservation_path(@reservation),
-                  method: :patch,
-                  class: "btn btn-danger",
-                  data: { confirm: "Cancel this reservation and notify the user?" } %>
-    <%= link_to "Back to Workspace", @workspace, class: "btn btn-secondary" %>
+    <% if @reservation.no_show? %>
+      <div class="alert-note">No-show marked for this reservation.</div>
+    <% end %>
+
+    <div class="actions">
+      <%= button_to "Cancel Reservation",
+                    owner_cancel_reservation_path(@reservation),
+                    method: :patch,
+                    class: "btn btn-danger action-btn",
+                    data: { confirm: "Cancel this reservation and notify the user?" } %>
+      <%= link_to "Back to Workspace", @workspace, class: "btn btn-secondary action-btn" %>
+    </div>
   </div>
 </div>
+
+<style>
+  .reservation-shell {
+    padding: 32px 0 48px;
+    max-width: 1040px;
+    margin: 0 auto;
+  }
+  .reservation-hero {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    margin-bottom: 18px;
+  }
+  .eyebrow {
+    margin: 0;
+    font-size: 12px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: #94a3b8;
+    font-weight: 700;
+  }
+  .title { margin: 4px 0 6px; font-size: 30px; color: #0f172a; font-weight: 800; }
+  .subhead { margin: 0; color: #64748b; font-size: 15px; }
+  .status-pill {
+    padding: 10px 14px;
+    border-radius: 999px;
+    font-weight: 700;
+    font-size: 13px;
+  }
+  .pill-safe { background: #e0f2fe; color: #0369a1; border: 1px solid #bae6fd; }
+  .pill-danger { background: #fee2e2; color: #b91c1c; border: 1px solid #fecdd3; }
+
+  .reservation-card {
+    background: #fff;
+    border-radius: 14px;
+    border: 1px solid #e5e7eb;
+    box-shadow: 0 12px 32px rgba(15, 23, 42, 0.08);
+    padding: 22px 22px 26px;
+  }
+  .meta-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 16px 18px;
+  }
+  .label { margin: 0 0 4px; color: #94a3b8; font-size: 12px; letter-spacing: 0.02em; text-transform: uppercase; font-weight: 700; }
+  .value { margin: 0; color: #0f172a; font-size: 16px; font-weight: 700; }
+  .alert-note {
+    margin: 18px 0 0;
+    padding: 12px 14px;
+    border-radius: 10px;
+    background: #fef2f2;
+    border: 1px solid #fecdd3;
+    color: #b91c1c;
+    font-weight: 700;
+  }
+  .actions {
+    margin-top: 22px;
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+  }
+  .action-btn { min-width: 180px; justify-content: center; }
+
+  @media (max-width: 768px) {
+    .reservation-shell { padding: 20px 12px 36px; }
+    .reservation-hero { flex-direction: column; align-items: flex-start; }
+    .status-pill { align-self: flex-start; }
+  }
+</style>
