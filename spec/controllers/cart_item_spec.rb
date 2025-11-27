@@ -33,7 +33,7 @@ RSpec.describe CartItemsController, type: :controller do
   # -------------------------------------------------------------------
   describe "POST #create" do
     it "adds selections from JSON string" do
-      mock_cart = instance_double("Cart", total_count: 3)
+      mock_cart = instance_double("Cart", reservations_count: 3)
       expect(Cart).to receive(:load).with(session, user.id).and_return(mock_cart)
 
       expect(mock_cart).to receive(:add!).with(
@@ -58,7 +58,7 @@ RSpec.describe CartItemsController, type: :controller do
     end
 
     it "adds selections from raw array" do
-      mock_cart = instance_double("Cart", total_count: 2)
+      mock_cart = instance_double("Cart", reservations_count: 2)
       expect(Cart).to receive(:load).and_return(mock_cart)
 
       expect(mock_cart).to receive(:add!).with(hash_including("item_id" => item.id.to_s))
@@ -77,7 +77,7 @@ RSpec.describe CartItemsController, type: :controller do
     end
 
     it "adds selections from nested cart_item params" do
-      mock_cart = instance_double("Cart", total_count: 4)
+      mock_cart = instance_double("Cart", reservations_count: 4)
       expect(Cart).to receive(:load).and_return(mock_cart)
 
       expect(mock_cart).to receive(:add!).with(hash_including("quantity" => "1"))
@@ -98,7 +98,7 @@ RSpec.describe CartItemsController, type: :controller do
     end
 
     it "handles empty selections array" do
-      mock_cart = instance_double("Cart", total_count: 0)
+      mock_cart = instance_double("Cart", reservations_count: 0)
       expect(Cart).to receive(:load).and_return(mock_cart)
       expect(mock_cart).not_to receive(:add!)
 
@@ -125,7 +125,7 @@ RSpec.describe CartItemsController, type: :controller do
   # -------------------------------------------------------------------
   describe "PATCH #update" do
     it "updates cart entry and returns ok JSON" do
-      mock_cart = instance_double("Cart", total_count: 5)
+      mock_cart = instance_double("Cart", reservations_count: 5)
       allow(Cart).to receive(:load).and_return(mock_cart)
 
       expect(mock_cart).to receive(:update!).with("42", quantity: "2")
@@ -157,7 +157,7 @@ RSpec.describe CartItemsController, type: :controller do
   # -------------------------------------------------------------------
   describe "DELETE #destroy" do
     it "removes a cart item and returns ok JSON" do
-      mock_cart = instance_double("Cart", total_count: 1)
+      mock_cart = instance_double("Cart", reservations_count: 1)
       allow(Cart).to receive(:load).and_return(mock_cart)
 
       expect(mock_cart).to receive(:remove!).with("15")
@@ -184,7 +184,7 @@ RSpec.describe CartItemsController, type: :controller do
     end
 
     it "removes range and returns JSON" do
-      mock_cart = instance_double("Cart", total_count: 0)
+      mock_cart = instance_double("Cart", reservations_count: 0)
       allow(Cart).to receive(:load).and_return(mock_cart)
 
       expect(mock_cart).to receive(:remove_range!).with(
@@ -204,7 +204,7 @@ RSpec.describe CartItemsController, type: :controller do
     end
 
     it "redirects with notice when via HTML" do
-      mock_cart = instance_double("Cart", total_count: 0)
+      mock_cart = instance_double("Cart", reservations_count: 0)
       allow(Cart).to receive(:load).and_return(mock_cart)
       allow(mock_cart).to receive(:remove_range!)
 
@@ -215,7 +215,7 @@ RSpec.describe CartItemsController, type: :controller do
     end
 
     it "handles string workspace_id" do
-      mock_cart = instance_double("Cart", total_count: 0)
+      mock_cart = instance_double("Cart", reservations_count: 0)
       allow(Cart).to receive(:load).and_return(mock_cart)
 
       expect(mock_cart).to receive(:remove_range!).with(
