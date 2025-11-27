@@ -35,7 +35,7 @@ namespace :reservations do
           item.update!(quantity: new_item_quantity)
 
           # Mark this reservation as "processed" so we never touch it again
-          reservation.update!(stock_adjusted: true)
+          reservation.update_columns(stock_adjusted: true)
         end
         puts "  -> Success: Item ID #{item.id} quantity is now #{item.quantity}."
       rescue => e
