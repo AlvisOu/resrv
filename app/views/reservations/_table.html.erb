@@ -1,0 +1,51 @@
+<div class="table-responsive">
+  <table class="table table-hover align-middle mb-0">
+    <thead class="thead-light">
+      <tr>
+        <th scope="col" style="width: 25%;">Item</th>
+        <th scope="col" style="width: 20%;">Workspace</th>
+        <th scope="col" style="width: 30%;">Time</th>
+        <th scope="col" style="width: 10%;">Qty</th>
+        <th scope="col" style="width: 15%;"><%= show_actions ? "Actions" : "Status" %></th>
+      </tr>
+    </thead>
+    <tbody>
+      <% reservations.each do |reservation| %>
+        <tr id="reservation_<%= reservation.id %>" class="<%= 'text-muted' unless show_actions %>">
+          <td class="font-weight-bold text-dark">
+            <%= reservation.item.name %>
+            <% if reservation.start_time <= Time.current && reservation.end_time >= Time.current %>
+              <span class="badge badge-success ml-2">Active Now</span>
+            <% end %>
+          </td>
+          <td class="<%= 'text-muted' if show_actions %>"><%= reservation.item.workspace.name %></td>
+          <td class="<%= show_actions ? 'text-muted small' : 'small' %>">
+            <div class="d-flex flex-column">
+              <span><%= reservation.start_time.in_time_zone.strftime("%b %d, %Y") %></span>
+              <span><%= reservation.start_time.in_time_zone.strftime("%-I:%M %p") %> – <%= reservation.end_time.in_time_zone.strftime("%-I:%M %p") %></span>
+            </div>
+          </td>
+          <td>
+            <span class="badge badge-light border px-2 py-1"><%= reservation.quantity %></span>
+          </td>
+          <td>
+            <% if show_actions %>
+              <% if reservation.start_time > Time.current %>
+                <%= button_to reservation_path(reservation),
+                              method: :delete,
+                              data: { confirm: "Are you sure you want to cancel this reservation?" },
+                              class: "btn btn-sm btn-outline-danger" do %>
+                  Cancel
+                <% end %>
+              <% else %>
+                <span class="text-muted small">Cannot cancel</span>
+              <% end %>
+            <% else %>
+              <span class="badge badge-secondary">Completed</span>
+            <% end %>
+          </td>
+        </tr>
+      <% end %>
+    </tbody>
+  </table>
+</div>

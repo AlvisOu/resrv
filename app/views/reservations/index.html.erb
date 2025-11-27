@@ -40,53 +40,7 @@
             <!-- Upcoming Tab -->
             <div class="tab-pane fade show active" id="upcoming" role="tabpanel" aria-labelledby="upcoming-tab">
               <% if upcoming_res.any? %>
-                <div class="table-responsive">
-                  <table class="table table-hover align-middle mb-0">
-                    <thead class="thead-light">
-                      <tr>
-                        <th scope="col" style="width: 25%;">Item</th>
-                        <th scope="col" style="width: 20%;">Workspace</th>
-                        <th scope="col" style="width: 30%;">Time</th>
-                        <th scope="col" style="width: 10%;">Qty</th>
-                        <th scope="col" style="width: 15%;">Actions</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      <% upcoming_res.each do |reservation| %>
-                        <tr id="reservation_<%= reservation.id %>">
-                          <td class="font-weight-bold text-dark">
-                            <%= reservation.item.name %>
-                            <% if reservation.start_time <= now && reservation.end_time >= now %>
-                              <span class="badge badge-success ml-2">Active Now</span>
-                            <% end %>
-                          </td>
-                          <td class="text-muted"><%= reservation.item.workspace.name %></td>
-                          <td class="text-muted small">
-                            <div class="d-flex flex-column">
-                              <span><%= reservation.start_time.in_time_zone.strftime("%b %d, %Y") %></span>
-                              <span><%= reservation.start_time.in_time_zone.strftime("%-I:%M %p") %> – <%= reservation.end_time.in_time_zone.strftime("%-I:%M %p") %></span>
-                            </div>
-                          </td>
-                          <td>
-                            <span class="badge badge-light border px-2 py-1"><%= reservation.quantity %></span>
-                          </td>
-                          <td>
-                            <% if reservation.start_time > now %>
-                              <%= button_to reservation_path(reservation),
-                                            method: :delete,
-                                            data: { confirm: "Are you sure you want to cancel this reservation?" },
-                                            class: "btn btn-sm btn-outline-danger" do %>
-                                Cancel
-                              <% end %>
-                            <% else %>
-                              <span class="text-muted small">Cannot cancel</span>
-                            <% end %>
-                          </td>
-                        </tr>
-                      <% end %>
-                    </tbody>
-                  </table>
-                </div>
+                <%= render "table", reservations: upcoming_res, show_actions: true %>
               <% else %>
                 <div class="text-center py-5">
                   <p class="text-muted">No upcoming reservations.</p>
@@ -98,39 +52,7 @@
             <!-- History Tab -->
             <div class="tab-pane fade" id="history" role="tabpanel" aria-labelledby="history-tab">
               <% if past_res.any? %>
-                <div class="table-responsive">
-                  <table class="table table-hover align-middle mb-0">
-                    <thead class="thead-light">
-                      <tr>
-                        <th scope="col" style="width: 25%;">Item</th>
-                        <th scope="col" style="width: 20%;">Workspace</th>
-                        <th scope="col" style="width: 30%;">Time</th>
-                        <th scope="col" style="width: 10%;">Qty</th>
-                        <th scope="col" style="width: 15%;">Status</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      <% past_res.each do |reservation| %>
-                        <tr id="reservation_<%= reservation.id %>" class="text-muted">
-                          <td class="font-weight-bold text-dark"><%= reservation.item.name %></td>
-                          <td><%= reservation.item.workspace.name %></td>
-                          <td class="small">
-                            <div class="d-flex flex-column">
-                              <span><%= reservation.start_time.in_time_zone.strftime("%b %d, %Y") %></span>
-                              <span><%= reservation.start_time.in_time_zone.strftime("%-I:%M %p") %> – <%= reservation.end_time.in_time_zone.strftime("%-I:%M %p") %></span>
-                            </div>
-                          </td>
-                          <td>
-                            <span class="badge badge-light border px-2 py-1"><%= reservation.quantity %></span>
-                          </td>
-                          <td>
-                            <span class="badge badge-secondary">Completed</span>
-                          </td>
-                        </tr>
-                      <% end %>
-                    </tbody>
-                  </table>
-                </div>
+                <%= render "table", reservations: past_res, show_actions: false %>
               <% else %>
                 <div class="text-center py-5">
                   <p class="text-muted">No past reservations.</p>

@@ -1,0 +1,15 @@
+<div class="missing-card <%= 'resolved' if resolved %>">
+  <div class="card-row">
+    <div class="card-cell"><strong>Item:</strong> <%= report.item.name %></div>
+    <div class="card-cell"><strong>Reservation:</strong> #<%= report.reservation.id %></div>
+    <div class="card-cell"><strong>Missing:</strong> <%= report.reservation.quantity - report.reservation.returned_count.to_i %></div>
+    <div class="card-cell"><strong>Who Lost It:</strong> <%= report.reservation.user.name %></div>
+    <div class="card-cell">
+      <% if resolved %>
+        <strong>Resolved At:</strong> <%= report.updated_at.strftime("%b %d, %Y %I:%M %p") %>
+      <% else %>
+        <%= button_to "✅ Mark as Back Online", resolve_workspace_missing_report_path(report.item.workspace, report), method: :patch, class: "action-button", data: { confirm: "Are you sure?" } %>
+      <% end %>
+    </div>
+  </div>
+</div>

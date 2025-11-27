@@ -1,0 +1,77 @@
+.styled-form .form-label { display:block; margin-bottom:8px; color:#111827; font-weight:600; }
+.styled-form .form-control { width:100%; padding:12px 14px; border:1px solid #d1d5db; border-radius:10px; font-size:15px; }
+.styled-form .two-up { display:grid; gap:16px; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); align-items:end; }
+.styled-form .field { margin-bottom: 16px; }
+.form-actions { margin-top:16px; display:flex; gap:12px; justify-content:center; align-items:center; flex-wrap:wrap; }
+.footer-actions { margin-top:12px; text-align:center; }
+.link-inline { color: #0ea5e9; font-weight:600; text-decoration:none; }
+.link-inline:hover { text-decoration:underline; }
+.btn-danger-solid {
+  background: #b91c1c;
+  color: #fff;
+  border: none;
+  padding: 10px 14px;
+  border-radius: 10px;
+  cursor: pointer;
+}
+.btn-primary-lite {
+  background: linear-gradient(135deg, #111827, #1f2937);
+  color: #fff;
+  border: none;
+  padding: 10px 16px;
+  border-radius: 10px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+/* Item Edit Styles */
+.item-edit-shell {
+  display: grid;
+  grid-template-columns: minmax(320px, 520px) minmax(320px, 1fr);
+  gap: 24px;
+  align-items: start;
+}
+.item-edit-left {
+  background: #fff;
+  border: 1px solid #e5e7eb;
+  border-radius: 16px;
+  padding: 22px 20px;
+  box-shadow: 0 12px 32px rgba(15,23,42,0.08);
+}
+.item-edit-right {
+  background: #fff;
+  border: 1px solid #e5e7eb;
+  border-radius: 16px;
+  padding: 18px;
+  box-shadow: 0 10px 28px rgba(15,23,42,0.06);
+}
+.item-title { margin: 4px 0 4px; font-size: 26px; color: #0f172a; }
+.item-subtitle { margin: 0 0 14px 0; color: #475569; font-size: 15px; }
+.eyebrow { margin:0; text-transform:uppercase; letter-spacing:.05em; color:#9ca3af; font-size:12px; font-weight:700; }
+.mini-card { display:flex; flex-direction:column; gap:10px; }
+.chart-container { width: 100%; min-height: 320px; height: 320px; }
+.trend-badge { margin:0; font-weight:600; }
+.trend-badge.busy { color:#dc2626; }
+.trend-badge.calm { color:#2563eb; }
+.trend-badge.normal { color:#16a34a; }
+
+/* Item New Styles */
+.item-shell {
+  min-height: 70vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #f8fafc;
+  padding: 32px;
+}
+.item-card {
+  width: 100%;
+  max-width: 560px;
+  background: #fff;
+  border-radius: 16px;
+  border: 1px solid #e5e7eb;
+  box-shadow: 0 12px 32px rgba(15, 23, 42, 0.12);
+  padding: 28px 26px;
+}
+.item-card-title { margin: 0 0 6px 0; font-size: 26px; color: #0f172a; }
+.item-card-subtitle { margin: 0 0 20px 0; color: #475569; font-size: 15px; }
