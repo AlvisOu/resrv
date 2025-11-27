@@ -103,9 +103,9 @@
     display: grid;
     grid-template-columns:
       160px
-      110px
-      repeat(<%= slots.size %>, 10px);
-    min-width: calc(160px + 110px + <%= slots.size %> * 10px);
+      60px
+      repeat(<%= slots.size %>, 9px);
+    min-width: calc(160px + 60px + <%= slots.size %> * 9px);
   }
   .cell {
     padding: 6px;
@@ -380,7 +380,7 @@
   <div class="schedule-grid" id="schedule-grid">
     <!-- Header -->
     <div class="cell corner sticky-1">Item</div>
-    <div class="cell corner-2 sticky-2">Quantity</div>
+    <div class="cell corner-2 sticky-2">Qty</div>
     <% @slots.each_with_index do |slot, index| %>
       <% if index % 8 == 0 %>
         <% span = [@slots.size - index, 8].min %>
