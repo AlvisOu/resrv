@@ -99,7 +99,7 @@
               <div class="notification-dot"></div>
               <div class="notification-body">
                 <div class="notification-top">
-                  <p class="notification-title <%= 'text-muted' if note.read %>"><%= note.message %></p>
+                  <h5 class="notification-title <%= 'text-muted' if note.read %>"><%= note.message %></h5>
                   <div class="notification-time"><%= note.created_at.strftime('%b %d, %I:%M %p') %></div>
                 </div>
 
