@@ -70,8 +70,8 @@ Given("another user's reservation exists in {string} for {string}") do |workspac
   @reservation = Reservation.create!(
     user: user,
     item: item,
-    start_time: Time.zone.now + 2.hours,
-    end_time: Time.zone.now + 3.hours,
+    start_time: Time.zone.now.beginning_of_day + 12.hours,
+    end_time: Time.zone.now.beginning_of_day + 13.hours,
     quantity: 1
   )
 end

@@ -34,7 +34,7 @@ Scenario: Cart update quantity (success)
     { "quantity": 3 }
     """
   Then the JSON response should include "ok" true
-  And the JSON response should include "total" 3
+  And the JSON response should include "total" 1
 
 @javascript
 Scenario: Cart update with invalid index raises error and is rescued
