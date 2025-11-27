@@ -1,0 +1,45 @@
+<div class="workspace-hero">
+  <div>
+    <h1 class="workspace-title">Past Reservations – <%= @workspace.name %></h1>
+    <p class="workspace-meta">
+      Viewing all completed reservations for this workspace.
+    </p>
+  </div>
+
+  <div class="hero-meta">
+    <%= link_to "Back to schedule",
+                workspace_path(@workspace),
+                class: "btn-ghost" %>
+  </div>
+</div>
+
+<% if @past_reservations.any? %>
+  <div class="current-activity-section">
+    <h3 class="section-heading">Completed Reservations</h3>
+
+    <table class="activity-table">
+      <thead>
+        <tr>
+          <th>Item</th>
+          <th>User</th>
+          <th>Quantity</th>
+          <th>Starts</th>
+          <th>Ends</th>
+        </tr>
+      </thead>
+      <tbody>
+        <% @past_reservations.each do |reservation| %>
+          <tr>
+            <td><%= reservation.item.name %></td>
+            <td><%= reservation.user.name %></td>
+            <td><%= reservation.quantity %></td>
+            <td><%= reservation.start_time.strftime("%b %-d, %-I:%M %p") %></td>
+            <td><%= reservation.end_time.strftime("%b %-d, %-I:%M %p") %></td>
+          </tr>
+        <% end %>
+      </tbody>
+    </table>
+  </div>
+<% else %>
+  <p>No past reservations for this workspace yet.</p>
+<% end %>

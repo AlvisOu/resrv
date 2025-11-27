@@ -1,5 +1,5 @@
 class WorkspacesController < ApplicationController
-  before_action :set_workspace, only: [:show, :edit, :update]
+  before_action :set_workspace, only: [:show, :edit, :update, :past_reservations]
   before_action :authorize_owner!, only: [:edit, :update]
 
   def index
@@ -166,6 +166,18 @@ class WorkspacesController < ApplicationController
     else
       render :edit, status: :unprocessable_entity
     end
+  end
+
+  def past_reservations
+    # reuse the same tz as show, or fall back to Time.zone
+    @tz = @tz || Time.zone
+
+    @past_reservations = Reservation
+      .joins(:item)
+      .where(items: { workspace_id: @workspace.id })
+      .where("reservations.end_time < ?", @tz.now)
+      .includes(:user, :item)
+      .order(end_time: :desc)
   end
 
   private

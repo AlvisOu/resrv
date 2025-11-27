@@ -58,8 +58,6 @@
 
 <% slots = @slots %>
 
-
-
 <% today    = @tz.today %>
 <% max_day  = today + 7.days %>
 <% prev_day = @day - 1.day %>
@@ -303,7 +301,14 @@
 
 <% if is_owner %>
   <div class="current-activity-section" style="margin-top: 2rem;">
-    <h3 class="section-heading">Upcoming Reservations</h3>
+    <h3 class="section-heading">
+      Upcoming Reservations
+      <span style="font-size: 0.8em; margin-left: 10px;">
+        <%= link_to "View past reservations",
+                    past_reservations_workspace_path(@workspace),
+                    class: "link-inline" %>
+      </span>
+    </h3>
     <div style="display:flex; gap:12px; flex-wrap:wrap; margin-bottom:12px;">
       <form action="<%= workspace_path(@workspace) %>" method="get" style="display:flex; gap:8px; flex-wrap:wrap; align-items:center; margin:0;">
         <input type="hidden" name="day" value="<%= @day.iso8601 %>">
