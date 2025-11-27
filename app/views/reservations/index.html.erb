@@ -21,7 +21,7 @@
     <% else %>
       <div class="card shadow-sm mb-4">
         <div class="card-header bg-white border-bottom-0 pt-4 pb-0">
-          <ul class="nav nav-tabs card-header-tabs" id="reservationTabs" role="tablist">
+          <ul class="nav nav-tabs card-header-tabs mb-3" id="reservationTabs" role="tablist">
             <li class="nav-item">
               <a class="nav-link active" id="upcoming-tab" data-toggle="tab" href="#upcoming" role="tab" aria-controls="upcoming" aria-selected="true">
                 Upcoming <span class="badge badge-light ml-1"><%= upcoming_res.count %></span>
@@ -112,7 +112,7 @@
                     <tbody>
                       <% past_res.each do |reservation| %>
                         <tr id="reservation_<%= reservation.id %>" class="text-muted">
-                          <td><%= reservation.item.name %></td>
+                          <td class="font-weight-bold text-dark"><%= reservation.item.name %></td>
                           <td><%= reservation.item.workspace.name %></td>
                           <td class="small">
                             <div class="d-flex flex-column">
@@ -120,7 +120,9 @@
                               <span><%= reservation.start_time.in_time_zone.strftime("%-I:%M %p") %> – <%= reservation.end_time.in_time_zone.strftime("%-I:%M %p") %></span>
                             </div>
                           </td>
-                          <td><%= reservation.quantity %></td>
+                          <td>
+                            <span class="badge badge-light border px-2 py-1"><%= reservation.quantity %></span>
+                          </td>
                           <td>
                             <span class="badge badge-secondary">Completed</span>
                           </td>

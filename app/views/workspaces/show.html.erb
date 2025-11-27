@@ -102,10 +102,10 @@
   .schedule-grid {
     display: grid;
     grid-template-columns:
-      160px
-      60px
+      150px
+      94px
       repeat(<%= slots.size %>, 9px);
-    min-width: calc(160px + 60px + <%= slots.size %> * 9px);
+    min-width: calc(150px + 94px + <%= slots.size %> * 9px);
   }
   .cell {
     padding: 6px;
@@ -117,10 +117,10 @@
     box-sizing: border-box;
   }
   .cell.sticky-1 { position: sticky; left: 0; background: #fff; font-weight: 600; z-index: 3; border-right: 1px solid #e5e7eb; }
-  .cell.sticky-2 { position: sticky; left: 160px; background: #fff; font-weight: 600; z-index: 3; border-right: 1px solid #e5e7eb; border-left: none; }
+  .cell.sticky-2 { position: sticky; left: 150px; background: #fff; font-weight: 600; z-index: 3; border-right: 1px solid #e5e7eb; border-left: none; }
   .time-cell { text-align: center; font-weight: 600; background: #f9fafb; position: sticky; top: 0; z-index: 2; font-size: 12px; color: #6b7280; padding: 8px 0; }
   .corner { position: sticky; top: 0; left: 0; z-index: 4; background: #f9fafb; font-weight:700; color: #374151; }
-  .corner-2 { position: sticky; top: 0; left: 160px; z-index: 4; background: #f9fafb; font-weight:700; color: #374151; }
+  .corner-2 { position: sticky; top: 0; left: 150px; z-index: 4; background: #f9fafb; font-weight:700; color: #374151; }
 
   .slot {
     cursor: pointer;
