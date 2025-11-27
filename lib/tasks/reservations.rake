@@ -30,6 +30,17 @@ namespace :reservations do
       
       begin
         ActiveRecord::Base.transaction do
+          # Create Missing Report
+          MissingReport.create!(
+            reservation: reservation,
+            item: item,
+            workspace: item.workspace,
+            quantity: still_missing,
+            resolved: false,
+            status: 'pending',
+            reported_at: Time.current
+          )
+
           # Deduct the missing stock from the item
           new_item_quantity = [0, item.quantity - still_missing].max
           item.update!(quantity: new_item_quantity)

@@ -61,6 +61,13 @@ RSpec.describe "reservations:process_unreturned" do
     
     # Expect reservation to be marked as processed
     expect(res_unreturned.stock_adjusted).to be true
+
+    # Expect a MissingReport to be created
+    report = MissingReport.last
+    expect(report).not_to be_nil
+    expect(report.reservation).to eq(res_unreturned)
+    expect(report.quantity).to eq(1)
+    expect(report.status).to eq('pending')
     
     # Verify output contains success message
     expect(output).to include("Success: Item ID #{item.id} quantity is now 1")
