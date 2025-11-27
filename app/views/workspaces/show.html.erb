@@ -200,7 +200,7 @@
 <% end %>
 
 <div class="schedule-wrapper <%= 'owner-mode' if is_owner %>">
-  <div class="schedule-grid" id="schedule-grid">
+  <div class="schedule-grid" id="schedule-grid" style="--slot-count: <%= @slots.size %>;">
     <!-- Header -->
     <div class="cell corner sticky-1">Item</div>
     <div class="cell corner-2 sticky-2">Qty</div>

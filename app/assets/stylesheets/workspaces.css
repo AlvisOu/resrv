@@ -38,7 +38,7 @@
 }
 .schedule-grid {
   display: grid;
-  /* Note: grid-template-columns is set inline in the view because it depends on @slots.size */
+  grid-template-columns: 150px 80px repeat(var(--slot-count), minmax(10px, 1fr));
 }
 .cell {
   padding: 6px;
