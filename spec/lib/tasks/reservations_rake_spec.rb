@@ -68,6 +68,15 @@ RSpec.describe "reservations:process_unreturned" do
     expect(report.reservation).to eq(res_unreturned)
     expect(report.quantity).to eq(1)
     expect(report.status).to eq('pending')
+
+    # Expect a Penalty to be created
+    penalty = Penalty.last
+    expect(penalty).not_to be_nil
+    expect(penalty.user).to eq(user)
+    expect(penalty.reservation).to eq(res_unreturned)
+    expect(penalty.reason).to eq("late_return")
+    # Check expiry is roughly 2 weeks from now
+    expect(penalty.expires_at).to be_within(1.minute).of(2.weeks.from_now)
     
     # Verify output contains success message
     expect(output).to include("Success: Item ID #{item.id} quantity is now 1")

@@ -7,6 +7,8 @@ namespace :reservations do
     puts "Running unreturned reservation processor..."
     
     # Define the cutoff time (30 minutes ago)
+    # Note: We do not process items 5-30 mins late here because we don't want to 
+    # deduct stock for minor lateness. Those are handled upon return in the controller.
     cutoff_time = 30.minutes.ago
 
     # Find all reservations that:
@@ -39,6 +41,15 @@ namespace :reservations do
             resolved: false,
             status: 'pending',
             reported_at: Time.current
+          )
+
+          # Create Penalty for late return (> 30 mins)
+          Penalty.create!(
+            user: reservation.user,
+            reservation: reservation,
+            workspace: item.workspace,
+            reason: "late_return",
+            expires_at: 2.weeks.from_now
           )
 
           # Deduct the missing stock from the item
