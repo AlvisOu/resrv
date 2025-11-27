@@ -165,4 +165,149 @@ RSpec.describe Reservation, type: :model do
       expect(reservation.errors[:end_time]).to include("is after the item's daily availability window")
     end
   end
+
+  # --- Scope: active_for_capacity ---
+  describe "scope: active_for_capacity" do
+    it "includes confirmed reservations" do
+      confirmed = Reservation.create!(
+        user: user, item: item_9_to_5, start_time: today_10am, end_time: today_11am, in_cart: false
+      )
+      expect(Reservation.active_for_capacity).to include(confirmed)
+    end
+
+    it "includes unexpired in-cart holds" do
+      hold = Reservation.create!(
+        user: user, item: item_9_to_5, start_time: today_10am, end_time: today_11am,
+        in_cart: true, hold_expires_at: 10.minutes.from_now
+      )
+      expect(Reservation.active_for_capacity).to include(hold)
+    end
+
+    it "excludes expired in-cart holds" do
+      expired = Reservation.create!(
+        user: user, item: item_9_to_5, start_time: today_10am, end_time: today_11am,
+        in_cart: true, hold_expires_at: 10.minutes.ago
+      )
+      expect(Reservation.active_for_capacity).not_to include(expired)
+    end
+  end
+
+  # --- Class Method: notify_and_purge_expired_holds! ---
+  describe ".notify_and_purge_expired_holds!" do
+    it "removes expired holds and creates notifications" do
+      expired = Reservation.create!(
+        user: user, item: item_9_to_5, start_time: today_10am, end_time: today_11am,
+        in_cart: true, hold_expires_at: 5.minutes.ago
+      )
+      
+      expect {
+        Reservation.notify_and_purge_expired_holds!
+      }.to change(Reservation, :count).by(-1)
+       .and change(Notification, :count).by(1)
+
+      expect(Reservation.exists?(expired.id)).to be false
+      expect(Notification.last.user).to eq(user)
+      expect(Notification.last.message).to include("expired and was removed")
+    end
+
+    it "does not remove active holds" do
+      Reservation.create!(
+        user: user, item: item_9_to_5, start_time: today_10am, end_time: today_11am,
+        in_cart: true, hold_expires_at: 5.minutes.from_now
+      )
+
+      expect {
+        Reservation.notify_and_purge_expired_holds!
+      }.not_to change(Reservation, :count)
+    end
+  end
+
+  # --- Capacity Validation ---
+  describe "capacity validation" do
+    it "prevents booking if item is fully booked" do
+      # Item quantity is 1. Create one reservation.
+      Reservation.create!(user: user, item: item_9_to_5, start_time: today_10am, end_time: today_11am)
+
+      overlapping = Reservation.new(
+        user: user, item: item_9_to_5, start_time: today_10am, end_time: today_11am
+      )
+
+      expect(overlapping).not_to be_valid
+      expect(overlapping.errors[:base].join).to include("fully booked")
+    end
+
+    it "allows booking if capacity remains" do
+      item_9_to_5.update!(quantity: 2)
+      
+      Reservation.create!(
+        user: user, item: item_9_to_5, start_time: today_10am, end_time: today_11am
+      )
+
+      overlapping = Reservation.new(
+        user: user, item: item_9_to_5, start_time: today_10am, end_time: today_11am
+      )
+      
+      expect(overlapping).to be_valid
+    end
+  end
+
+  # --- Auto Mark Missing Items ---
+  describe "#auto_mark_missing_items" do
+    # Create an item that is open 24/7 to avoid window validation issues during tests
+    let!(:item_24h) {
+      Item.create!(
+        name: "24h Item",
+        quantity: 1,
+        workspace: workspace,
+        start_time: Time.zone.now.beginning_of_day,
+        end_time: Time.zone.now.end_of_day
+      )
+    }
+
+    let(:past_reservation) {
+      Reservation.create!(
+        user: user, item: item_24h,
+        start_time: 2.hours.ago, end_time: 1.hour.ago,
+        quantity: 1, returned_count: 0
+      )
+    }
+
+    it "does nothing if reservation is not yet overdue (within 30 min grace period)" do
+      just_finished = Reservation.create!(
+        user: user, item: item_24h,
+        start_time: 2.hours.ago, end_time: 5.minutes.ago,
+        quantity: 1, returned_count: 0
+      )
+      
+      expect {
+        just_finished.auto_mark_missing_items
+      }.not_to change(MissingReport, :count)
+    end
+
+    it "creates a missing report and decrements item quantity if overdue and not returned" do
+      # End time was 1 hour ago, so it's > 30 mins overdue
+      expect {
+        past_reservation.auto_mark_missing_items
+      }.to change(MissingReport, :count).by(1)
+       .and change { item_24h.reload.quantity }.by(-1)
+      
+      report = MissingReport.last
+      expect(report.reservation).to eq(past_reservation)
+      expect(report.quantity).to eq(1)
+    end
+
+    it "does nothing if items were returned" do
+      past_reservation.update!(returned_count: 1)
+      expect {
+        past_reservation.auto_mark_missing_items
+      }.not_to change(MissingReport, :count)
+    end
+
+    it "does not create duplicate reports" do
+      past_reservation.auto_mark_missing_items
+      expect {
+        past_reservation.auto_mark_missing_items
+      }.not_to change(MissingReport, :count)
+    end
+  end
 end

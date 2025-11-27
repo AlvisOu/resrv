@@ -173,4 +173,26 @@ RSpec.describe Cart, type: :service do
     end
   end
 
+  describe "#reservations_count" do
+    it "returns the number of merged segments" do
+      cart = Cart.load(session, 1)
+      # Add two contiguous segments for the same item -> should merge into 1
+      t1 = Time.zone.local(2025, 10, 28, 9, 0)
+      t2 = Time.zone.local(2025, 10, 28, 9, 15)
+      t3 = Time.zone.local(2025, 10, 28, 9, 30)
+      
+      cart.add!(item_id: item.id, workspace_id: workspace.id, start_time: t1.iso8601, end_time: t2.iso8601, quantity: 1)
+      cart.add!(item_id: item.id, workspace_id: workspace.id, start_time: t2.iso8601, end_time: t3.iso8601, quantity: 1)
+      
+      expect(cart.reservations_count).to eq(1)
+
+      # Add a separate segment (gap in time) -> should be a 2nd segment
+      t4 = Time.zone.local(2025, 10, 28, 10, 0)
+      t5 = Time.zone.local(2025, 10, 28, 10, 15)
+      cart.add!(item_id: item.id, workspace_id: workspace.id, start_time: t4.iso8601, end_time: t5.iso8601, quantity: 1)
+
+      expect(cart.reservations_count).to eq(2)
+    end
+  end
+
 end
