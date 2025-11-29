@@ -228,10 +228,10 @@
         <% else %>
           <div class="qty-wrap" data-item-id="<%= item.id %>" data-workspace-id="<%= item.workspace_id %>">
             <div class="qty-controls">
-              <button class="qty-btn qty-up" type="button" aria-label="Increase">▲</button>
-              <button class="qty-btn qty-down" type="button" aria-label="Decrease">▼</button>
+              <button class="qty-btn qty-down" type="button" aria-label="Decrease">‹</button>
+              <span class="qty-display" data-count="1">1</span>
+              <button class="qty-btn qty-up" type="button" aria-label="Increase">›</button>
             </div>
-            <span class="qty-display" data-count="1">1</span>
             <span class="qty-cap">/ <%= item.quantity || 0 %></span>
           </div>
         <% end %>
@@ -466,23 +466,27 @@
     });
 
 
-    document.addEventListener('click', function (e) {
-      // Slot toggling
+    // Drag-to-select for slots
+    let isDragging = false;
+    let dragStartSlot = null;
+    let currentItemId = null;
+    let draggedSlots = new Set();
+
+    document.addEventListener('mousedown', function (e) {
       const slot = e.target.closest('.slot');
-      if (slot) {
-        // block clicks on red (unavailable) and gray (outside)
-        if (slot.classList.contains('unavailable') || slot.classList.contains('outside')) return;
-
-        const baseState =
-          slot.dataset.baseState ||
-          (slot.classList.contains('partial') ? 'partial' : 'available');
-
+      if (slot && !slot.classList.contains('unavailable') && !slot.classList.contains('outside')) {
+        isDragging = true;
+        dragStartSlot = slot;
+        currentItemId = slot.dataset.itemId;
+        draggedSlots.clear();
+        draggedSlots.add(slot);
+        
+        // Toggle the starting slot
+        const baseState = slot.dataset.baseState || (slot.classList.contains('partial') ? 'partial' : 'available');
         if (!slot.classList.contains('selected')) {
-          // available or partial -> selected
           slot.classList.remove('available', 'partial');
           slot.classList.add('selected');
         } else {
-          // selected -> revert to original base state
           slot.classList.remove('selected');
           if (baseState === 'partial') {
             slot.classList.add('partial');
@@ -490,8 +494,49 @@
             slot.classList.add('available');
           }
         }
-        return;
+        e.preventDefault();
       }
+    });
+
+    document.addEventListener('mousemove', function (e) {
+      if (!isDragging || !dragStartSlot) return;
+      
+      const slot = e.target.closest('.slot');
+      if (slot && slot.dataset.itemId === currentItemId && 
+          !slot.classList.contains('unavailable') && 
+          !slot.classList.contains('outside')) {
+        
+        if (!draggedSlots.has(slot)) {
+          draggedSlots.add(slot);
+          
+          const baseState = slot.dataset.baseState || (slot.classList.contains('partial') ? 'partial' : 'available');
+          const isStartSelected = dragStartSlot.classList.contains('selected');
+          
+          // Apply same action as start slot
+          if (isStartSelected) {
+            slot.classList.remove('available', 'partial');
+            slot.classList.add('selected');
+          } else {
+            slot.classList.remove('selected');
+            if (baseState === 'partial') {
+              slot.classList.add('partial');
+            } else {
+              slot.classList.add('available');
+            }
+          }
+        }
+      }
+    });
+
+    document.addEventListener('mouseup', function (e) {
+      isDragging = false;
+      dragStartSlot = null;
+      currentItemId = null;
+      draggedSlots.clear();
+    });
+
+    // Keep click functionality for single clicks (mobile compatibility)
+    document.addEventListener('click', function (e) {
 
 
       // Quantity controls
