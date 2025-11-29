@@ -74,8 +74,12 @@ class Reservation < ApplicationRecord
       resolved: false
     )
 
-    item.decrement!(:quantity, missing_qty)
+    Item.transaction do
+      item.decrement!(:quantity, missing_qty)
+      ItemCapacityRebalancer.rebalance!(item)
+    end
   end
+
 
   private
 
