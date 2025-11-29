@@ -95,8 +95,8 @@ class ReservationsController < ApplicationController
 
         item = @reservation.item
         quantity_to_return = params[:quantity_to_return].to_i
-        if quantity_to_return <= 0
-            return redirect_to @workspace, alert: "Please enter a positive number."
+        if quantity_to_return < 0
+            return redirect_to @workspace, alert: "Please enter a valid number (0 or more)."
         end
 
         total_reserved = @reservation.quantity
@@ -110,22 +110,43 @@ class ReservationsController < ApplicationController
         begin
             ActiveRecord::Base.transaction do
                 @reservation.update!(returned_count: current_returned + quantity_to_return)
-                if @reservation.end_time < Time.current
+                
+                # If 0 returned and reservation has ended, create missing report immediately
+                if quantity_to_return == 0 && @reservation.end_time < Time.current
+                    missing_qty = total_reserved - current_returned
+                    if missing_qty > 0 && !MissingReport.exists?(reservation: @reservation, item: item, workspace: @workspace)
+                        MissingReport.create!(
+                            reservation: @reservation,
+                            item: item,
+                            workspace: @workspace,
+                            quantity: missing_qty,
+                            resolved: false
+                        )
+                        item.decrement!(:quantity, missing_qty)
+                    end
+                end
+                
+                if @reservation.end_time < Time.current && quantity_to_return > 0
                     lateness = Time.current - @reservation.end_time
 
-                    if lateness > 5.minutes
-                    duration = lateness > 30.minutes ? 2.weeks : 2.days
-                    Penalty.create!(
-                        user: @reservation.user,
-                        reservation: @reservation,
-                        workspace: @reservation.item.workspace,
-                        reason: :late_return,
-                        expires_at: duration.from_now
-                    )
+                    if lateness > 5.minutes && !Penalty.exists?(reservation: @reservation, reason: "late_return")
+                        duration = lateness > 30.minutes ? 2.weeks : 2.days
+                        Penalty.create!(
+                            user: @reservation.user,
+                            reservation: @reservation,
+                            workspace: @reservation.item.workspace,
+                            reason: :late_return,
+                            expires_at: duration.from_now
+                        )
                     end
                 end
             end
-            return redirect_to @workspace, notice: "#{quantity_to_return} #{item.name}(s) returned successfully."
+            
+            if quantity_to_return == 0
+                return redirect_to @workspace, notice: "Marked as nothing returned. Missing report created."
+            else
+                return redirect_to @workspace, notice: "#{quantity_to_return} #{item.name}(s) returned successfully."
+            end
         rescue => e
             return redirect_to @workspace, alert: "Failed to update status: #{e.message}"
         end
@@ -148,7 +169,26 @@ class ReservationsController < ApplicationController
 
         begin
             ActiveRecord::Base.transaction do
-            @reservation.update!(returned_count: current_returned - quantity_to_undo)
+                new_returned = current_returned - quantity_to_undo
+                @reservation.update!(returned_count: new_returned)
+                
+                # If undoing would result in missing items and a missing report exists, delete it and restore quantity
+                total_reserved = @reservation.quantity
+                if new_returned < total_reserved
+                    missing_report = MissingReport.find_by(reservation: @reservation, item: item, workspace: @workspace, resolved: false)
+                    if missing_report
+                        # Restore item quantity
+                        item.increment!(:quantity, missing_report.quantity)
+                        # Delete the missing report
+                        missing_report.destroy!
+                    end
+                end
+                
+                # Remove late_return penalty if it exists and was created for this reservation
+                if @reservation.end_time < Time.current
+                    late_penalty = Penalty.find_by(reservation: @reservation, reason: "late_return")
+                    late_penalty&.destroy
+                end
             end
             return redirect_to @workspace, notice: "Undo return of #{quantity_to_undo} #{item.name}(s) successful."
         rescue => e

@@ -188,8 +188,8 @@ RSpec.describe ReservationsController, type: :controller do
     before { allow(controller).to receive(:current_user_is_owner?).and_return(true) }
 
     it "rejects invalid quantity" do
-      patch :return_items, params: { id: reservation.id, quantity_to_return: 0 }
-      expect(flash[:alert]).to eq("Please enter a positive number.")
+      patch :return_items, params: { id: reservation.id, quantity_to_return: -1 }
+      expect(flash[:alert]).to eq("Please enter a valid number (0 or more).")
     end
 
     it "rejects returning more than reserved" do
