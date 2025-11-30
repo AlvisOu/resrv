@@ -1,5 +1,16 @@
+require "csv"
+
 class WorkspacesController < ApplicationController
-  before_action :set_workspace, only: [:show, :edit, :update, :past_reservations]
+  before_action :set_workspace, only: [
+    :show, 
+    :edit, 
+    :update, 
+    :past_reservations,
+    :analytics,
+    :analytics_utilization_csv,
+    :analytics_behavior_csv,
+    :analytics_heatmap_csv
+  ]
   before_action :authorize_owner!, only: [:edit, :update]
 
   def index
@@ -225,7 +236,195 @@ class WorkspacesController < ApplicationController
       .order(end_time: :desc)
   end
 
+  def analytics
+    @current_join = @workspace.user_to_workspaces.find_by(user: current_user)
+    authorize_owner!
+
+    # ========= RANGE SELECTION =========
+    range = params[:range].presence || "7d"
+    now = Time.zone.now
+
+    case range
+    when "7d"   then @start_date = now - 7.days
+    when "1m"   then @start_date = now - 1.month
+    when "3m"   then @start_date = now - 3.months
+    when "6m"   then @start_date = now - 6.months
+    when "1y"   then @start_date = now - 1.year
+    when "all"  then @start_date = @workspace.items.minimum(:created_at) || (now - 5.years)
+    else            @start_date = now - 7.days
+    end
+
+    @end_date = now
+    @selected_range = range
+
+    @items = @workspace.items.includes(:reservations, :missing_reports)
+
+    # Count number of days in period
+    @days = (@start_date.to_date..@end_date.to_date).to_a
+    @num_days = @days.length.to_f
+
+
+    # =========================================================
+    # 1) UTILIZATION TABLE
+    # =========================================================
+    @utilization = @items.map do |item|
+      reservations = item.reservations.where(start_time: @start_date..@end_date)
+
+      if item.start_time && item.end_time
+        per_day_blocks = ((item.end_time - item.start_time) / 15.minutes).floor
+        total_blocks = per_day_blocks * @num_days
+      else
+        per_day_blocks = 0
+        total_blocks = 0
+      end
+
+      reserved_blocks = reservations.sum do |r|
+        s = [r.start_time, @start_date].max
+        e = [r.end_time,   @end_date].min
+        ((e - s) / 15.minutes).ceil
+      end
+
+      {
+        item: item,
+        reserved_blocks: reserved_blocks,
+        total_blocks: total_blocks,
+        utilization: (total_blocks.zero? ? 0.0 : reserved_blocks / total_blocks)
+      }
+    end
+
+
+    # =========================================================
+    # 2) HEATMAP (AVERAGE SLOT USAGE)
+    # =========================================================
+    # 96 time slots per day (every 15 minutes)
+    @slots = (0...96).map { |i| i }
+
+    @heatmap = {}
+
+    @items.each do |item|
+      # Sum for ALL days
+      slot_sums = Array.new(96, 0.0)
+
+      @days.each do |date|
+        day_start = date.beginning_of_day
+        day_end   = date.end_of_day
+
+        # For this day, fill a daily array
+        daily = Array.new(96, 0.0)
+
+        item.reservations
+            .where("start_time < ? AND end_time > ?", day_end, day_start)
+            .each do |r|
+          s = [r.start_time, day_start].max
+          e = [r.end_time,   day_end].min
+
+          start_index = ((s - day_start) / 15.minutes).floor
+          end_index   = ((e - day_start) / 15.minutes).ceil
+
+          (start_index...end_index).each do |i|
+            daily[i] += r.quantity
+          end
+        end
+
+        # Add to slot_sums
+        (0...96).each { |i| slot_sums[i] += daily[i] }
+      end
+
+      # Average over number of days
+      avg = slot_sums.map { |v| (v / @num_days).round(2) }
+
+      @heatmap[item.id] = avg
+    end
+
+
+    # =========================================================
+    # 3) BEHAVIOR METRICS (per item)
+    # =========================================================
+    now = Time.zone.now
+
+    @behavior = @items.map do |item|
+      res = item.reservations.where(start_time: @start_date..@end_date)
+      total_res = res.count
+
+      missing = item.missing_reports.where(reported_at: @start_date..@end_date).count
+
+      late = res.select { |r| r.returned_count < r.quantity && r.end_time < now }.count
+
+      {
+        item: item,
+        total_res: total_res,
+        missing_rate: total_res.zero? ? 0.0 : missing.to_f / total_res,
+        late_rate:    total_res.zero? ? 0.0 : late.to_f / total_res
+      }
+    end
+  end
+
+  # --- CSV export methods --- 
+  def analytics_utilization_csv
+    authorize_owner!
+    setup_range_for_csv
+
+    csv = CSV.generate do |csv|
+      csv << ["Item", "Reserved Blocks", "Total Blocks", "Utilization (%)"]
+
+      @utilization.each do |u|
+        csv << [
+          u[:item].name,
+          u[:reserved_blocks],
+          u[:total_blocks],
+          (u[:utilization] * 100).round
+        ]
+      end
+    end
+
+    send_data csv, filename: "workspace_#{@workspace.id}_utilization.csv"
+  end
+
+  def analytics_behavior_csv
+    authorize_owner!
+    setup_range_for_csv
+
+    csv = CSV.generate do |csv|
+      csv << ["Item", "Total Reservations", "Missing Rate", "Late Return Rate"]
+
+      @behavior.each do |b|
+        csv << [
+          b[:item].name,
+          b[:total_res],
+          (b[:missing_rate] * 100).round,
+          (b[:late_rate] * 100).round
+        ]
+      end
+    end
+
+    send_data csv, filename: "workspace_#{@workspace.id}_behavior.csv"
+  end
+
+  def analytics_heatmap_csv
+    authorize_owner!
+    setup_range_for_csv  
+
+    csv = CSV.generate do |csv|
+      # Header row: item + time columns
+      header = ["Item"] +
+        @slots.map { |i| (Time.zone.parse("00:00") + i*15.minutes).strftime("%-I:%M %p") }
+      csv << header
+
+      # Each item: one row, one column per time slot
+      @items.each do |item|
+        row = [item.name] + @heatmap[item.id]
+        csv << row
+      end
+    end
+
+    send_data csv, filename: "workspace_#{@workspace.id}_heatmap.csv"
+  end
+
   private
+
+  def setup_range_for_csv
+    analytics # re-run analytics to populate instance vars
+  end
 
   def set_workspace
     @workspace = Workspace.friendly.find(params[:id])

@@ -27,6 +27,10 @@ Resrv::Application.routes.draw do
   resources :workspaces, only: [:index, :new, :create, :show, :edit, :update] do
     member do
       get :past_reservations
+      get :analytics
+      get :analytics_utilization_csv
+      get :analytics_behavior_csv
+      get :analytics_heatmap_csv
     end
     resource :user_to_workspace, only: [:create, :destroy]
     resources :items, only: [:new, :create, :edit, :update, :destroy]

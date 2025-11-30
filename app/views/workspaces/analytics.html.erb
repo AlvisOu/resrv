@@ -1,0 +1,158 @@
+<div class="workspace-hero">
+  <div>
+    <h1 class="workspace-title">Analytics – <%= @workspace.name %></h1>
+    <p class="workspace-meta">
+      Usage, trends, and behavior over the selected period.
+    </p>
+  </div>
+
+  <div class="hero-meta">
+    <%= link_to "Back to schedule",
+                workspace_path(@workspace),
+                class: "btn-ghost" %>
+  </div>
+</div>
+
+<!-- Range Selector -->
+<div style="margin:1rem 0; display:flex; gap:10px; flex-wrap:wrap;">
+  <% [
+      ["7d", "7 Days"],
+      ["1m", "1 Month"],
+      ["3m", "3 Months"],
+      ["6m", "6 Months"],
+      ["1y", "1 Year"],
+      ["all", "All Time"]
+    ].each do |val, label| %>
+
+    <% weight = @selected_range == val ? 600 : 400 %>
+    <%= link_to label,
+                analytics_workspace_path(@workspace, range: val),
+                class: "btn-ghost",
+                style: "padding:6px 12px; border-radius:8px; border:#e5e7eb 1px solid; font-weight:#{weight};" %>
+  <% end %>
+</div>
+
+<!-- ===== UTILIZATION TABLE ===== -->
+<div class="current-activity-section">
+  <h3 class="section-heading">
+    Utilization (avg over <%= @selected_range %>)
+    <%= link_to "Download CSV",
+                analytics_utilization_csv_workspace_path(@workspace, range: @selected_range),
+                class:"btn-ghost",
+                style:"margin-left:12px;" %>
+  </h3>
+
+  <table class="activity-table">
+    <thead>
+      <tr>
+        <th>Item</th>
+        <th>Reserved Blocks</th>
+        <th>Total Blocks</th>
+        <th>Utilization</th>
+      </tr>
+    </thead>
+    <tbody>
+      <% @utilization.each do |u| %>
+        <% color =
+          if u[:utilization] >= 0.7
+            '#ef4444'
+          elsif u[:utilization] >= 0.3
+            '#f59e0b'
+          else
+            '#10b981'
+          end
+        %>
+        <tr>
+          <td><%= u[:item].name %></td>
+          <td><%= u[:reserved_blocks] %></td>
+          <td><%= u[:total_blocks] %></td>
+          <td style="font-weight:600; color:<%= color %>;">
+            <%= (u[:utilization] * 100).round %>%
+          </td>
+        </tr>
+      <% end %>
+    </tbody>
+  </table>
+</div>
+
+<!-- ===== HEATMAP ===== -->
+<div class="current-activity-section" style="margin-top:2rem;">
+  <h3 class="section-heading">
+    Heatmap (Avg Reservation Quantity by Time Slot)
+    <%= link_to "Download CSV",
+                analytics_heatmap_csv_workspace_path(@workspace, range: @selected_range),
+                class:"btn-ghost",
+                style:"margin-left:12px;" %>
+  </h3>
+
+  <p class="banner-subtle">Darker = higher average reservation quantity.</p>
+
+  <div style="overflow-x:auto;">
+    <table class="activity-table">
+      <thead>
+        <tr>
+          <th>Item</th>
+          <% @slots.each do |i| %>
+            <th><%= (Time.zone.parse("00:00") + i*15.minutes).strftime("%-I:%M %p") %></th>
+          <% end %>
+        </tr>
+      </thead>
+
+      <tbody>
+        <% @items.each do |item| %>
+          <tr>
+            <td><%= item.name %></td>
+
+            <% @heatmap[item.id].each do |avg| %>
+              <% shade =
+                if avg == 0          then "#f3f4f6"
+                elsif avg < 0.5      then "#dbeafe"
+                elsif avg < 1.5      then "#93c5fd"
+                elsif avg < 3        then "#60a5fa"
+                else                     "#1d4ed8"
+                end
+              %>
+
+              <td style="background:<%= shade %>; text-align:center;">
+                <%= avg %>
+              </td>
+            <% end %>
+
+          </tr>
+        <% end %>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- ===== BEHAVIOR METRICS ===== -->
+<div class="current-activity-section" style="margin-top:2rem;">
+  <h3 class="section-heading">
+    Behavior Metrics
+    <%= link_to "Download CSV",
+                analytics_behavior_csv_workspace_path(@workspace, range: @selected_range),
+                class:"btn-ghost",
+                style:"margin-left:12px;" %>
+  </h3>
+
+  <table class="activity-table">
+    <thead>
+      <tr>
+        <th>Item</th>
+        <th>Total Reservations</th>
+        <th>Missing Rate</th>
+        <th>Late Return Rate</th>
+      </tr>
+    </thead>
+    <tbody>
+      <% @behavior.each do |b| %>
+        <tr>
+          <td><%= b[:item].name %></td>
+          <td><%= b[:total_res] %></td>
+          <td><%= (b[:missing_rate] * 100).round %>%</td>
+          <td><%= (b[:late_rate] * 100).round %>%</td>
+        </tr>
+      <% end %>
+    </tbody>
+  </table>
+</div>
