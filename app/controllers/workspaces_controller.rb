@@ -357,6 +357,56 @@ class WorkspacesController < ApplicationController
         late_rate:    total_res.zero? ? 0.0 : late.to_f / total_res
       }
     end
+
+    # =========================================================
+    # 4) USER ANALYTICS (Top 10 Users)
+    # =========================================================
+
+    ranking = params[:user_rank].presence || "frequency"
+    @selected_user_rank = ranking
+
+    # Collect all reservations for this workspace in the selected period
+    res_scope = Reservation
+      .joins(:item)
+      .where(items: { workspace_id: @workspace.id })
+      .where(start_time: @start_date..@end_date)
+      .includes(:user)
+
+    # Build per-user stats
+    user_data = {}
+
+    res_scope.each do |r|
+      user = r.user
+      user_data[user.id] ||= {
+        user: user,
+        freq: 0,
+        recent: nil
+      }
+
+      # Frequency = count of reservations
+      user_data[user.id][:freq] += 1
+
+      # Recency = most recent reservation end time
+      user_data[user.id][:recent] =
+        [user_data[user.id][:recent], r.end_time].compact.max
+    end
+
+    # Convert hash → array
+    user_rows = user_data.values
+
+    # Ranking logic
+    @user_rankings =
+      case ranking
+      when "recency"
+        # Most recent first; tiebreak: frequency
+        user_rows.sort_by { |d| [-(d[:recent] || Time.at(0)).to_i, -d[:freq]] }
+      else # "frequency"
+        # Highest frequency first; tiebreak: recency
+        user_rows.sort_by { |d| [-d[:freq], -(d[:recent] || Time.at(0)).to_i] }
+      end
+
+    @user_rankings = @user_rankings.first(10)
+
   end
 
   # --- CSV export methods --- 

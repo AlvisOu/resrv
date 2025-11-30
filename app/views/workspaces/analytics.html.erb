@@ -26,7 +26,7 @@
 
     <% weight = @selected_range == val ? 600 : 400 %>
     <%= link_to label,
-                analytics_workspace_path(@workspace, range: val),
+                analytics_workspace_path(@workspace, range: val, user_rank: @selected_user_rank),
                 class: "btn-ghost",
                 style: "padding:6px 12px; border-radius:8px; border:#e5e7eb 1px solid; font-weight:#{weight};" %>
   <% end %>
@@ -155,4 +155,80 @@
       <% end %>
     </tbody>
   </table>
+</div>
+
+<!-- ===== USER ANALYTICS ===== -->
+<div id="user-analytics" class="current-activity-section" style="margin-top:2rem;">
+  <h3 class="section-heading">
+    Top 10 Users
+  </h3>
+
+  <!-- Ranking toggle -->
+  <div style="margin: 0.5rem 0 1rem; display:flex; gap:10px;">
+    <% [
+        ["frequency", "By Frequency"],
+        ["recency", "By Recency"]
+      ].each do |val, label| %>
+
+      <% 
+        selected = (@selected_user_rank == val)
+        border   = selected ? "2px solid #111827" : "1px solid #d1d5db"
+        bg       = selected ? "#e5e7eb" : "white"
+        weight   = selected ? 600 : 400
+
+        style = "
+          padding:6px 12px;
+          border-radius:8px;
+          border:#{border};
+          background:#{bg};
+          font-weight:#{weight};
+        ".squish
+      %>
+
+      <%= link_to label,
+            analytics_workspace_path(
+              @workspace,
+              range: @selected_range,
+              user_rank: val,
+              anchor: "user-analytics"
+            ),
+            class:"btn-ghost",
+            style: style %>
+
+    <% end %>
+  </div>
+
+
+  <% if @user_rankings.any? %>
+    <table class="activity-table">
+      <thead>
+        <tr>
+          <th>User</th>
+          <th>Reservations</th>
+          <th>Most Recent</th>
+        </tr>
+      </thead>
+      <tbody>
+        <% @user_rankings.each do |row| %>
+          <tr>
+            <td>
+              <%= link_to row[:user].name,
+                          user_path(row[:user].slug),
+                          class:"link-inline" %>
+            </td>
+            <td><%= row[:freq] %></td>
+            <td>
+              <% if row[:recent] %>
+                <%= row[:recent].in_time_zone.strftime("%b %-d, %-I:%M %p") %>
+              <% else %>
+                —
+              <% end %>
+            </td>
+          </tr>
+        <% end %>
+      </tbody>
+    </table>
+  <% else %>
+    <p>No user data available for this time window.</p>
+  <% end %>
 </div>
