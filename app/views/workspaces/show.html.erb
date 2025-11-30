@@ -1,3 +1,20 @@
+<% def trend_arrow(direction)
+     case direction
+     when :up   then "▲"
+     when :down then "▼"
+     else "➜"
+     end
+   end
+
+   def trend_color(direction)
+     case direction
+     when :up   then "color:#16a34a;"   # green-600
+     when :down then "color:#dc2626;"   # red-600
+     else            "color:#6b7280;"   # gray-500
+     end
+   end
+%>
+
 <div class="workspace-hero">
   <div>
     <h1 class="workspace-title"><%= @workspace.name %></h1>
@@ -24,6 +41,58 @@
                     method: (@current_join ? :delete : :post),
                     class: "btn-gold",
                     data: (@current_join ? { confirm: "Remove this workspace from your bookmarks?" } : {}) %>
+    </div>
+  <% end %>
+
+  <% if current_user_is_owner?(@workspace) %>
+    <div class="workspace-stats" style="
+        margin-left:auto;
+        display:flex;
+        flex-direction:column;
+        gap:10px;
+        max-width:360px;
+        padding:14px;
+        background:#f9fafb;
+        border-radius:8px;
+        border:1px solid #e5e7eb;
+    ">
+      <h3 style="margin:0 0 6px 0; font-size:16px; font-weight:600;">
+        Quick Workspace Stats
+        <span style="font-size:12px; color:#6b7280; font-weight:400;">
+          *last 7 days
+        </span>
+      </h3>
+
+      <!-- WEEKLY TREND -->
+      <div class="stat-line" style="display:flex; justify-content:space-between;">
+        <div style="font-weight:600;">Reseravtion Count</div>
+        <div>
+          <%= @this_week_count %>
+          <span style="<%= trend_color(@weekly_trend) %>; margin-left:4px;">
+            <%= trend_arrow(@weekly_trend) %>
+          </span>
+        </div>
+      </div>
+
+      <!-- TOP USED -->
+      <div class="stat-line" style="display:flex; justify-content:space-between;">
+        <div style="font-weight:600;">Top Used Item:</div>
+        <div><%= @top_item&.name || "—" %></div>
+      </div>
+
+      <!-- LEAST USED -->
+      <div class="stat-line" style="display:flex; justify-content:space-between;">
+        <div style="font-weight:600;">Least Used Item:</div>
+        <div><%= @least_item&.name || "—" %></div>
+      </div>
+
+      <!-- VIEW ANALYTICS BUTTON -->
+      <div style="margin-top:8px;">
+        <%= link_to "View More Item/User Analytics",
+                    # workspace_analytics_path(@workspace),
+                    class: "btn-primary",
+                    style: "width:100%; text-align:center; padding:6px 0;" %>
+      </div>
     </div>
   <% end %>
 </div>

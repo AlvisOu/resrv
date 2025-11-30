@@ -85,6 +85,51 @@ class WorkspacesController < ApplicationController
     is_owner = @current_join&.role == 'owner'
     day_end  = day_start + 24.hours
 
+    # --- Quick workspace summary stats for admin ---
+    summary_items = @workspace.items
+    # Reservation trend: last 7 days vs previous 7 days
+    now = Time.current
+    last_week_start   = now - 7.days
+    prev_week_start   = now - 14.days
+
+    # Most used item (recent 7 days)
+    @top_item = summary_items
+    .left_joins(:reservations)
+    .where(reservations: { start_time: last_week_start..now })
+    .group("items.id")
+    .order("COUNT(reservations.id) DESC")
+    .first
+
+    # Least used item (recent 7 days)
+    @least_item = summary_items
+    .left_joins(:reservations)
+    .where(reservations: { start_time: last_week_start..now })
+    .group("items.id")
+    .order("COUNT(reservations.id) ASC")
+    .first
+
+    @this_week_count = Reservation
+      .where(item_id: summary_items.ids, start_time: last_week_start..now)
+      .count
+
+    @prev_week_count = Reservation
+      .where(item_id: summary_items.ids, start_time: prev_week_start..last_week_start)
+      .count
+
+    # determine trend direction
+    @weekly_trend =
+      if @prev_week_count.zero? && @this_week_count.zero?
+        :flat
+      elsif @prev_week_count.zero? && @this_week_count > 0
+        :up
+      elsif @this_week_count > @prev_week_count
+        :up
+      elsif @this_week_count < @prev_week_count
+        :down
+      else
+        :flat
+      end
+
     if is_owner
       # Reservations that overlap the selected day, with users preloaded
       day_reservations = Reservation
