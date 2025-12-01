@@ -30,7 +30,7 @@ Feature: Missing Reports Management
   Scenario: Resolve a missing report
     Given there is an existing missing report for my reservation
     When I go to the missing reports page for "TechLab"
-    And I press "✅ Mark as Back Online" and accept the alert for my missing report
+    And I press "Mark as Back Online" and accept the alert for my missing report
     Then I should see "Item marked as back online."
     And I should see my reservation in the resolved reports
     And the item quantity should be increased by 2

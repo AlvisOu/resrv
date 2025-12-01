@@ -173,8 +173,13 @@ class WorkspacesController < ApplicationController
                                   .where("reservations.start_time <= ? AND reservations.end_time >= ?", now, now - 30.minutes)
                                   .includes(:user, :item)
                                   .order("reservations.end_time ASC")
-                                
-    @current_activity.each do |reservation|
+
+    # Sweep any overdue reservations (ended >30 minutes ago) to auto-create missing reports.
+    Reservation.joins(:item)
+               .where(items: { workspace_id: @workspace.id })
+               .where("reservations.end_time <= ?", now - 30.minutes)
+               .where("reservations.start_time >= ?", now - 30.days) # small window to avoid scanning everything
+               .find_each do |reservation|
       reservation.auto_mark_missing_items
     end
 

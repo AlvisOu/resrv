@@ -78,6 +78,17 @@ class Reservation < ApplicationRecord
       item.decrement!(:quantity, missing_qty)
       ItemCapacityRebalancer.rebalance!(item)
     end
+
+    # Penalize for missing return (treat as a late return)
+    unless Penalty.exists?(reservation: self, reason: "late_return")
+      Penalty.create!(
+        user: user,
+        reservation: self,
+        workspace: item.workspace,
+        reason: :late_return,
+        expires_at: 2.weeks.from_now
+      )
+    end
   end
 
 

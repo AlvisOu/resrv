@@ -91,7 +91,7 @@ Then(/^I should see my reservation in the unresolved reports$/) do
   item_name = @reservation.item.name
   within('div.missing-card:not(.resolved)') do
     expect(page).to have_content(item_name)
-    expect(page).to have_content("Reservation: ##{@reservation.id}")
+    expect(page).to have_content("##{@reservation.id}")
   end
 end
 
@@ -99,7 +99,7 @@ Then(/^I should see my reservation in the resolved reports$/) do
   item_name = @reservation.item.name
   within('div.missing-card.resolved') do
     expect(page).to have_content(item_name)
-    expect(page).to have_content("Reservation: ##{@reservation.id}")
+    expect(page).to have_content("##{@reservation.id}")
   end
 end
 

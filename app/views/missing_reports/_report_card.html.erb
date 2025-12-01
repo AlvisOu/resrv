@@ -1,20 +1,84 @@
 <div class="missing-card <%= 'resolved' if resolved %>">
-  <div class="card-row">
-    <div class="card-cell"><strong>Item:</strong> <%= report.item.name %></div>
-    <div class="card-cell"><strong>Reservation:</strong> #<%= report.reservation.id %></div>
-    <div class="card-cell"><strong>Missing:</strong> <%= report.reservation.quantity - report.reservation.returned_count.to_i %></div>
-    <div class="card-cell">
-      <strong>Who Lost It:</strong>
-      <%= link_to report.reservation.user.name,
-                  workspace_user_path(report.item.workspace, report.reservation.user),
-                  class: "link-inline" %>
+  <div class="card-head">
+    <div>
+      <p class="card-label">Item</p>
+      <p class="card-value"><%= report.item.name %></p>
     </div>
-    <div class="card-cell">
+    <div>
+      <p class="card-label">Reservation</p>
+      <p class="card-value">#<%= report.reservation.id %></p>
+    </div>
+    <div>
+      <p class="card-label">Missing</p>
+      <p class="card-value"><%= report.reservation.quantity - report.reservation.returned_count.to_i %></p>
+    </div>
+    <div>
+      <p class="card-label">Who Lost It</p>
+      <p class="card-value">
+        <%= link_to report.reservation.user.name,
+                    workspace_user_path(report.item.workspace, report.reservation.user),
+                    class: "link-inline" %>
+      </p>
+    </div>
+    <div class="status">
       <% if resolved %>
-        <strong>Resolved At:</strong> <%= report.updated_at.strftime("%b %d, %Y %I:%M %p") %>
+        <span class="pill pill-resolved">Resolved</span>
       <% else %>
-        <%= button_to "✅ Mark as Back Online", resolve_workspace_missing_report_path(report.item.workspace, report), method: :patch, class: "action-button", data: { confirm: "Are you sure?" } %>
+        <span class="pill pill-open">Open</span>
       <% end %>
     </div>
   </div>
+
+  <div class="card-foot">
+    <div class="time-meta">
+      <% if resolved %>
+        <span class="card-label">Resolved At</span>
+        <span class="card-value"><%= report.updated_at.strftime("%b %d, %Y %I:%M %p") %></span>
+      <% else %>
+        <span class="card-label">Reported</span>
+        <span class="card-value"><%= report.created_at.strftime("%b %d, %Y %I:%M %p") %></span>
+      <% end %>
+    </div>
+    <% unless resolved %>
+      <%= button_to "Mark as Back Online", resolve_workspace_missing_report_path(report.item.workspace, report),
+            method: :patch,
+            class: "action-button",
+            data: { confirm: "Are you sure?" } %>
+    <% end %>
+  </div>
 </div>
+
+<style>
+  .missing-card {
+    border: 1px solid #e5e7eb;
+    border-radius: 12px;
+    padding: 16px;
+    background: #fff;
+    box-shadow: 0 8px 20px rgba(15, 23, 42, 0.05);
+    margin-bottom: 12px;
+  }
+  .missing-card.resolved { background: #f8fafc; border-color: #e2e8f0; }
+  .card-head {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+    gap: 12px;
+    align-items: flex-start;
+  }
+  .card-label { margin: 0 0 4px; font-size: 12px; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.04em; font-weight: 700; }
+  .card-value { margin: 0; font-size: 16px; font-weight: 700; color: #0f172a; }
+  .status { display: flex; justify-content: flex-end; align-items: center; }
+  .pill { padding: 6px 10px; border-radius: 999px; font-weight: 700; font-size: 12px; }
+  .pill-open { background: #fef3c7; color: #92400e; border: 1px solid #fcd34d; }
+  .pill-resolved { background: #dcfce7; color: #15803d; border: 1px solid #86efac; }
+  .card-foot { margin-top: 14px; display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+  .time-meta { display: flex; flex-direction: column; gap: 2px; }
+  .action-button {
+    border: 1px solid #0ea5e9;
+    background: #0ea5e9;
+    color: #fff;
+    border-radius: 10px;
+    padding: 8px 14px;
+    font-weight: 700;
+  }
+  .action-button:hover { filter: brightness(1.05); }
+</style>

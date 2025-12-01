@@ -108,11 +108,12 @@ class ReservationsController < ApplicationController
         end
 
         begin
+            missing_report_created = false
             ActiveRecord::Base.transaction do
                 @reservation.update!(returned_count: current_returned + quantity_to_return)
                 
-                # If 0 returned and reservation has ended, create missing report immediately
-                if quantity_to_return == 0 && @reservation.end_time < Time.current
+                # If nothing was returned, create a missing report right away
+                if quantity_to_return == 0
                     missing_qty = total_reserved - current_returned
                     if missing_qty > 0 && !MissingReport.exists?(reservation: @reservation, item: item, workspace: @workspace)
                         MissingReport.create!(
@@ -123,6 +124,7 @@ class ReservationsController < ApplicationController
                             resolved: false
                         )
                         item.decrement!(:quantity, missing_qty)
+                        missing_report_created = true
                     end
                 end
                 
@@ -143,7 +145,12 @@ class ReservationsController < ApplicationController
             end
             
             if quantity_to_return == 0
-                return redirect_to @workspace, notice: "Marked as nothing returned. Missing report created."
+                message = if missing_report_created
+                  "Marked as nothing returned. Missing report created."
+                else
+                  "Marked as nothing returned."
+                end
+                return redirect_to @workspace, notice: message
             else
                 return redirect_to @workspace, notice: "#{quantity_to_return} #{item.name}(s) returned successfully."
             end
