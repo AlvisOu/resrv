@@ -27,7 +27,6 @@ class UsersController < ApplicationController
 
   def create
     @user = User.new(user_params)
-    @user.email_verified_at = Time.current
     if @user.save
       session[:user_id] = @user.id
       flash[:notice] = "Welcome! You have signed up successfully."

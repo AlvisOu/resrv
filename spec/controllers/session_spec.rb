@@ -45,7 +45,7 @@ RSpec.describe SessionsController, type: :controller do
         expect(session[:user_id]).to be_nil
         expect(response.status).to eq(422)
         expect(response).to render_template(:new)
-        expect(flash[:notice]).to eq("Invalid email or password.")
+        expect(flash[:alert]).to eq("Invalid email or password.")
       end
     end
 
@@ -56,7 +56,7 @@ RSpec.describe SessionsController, type: :controller do
         }
 
         expect(response.status).to eq(422)
-        expect(flash[:notice]).to eq("Invalid email or password.")
+        expect(flash[:alert]).to eq("Invalid email or password.")
       end
     end
   end

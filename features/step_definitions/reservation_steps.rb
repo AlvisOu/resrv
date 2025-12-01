@@ -64,7 +64,6 @@ Given("another user's reservation exists in {string} for {string}") do |workspac
   user = User.find_or_create_by!(email: "member@example.com") do |u|
     u.name = "Member User"
     u.password = "password"
-    u.email_verified_at = Time.current
   end
 
   @reservation = Reservation.create!(

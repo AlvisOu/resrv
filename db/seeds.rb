@@ -17,28 +17,24 @@ admin = User.create!(
   email: "admin@resrv.com",
   password: "password123",
   password_confirmation: "password123",
-  email_verified_at: Time.current
 )
 member = User.create!(
   name: "Member User",
   email: "member@resrv.com",
   password: "password123",
   password_confirmation: "password123",
-  email_verified_at: Time.current
 )
 alice = User.create!(
   name: "Alice Smith",
   email: "alice@resrv.com",
   password: "password123",
   password_confirmation: "password123",
-  email_verified_at: Time.current
 )
 bob = User.create!(
   name: "Bob Jones",
   email: "bob@resrv.com",
   password: "password123",
   password_confirmation: "password123",
-  email_verified_at: Time.current
 )
 demo = User.create!(
   name: "Demo",

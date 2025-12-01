@@ -4,8 +4,8 @@ RSpec.describe PenaltiesController, type: :controller do
   include ActiveSupport::Testing::TimeHelpers
 
   let(:frozen_time) { Time.zone.local(2025, 1, 1, 12, 0, 0) }
-  let(:owner) { User.create!(name: "Owner", email: "owner@example.com", password: "password", email_verified_at: Time.current) }
-  let(:member) { User.create!(name: "Member", email: "member@example.com", password: "password", email_verified_at: Time.current) }
+  let(:owner) { User.create!(name: "Owner", email: "owner@example.com", password: "password") }
+  let(:member) { User.create!(name: "Member", email: "member@example.com", password: "password") }
   let(:workspace) { Workspace.create!(name: "Test Workspace") }
   let!(:owner_join) { UserToWorkspace.create!(user: owner, workspace: workspace, role: "owner") }
   let!(:member_join) { UserToWorkspace.create!(user: member, workspace: workspace, role: "user") }

@@ -12,7 +12,7 @@ RSpec.describe ApplicationController, type: :controller do
     end
   end
 
-  let(:user) { User.create!(name: "Test", email: "test@example.com", password: "pw", email_verified_at: Time.now) }
+  let(:user) { User.create!(name: "Test", email: "test@example.com", password: "pw") }
 
   describe "#current_user" do
     it "returns nil if not logged in" do

@@ -4,7 +4,6 @@ Given /^a user exists with email "([^"]*)"$/ do |email|
     user.name = email.split('@').first.capitalize
     user.password = "password"
     user.password_confirmation = "password"
-    user.email_verified_at = Time.current
   end
 end
 
@@ -14,7 +13,6 @@ Given /^I am logged in as a (workspace owner|standard user) of "([^"]*)"$/ do |m
     user.name = "#{role_name.capitalize} User"
     user.password = "password"
     user.password_confirmation = "password"
-    user.email_verified_at = Time.now
   end
 
   workspace = Workspace.find_or_create_by!(name: workspace_name)

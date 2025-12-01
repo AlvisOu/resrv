@@ -131,7 +131,6 @@ Given("a pending penalty appeal notification exists for {string}") do |workspace
   member = User.find_or_create_by!(email: "appeal_member@example.com") do |u|
     u.name = "Appeal Member"
     u.password = "password"
-    u.email_verified_at = Time.current
   end
 
   penalty = Penalty.create!(

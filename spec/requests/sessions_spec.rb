@@ -9,8 +9,7 @@ RSpec.describe "Sessions", type: :request do
       name: "Test User",
       email: "test@example.com",
       password: "password123",
-      password_confirmation: "password123",
-      email_verified_at: Time.current
+      password_confirmation: "password123"
     )
   }
 

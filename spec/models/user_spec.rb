@@ -166,10 +166,6 @@ RSpec.describe User, type: :model do
     end
   end
 
-  describe "password reset" do
-    let(:user) { User.create!(name: "Test", email: "test@example.com", password: "pw") }
-  end
-
   describe "penalties and blocking" do
     let(:user) { User.create!(name: "Test", email: "test@example.com", password: "pw") }
     let(:workspace) { Workspace.create!(name: "Lab") }
