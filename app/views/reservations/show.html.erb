@@ -14,7 +14,12 @@
     <div class="meta-grid">
       <div class="meta">
         <p class="label">User</p>
-        <p class="value"><%= @reservation.user.name %> (<%= @reservation.user.email %>)</p>
+        <p class="value">
+          <%= link_to @reservation.user.name,
+                      workspace_user_path(@reservation.item.workspace, @reservation.user),
+                      class: "link-inline" %>
+          (<%= @reservation.user.email %>)
+        </p>
       </div>
       <div class="meta">
         <p class="label">Workspace</p>

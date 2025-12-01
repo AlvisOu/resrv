@@ -1,0 +1,169 @@
+<div class="workspace-hero">
+  <div>
+    <h1 class="workspace-title"><%= @user.name %> – Profile</h1>
+    <p class="workspace-meta">
+      Analytics for this user in workspace "<%= @workspace.name %>".
+    </p>
+  </div>
+
+  <div class="hero-meta">
+    <%= link_to "Back to Main",
+                workspace_path(@workspace),
+                class: "btn-ghost" %>
+  </div>
+</div>
+
+<div class="current-activity-section">
+  <h3 class="section-heading">User Details</h3>
+
+  <table class="activity-table">
+    <tbody>
+      <tr>
+        <th>Name</th>
+        <td><%= @user.name %></td>
+      </tr>
+      <tr>
+        <th>Email</th>
+        <td><%= @user.email %></td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+<div class="current-activity-section" style="margin-top:2rem;">
+  <h3 class="section-heading">Usage Metrics in This Workspace</h3>
+
+  <table class="activity-table">
+    <tbody>
+      <tr>
+        <th>Total Reservations</th>
+        <td><%= @total_reservations %></td>
+      </tr>
+      <tr>
+        <th>Active Reservations</th>
+        <td><%= @active_reservations.count %></td>
+      </tr>
+      <tr>
+        <th>Upcoming Reservations</th>
+        <td><%= @upcoming_reservations.count %></td>
+      </tr>
+      <tr>
+        <th>Past Reservations</th>
+        <td><%= @past_reservations.count %></td>
+      </tr>
+      <tr>
+        <th>No-Show Count</th>
+        <td><%= @no_show_count %></td>
+      </tr>
+      <tr>
+        <th>Late Return Count</th>
+        <td><%= @late_return_count %></td>
+      </tr>
+      <tr>
+        <th>Missing Item Incidents</th>
+        <td><%= @missing_events_count %></td>
+      </tr>
+      <tr>
+        <th>Most Used Items</th>
+        <td>
+          <% if @item_usage.any? %>
+            <% @item_usage.each do |item, count| %>
+              <div><%= item %> – <%= count %> reservations</div>
+            <% end %>
+          <% else %>
+            None
+          <% end %>
+        </td>
+      </tr>
+      <tr>
+        <th>Average Reservation Duration</th>
+        <td><%= @avg_duration.round(2) %> hours</td>
+      </tr>
+      <tr>
+        <th>Reliability Score</th>
+        <td><%= (@reliability_score * 100).round %>%</td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+<% if @active_reservations.any? %>
+  <div class="current-activity-section" style="margin-top:2rem;">
+    <h3 class="section-heading">Active Reservations</h3>
+
+    <table class="activity-table">
+      <thead>
+        <tr>
+          <th>Item</th>
+          <th>Quantity</th>
+          <th>Started</th>
+          <th>Ends</th>
+        </tr>
+      </thead>
+      <tbody>
+        <% @active_reservations.each do |r| %>
+          <tr>
+            <td><%= r.item.name %></td>
+            <td><%= r.quantity %></td>
+            <td><%= r.start_time.strftime("%b %-d, %-I:%M %p") %></td>
+            <td><%= r.end_time.strftime("%b %-d, %-I:%M %p") %></td>
+          </tr>
+        <% end %>
+      </tbody>
+    </table>
+  </div>
+<% end %>
+
+<% if @upcoming_reservations.any? %>
+  <div class="current-activity-section" style="margin-top:2rem;">
+    <h3 class="section-heading">Upcoming Reservations</h3>
+
+    <table class="activity-table">
+      <thead>
+        <tr>
+          <th>Item</th>
+          <th>Quantity</th>
+          <th>Started</th>
+          <th>Ends</th>
+        </tr>
+      </thead>
+      <tbody>
+        <% @upcoming_reservations.each do |r| %>
+          <tr>
+            <td><%= r.item.name %></td>
+            <td><%= r.quantity %></td>
+            <td><%= r.start_time.strftime("%b %-d, %-I:%M %p") %></td>
+            <td><%= r.end_time.strftime("%b %-d, %-I:%M %p") %></td>
+          </tr>
+        <% end %>
+      </tbody>
+    </table>
+  </div>
+<% end %>
+
+<% if @past_reservations.any? %>
+  <div class="current-activity-section" style="margin-top:2rem;">
+    <h3 class="section-heading">Past Reservations</h3>
+
+    <table class="activity-table">
+      <thead>
+        <tr>
+          <th>Item</th>
+          <th>Quantity</th>
+          <th>Started</th>
+          <th>Ends</th>
+        </tr>
+      </thead>
+      <tbody>
+        <% @past_reservations.each do |r| %>
+          <tr>
+            <td><%= r.item.name %></td>
+            <td><%= r.quantity %></td>
+            <td><%= r.start_time.strftime("%b %-d, %-I:%M %p") %></td>
+            <td><%= r.end_time.strftime("%b %-d, %-I:%M %p") %></td>
+          </tr>
+        <% end %>
+      </tbody>
+    </table>
+  </div>
+<% end %>

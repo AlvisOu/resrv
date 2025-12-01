@@ -7,7 +7,7 @@
   </div>
 
   <div class="hero-meta">
-    <%= link_to "Back to schedule",
+    <%= link_to "Back to Main",
                 workspace_path(@workspace),
                 class: "btn-ghost" %>
   </div>
@@ -31,7 +31,11 @@
         <% @past_reservations.each do |reservation| %>
           <tr>
             <td><%= reservation.item.name %></td>
-            <td><%= reservation.user.name %></td>
+            <td>
+              <%= link_to reservation.user.name,
+                          workspace_user_path(@workspace, reservation.user),
+                          class: "link-inline" %>
+            </td>
             <td><%= reservation.quantity %></td>
             <td><%= reservation.start_time.strftime("%b %-d, %-I:%M %p") %></td>
             <td><%= reservation.end_time.strftime("%b %-d, %-I:%M %p") %></td>

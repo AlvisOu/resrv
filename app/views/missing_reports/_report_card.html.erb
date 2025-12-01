@@ -3,7 +3,12 @@
     <div class="card-cell"><strong>Item:</strong> <%= report.item.name %></div>
     <div class="card-cell"><strong>Reservation:</strong> #<%= report.reservation.id %></div>
     <div class="card-cell"><strong>Missing:</strong> <%= report.reservation.quantity - report.reservation.returned_count.to_i %></div>
-    <div class="card-cell"><strong>Who Lost It:</strong> <%= report.reservation.user.name %></div>
+    <div class="card-cell">
+      <strong>Who Lost It:</strong>
+      <%= link_to report.reservation.user.name,
+                  workspace_user_path(report.item.workspace, report.reservation.user),
+                  class: "link-inline" %>
+    </div>
     <div class="card-cell">
       <% if resolved %>
         <strong>Resolved At:</strong> <%= report.updated_at.strftime("%b %d, %Y %I:%M %p") %>

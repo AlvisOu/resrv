@@ -213,8 +213,8 @@
           <tr>
             <td>
               <%= link_to row[:user].name,
-                          user_path(row[:user].slug),
-                          class:"link-inline" %>
+                          workspace_user_path(@workspace, row[:user]),
+                          class: "link-inline" %>
             </td>
             <td><%= row[:freq] %></td>
             <td>

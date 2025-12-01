@@ -32,6 +32,7 @@ Resrv::Application.routes.draw do
       get :analytics_behavior_csv
       get :analytics_heatmap_csv
     end
+    resources :users, only: [:show], controller: "workspace_users"
     resource :user_to_workspace, only: [:create, :destroy]
     resources :items, only: [:new, :create, :edit, :update, :destroy]
     resources :missing_reports, only: [:index] do
