@@ -386,9 +386,9 @@
       <form action="<%= workspace_path(@workspace) %>" method="get" style="display:flex; gap:8px; flex-wrap:wrap; align-items:center; margin:0;">
         <input type="hidden" name="day" value="<%= @day.iso8601 %>">
         <label style="margin:0;">Date:</label>
-        <input type="date" name="filter_day" value="<%= @filter_day&.iso8601 %>" min="<%= today.iso8601 %>">
+        <input type="date" name="filter_day" value="<%= @filter_day&.iso8601 %>" min="<%= today.iso8601 %>" class="form-control">
         <label style="margin:0;">Item:</label>
-        <select name="filter_item_id" class="form-select form-select-sm" style="min-width:180px; height:30px; padding:4px 8px; font-size:15px;">
+        <select name="filter_item_id" class="form-control" style="min-width:180px;">
           <option value="">All items</option>
           <% @items.each do |item| %>
             <option value="<%= item.id %>" <%= "selected" if @filter_item_id.to_i == item.id %>><%= item.name %></option>

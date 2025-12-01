@@ -71,6 +71,11 @@
 } /* green-100 */
 .slot.available:hover { background: #4ade80; }
 
+.slot.partial     { 
+  background: #f9dd40d3;
+  border-right: 0.5px solid #f4bc5b;
+}
+
 .slot.unavailable { background: #f3f4f6; /* gray-100 */ 
                     background-image: repeating-linear-gradient(45deg, transparent, transparent 5px, #e5e7eb 5px, #e5e7eb 10px); }
 
@@ -151,7 +156,7 @@
 .banner-subtle { margin: 0; color: #92400e; font-size: 13px; }
 .banner-subtle.success { color: #065f46; }
 .appeal-form { display: flex; flex-direction: column; gap: 8px; max-width: 420px; }
-.appeal-form .form-control { width: 100%; padding: 8px 10px; border:1px solid #d1d5db; border-radius: 8px; }
+.form-control { width: 100%; padding: 8px 10px; border:1px solid #d1d5db; border-radius: 8px; }
 .btn-ghost {
   width: fit-content;
   padding: 8px 12px;
