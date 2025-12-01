@@ -51,18 +51,7 @@ RSpec.describe ApplicationController, type: :controller do
       expect(flash[:alert]).to include("must be logged in")
     end
 
-    it "redirects to verify email if logged in but unverified" do
-      unverified_user = User.create!(name: "Unverified", email: "u@example.com", password: "pw")
-      session[:user_id] = unverified_user.id
-      
-      get :protected_action
-      expect(response).to redirect_to(verify_email_path)
-      expect(flash[:alert]).to include("verify your email")
-      expect(session[:unverified_user_id]).to eq(unverified_user.id)
-      expect(session[:user_id]).to be_nil
-    end
-
-    it "allows access if logged in and verified" do
+    it "allows access if logged in" do
       session[:user_id] = user.id
       get :protected_action
       expect(response.body).to eq("Protected")

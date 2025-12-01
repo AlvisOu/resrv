@@ -26,18 +26,16 @@ RSpec.describe UsersController, type: :controller do
   # POST #create (no authentication required)
   # -------------------------------------------------------
   describe "POST #create" do
-    before { allow_any_instance_of(User).to receive(:send_verification_email) }
-
     context "with valid attributes" do
-      it "creates user + redirects to verify" do
+      it "creates user + logs in + redirects to root" do
         expect {
           post :create, params: { user: valid_attributes }
         }.to change(User, :count).by(1)
 
         created = User.last
-        expect(session[:unverified_user_id]).to eq(created.id)
-        expect(response).to redirect_to(verify_email_path)
-        expect(flash[:notice]).to eq("Welcome! Please check your email for a verification code.")
+        expect(session[:user_id]).to eq(created.id)
+        expect(response).to redirect_to(root_path)
+        expect(flash[:notice]).to eq("Welcome! You have signed up successfully.")
       end
     end
 
@@ -60,7 +58,6 @@ RSpec.describe UsersController, type: :controller do
     before do
       session[:user_id] = user.id
       allow(controller).to receive(:current_user).and_return(user)
-      allow(user).to receive(:verified?).and_return(true)
     end
   end
 

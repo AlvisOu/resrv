@@ -22,47 +22,6 @@ class User < ApplicationRecord
     validates :email, presence: true, uniqueness: { case_sensitive: false }, format: { with: URI::MailTo::EMAIL_REGEXP, message: "must be a valid email address" }
     before_validation :downcase_email
 
-    def send_password_reset_email
-        self.reset_token = SecureRandom.urlsafe_base64
-        self.reset_sent_at = Time.now
-        if save!
-          UserMailer.send_password_reset(self).deliver_now
-        end
-    end
-
-    def reset_password(new_password, new_password_confirmation)
-        if reset_sent_at < 15.minutes.ago
-            self.errors.add(:reset_token, "has expired")
-            return false
-        end
-
-        if update(password: new_password, password_confirmation: new_password_confirmation)
-            update(reset_token: nil, reset_sent_at: nil)
-            return true
-        else
-            return false
-        end
-    end
-
-    def send_verification_email
-        self.verification_code = SecureRandom.random_number(100000..999999).to_s
-        self.verification_sent_at = Time.now
-        save!
-        UserMailer.send_verification_code(self).deliver_now
-    end
-
-    def verify_email_code(submitted_code)
-        return false if verification_code != submitted_code
-        return false if verification_sent_at < 10.minutes.ago
-        self.email_verified_at = Time.now
-        self.verification_code = nil
-        save!
-    end
-
-    def verified?
-        email_verified_at.present?
-    end
-
     def blocked_from_reserving_in?(workspace)
         penalties.active.any? do |penalty|
             penalty_workspace_id(penalty) == workspace.id

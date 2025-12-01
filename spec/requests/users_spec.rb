@@ -31,12 +31,8 @@ RSpec.describe "Users", type: :request do
 
       it "redirects appropriately after signup" do
         post users_path, params: valid_params
-        if response.redirect?
-          expect(response).to redirect_to(verify_email_path)
-        else
-          expect(session[:user_id]).to eq(User.last.id)
-          expect(response).to redirect_to(root_path)
-        end
+        expect(session[:user_id]).to eq(User.last.id)
+        expect(response).to redirect_to(root_path)
       end
     end
 

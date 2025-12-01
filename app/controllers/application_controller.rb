@@ -27,12 +27,5 @@ class ApplicationController < ActionController::Base
       redirect_to login_path
       return
     end
-
-    unless current_user.verified?
-      flash[:alert] = "Please verify your email to continue."
-      session[:unverified_user_id] = current_user.id
-      session.delete(:user_id)
-      redirect_to verify_email_path
-    end
   end
 end

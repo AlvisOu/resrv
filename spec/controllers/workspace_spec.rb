@@ -17,7 +17,6 @@ RSpec.describe WorkspacesController, type: :controller do
   before do
     session[:user_id] = user.id
     allow(controller).to receive(:current_user).and_return(user)
-    allow(user).to receive(:verified?).and_return(true)
     allow(user).to receive_message_chain(:penalties, :active).and_return(empty_relation)
   end
 

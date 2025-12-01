@@ -49,7 +49,6 @@ RSpec.describe MissingReportsController, type: :controller do
   before do
     session[:user_id] = owner.id
     allow(controller).to receive(:current_user).and_return(owner)
-    allow(owner).to receive(:verified?).and_return(true)
   end
 
 
@@ -61,7 +60,6 @@ RSpec.describe MissingReportsController, type: :controller do
       # simulate logged-in non-owner
       session[:user_id] = non_owner.id
       allow(controller).to receive(:current_user).and_return(non_owner)
-      allow(non_owner).to receive(:verified?).and_return(true)
 
       get :index, params: { workspace_id: workspace.id }
 
