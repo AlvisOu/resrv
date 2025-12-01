@@ -185,13 +185,13 @@
                   %>
 
                   <% if still_missing > 0 %>
-                    <%= form_with(url: return_items_reservation_path(reservation), method: :patch, class: "return-form") do |f| %>
+                    <%= form_with(url: return_items_reservation_path(reservation), method: :patch, class: "return-form return-form-js") do |f| %>
                       <%= number_field_tag :quantity_to_return, nil,
                             placeholder: "Qty",
                             class: "return-input",
                             min: 1,
                             max: still_missing %>
-                      <%= f.submit "Return", class: "btn-action-revert" %>
+                      <%= f.submit "Return", class: "btn-action-revert", disabled: true %>
                     <% end %>
                   <% elsif returned > 0 %>
                     <%= form_with(url: undo_return_items_reservation_path(reservation), method: :patch, class: "return-form") do |f| %>
@@ -760,5 +760,22 @@
         return;
       }
     }, { passive: false });
+  })();
+
+  // Enable/disable return buttons when quantity input is empty
+  (function returnFormGuard() {
+    document.querySelectorAll('.return-form-js').forEach(form => {
+      const input = form.querySelector('.return-input');
+      const submit = form.querySelector('input[type="submit"], button[type="submit"]');
+      if (!input || !submit) return;
+
+      const toggle = () => {
+        const val = input.value;
+        submit.disabled = !val || Number(val) <= 0;
+      };
+      toggle();
+      input.addEventListener('input', toggle);
+      input.addEventListener('change', toggle);
+    });
   })();
 </script>
