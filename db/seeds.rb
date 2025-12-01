@@ -299,15 +299,14 @@ end
 # ----------------------------
 # Analytics Demo Data (Dodge Fitness Center)
 # ----------------------------
-puts "Seeding analytics data for Dodge Fitness Center..."
 analytics_users = [member, alice, bob, demo]
 
-# Generate past reservations for the last 14 days
-(1..14).each do |i|
+# Generate past reservations for the last 30 days
+(1..30).each do |i|
   day_target = today - i.days
   
-  # Treadmill: High usage (5 slots/day)
-  [7, 9, 12, 17, 19].each do |h|
+  # Treadmill: Very High usage (8-12 slots/day)
+  (7..21).to_a.sample(rand(8..12)).each do |h|
     Reservation.create!(
       user: analytics_users.sample,
       item: treadmill,
@@ -322,8 +321,8 @@ analytics_users = [member, alice, bob, demo]
     )
   end
 
-  # Lat Pulldown: Medium usage (2 slots/day)
-  [8, 18].each do |h|
+  # Lat Pulldown: High usage (5-8 slots/day)
+  (7..20).to_a.sample(rand(5..8)).each do |h|
     Reservation.create!(
       user: analytics_users.sample,
       item: lat_pulldown_machine,
@@ -338,18 +337,19 @@ analytics_users = [member, alice, bob, demo]
     )
   end
 
-  # Dumbbells: Low usage (every other day)
-  if i % 2 == 0
+  # Dumbbells: Medium usage (3-5 slots/day)
+  (8..19).to_a.sample(rand(3..5)).each do |h|
+    qty = rand(1..2)
     Reservation.create!(
       user: analytics_users.sample,
       item: dumbbells,
-      start_time: day_target.beginning_of_day + 15.hours,
-      end_time: day_target.beginning_of_day + 16.hours,
-      quantity: 1,
+      start_time: day_target.beginning_of_day + h.hours,
+      end_time: day_target.beginning_of_day + (h + 1).hours,
+      quantity: qty, # Sometimes reserve 2 sets
       in_cart: false,
       hold_expires_at: nil,
       no_show: false,
-      returned_count: 1,
+      returned_count: qty,
       stock_adjusted: false
     )
   end
@@ -389,21 +389,33 @@ new_users.each do |user|
     is_future = day >= today
     in_cart   = is_future && [true, false].sample
     hold_exp  = in_cart ? (start_time - 2.hours) : nil
-    no_show   = !in_cart && !is_future && [true, false].sample
-    returned  = no_show ? 0 : 1
+    
+    # Force past reservations to be fully returned to avoid negative stock issues
+    if is_future
+      no_show  = false
+      returned = 0
+    else
+      no_show  = false
+      returned = 1
+    end
 
-    Reservation.create!(
-      user: user,
-      item: item,
-      start_time: start_time,
-      end_time: end_time,
-      quantity: 1,
-      in_cart: in_cart,
-      hold_expires_at: hold_exp,
-      no_show: no_show,
-      returned_count: returned,
-      stock_adjusted: false
-    )
+    begin
+      Reservation.create!(
+        user: user,
+        item: item,
+        start_time: start_time,
+        end_time: end_time,
+        quantity: 1,
+        in_cart: in_cart,
+        hold_expires_at: hold_exp,
+        no_show: no_show,
+        returned_count: returned,
+        stock_adjusted: false
+      )
+    rescue ActiveRecord::RecordInvalid => e
+      # Ignore capacity errors during random seeding
+      puts "Skipping reservation due to validation error: #{e.message}"
+    end
   end
 end
 
@@ -411,8 +423,6 @@ end
 # ----------------------------
 # NEW: Missing reports (no quantity below 0)
 # ----------------------------
-puts "Creating missing item reports..."
-
 # Example: Past treadmill reservation with missing quantity
 treadmill_res = Reservation.where(item: treadmill).order(:start_time).first
 if treadmill_res
@@ -449,8 +459,6 @@ puts "[Success] Created #{MissingReport.count} missing reports."
 # ----------------------------
 # NEW: Penalties & Notifications
 # ----------------------------
-puts "Creating penalties and notifications..."
-
 # Look up the inclusion validator on :reason so we always use valid values
 reason_validator = Penalty.validators_on(:reason)
   .grep(ActiveModel::Validations::InclusionValidator)
