@@ -40,6 +40,13 @@ bob = User.create!(
   password_confirmation: "password123",
   email_verified_at: Time.current
 )
+demo = User.create!(
+  name: "Demo",
+  email: "demo@resrv.com",
+  password: "password123",
+  password_confirmation: "password123",
+  email_verified_at: Time.current
+)
 puts "[Success] Created #{User.count} users."
 
 gym        = Workspace.create!(name: "Dodge Fitness Center", description: "Campus gym with modern equipment and facilities.")
@@ -175,6 +182,52 @@ reservations = [
 reservations.each do |attrs|
   Reservation.create!(attrs.merge(in_cart: false, hold_expires_at: nil))
 end
+
+# --- Analytics Demo Data (Dodge Fitness Center) ---
+puts "Seeding analytics data for Dodge Fitness Center..."
+analytics_users = [member, alice, bob, demo]
+
+# Generate past reservations for the last 14 days
+(1..14).each do |i|
+  day_target = today - i.days
+  
+  # Treadmill: High usage (5 slots/day)
+  [7, 9, 12, 17, 19].each do |h|
+    Reservation.create!(
+      user: analytics_users.sample,
+      item: treadmill,
+      start_time: day_target.beginning_of_day + h.hours,
+      end_time: day_target.beginning_of_day + (h + 1).hours,
+      quantity: 1,
+      in_cart: false
+    )
+  end
+
+  # Lat Pulldown: Medium usage (2 slots/day)
+  [8, 18].each do |h|
+    Reservation.create!(
+      user: analytics_users.sample,
+      item: lat_pulldown_machine,
+      start_time: day_target.beginning_of_day + h.hours,
+      end_time: day_target.beginning_of_day + (h + 1).hours,
+      quantity: 1,
+      in_cart: false
+    )
+  end
+
+  # Dumbbells: Low usage (every other day)
+  if i % 2 == 0
+    Reservation.create!(
+      user: analytics_users.sample,
+      item: dumbbells,
+      start_time: day_target.beginning_of_day + 15.hours,
+      end_time: day_target.beginning_of_day + 16.hours,
+      quantity: 1,
+      in_cart: false
+    )
+  end
+end
+# --------------------------------------------------
 
 puts "[Success] Created #{Reservation.count} reservations."
 puts "[Success] Seed finished!"
