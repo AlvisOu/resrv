@@ -386,15 +386,21 @@ new_users.each do |user|
     start_time = day.beginning_of_day + hour.hours
     end_time   = start_time + 1.hour
 
-    is_future = day >= today
-    in_cart   = is_future && [true, false].sample
-    hold_exp  = in_cart ? (start_time - 2.hours) : nil
+    # Only put in cart if the hold wouldn't be expired (start - 2h > now)
+    # This prevents "Notification Create" logs for expired holds immediately after seeding.
+    can_be_in_cart = start_time > (Time.current + 2.hours)
+    in_cart        = can_be_in_cart && [true, false].sample
+    hold_exp       = in_cart ? (start_time - 2.hours) : nil
     
-    # Force past reservations to be fully returned to avoid negative stock issues
-    if is_future
+    # Logic for past/future status
+    if start_time > Time.current
+      # Future
       no_show  = false
       returned = 0
     else
+      # Past - ensure returned to avoid negative stock
+      in_cart  = false
+      hold_exp = nil
       no_show  = false
       returned = 1
     end
