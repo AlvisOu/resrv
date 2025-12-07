@@ -135,4 +135,30 @@ RSpec.describe CheckoutService, type: :service do
       end
     end
   end
+
+  describe "private helpers" do
+    it "returns nil when segment coverage is insufficient" do
+      Reservation.create!(
+        user: user,
+        item: item,
+        start_time: t_start,
+        end_time: t_end,
+        quantity: 1,
+        in_cart: true,
+        hold_expires_at: 10.minutes.from_now
+      )
+      service = CheckoutService.new(cart, user, workspace.id)
+
+      result = service.send(:convert_user_holds!, item, t_start, t_end, 2)
+      expect(result).to be_nil
+    end
+
+    it "checks capacity availability across existing reservations" do
+      Reservation.create!(user: user, item: item, start_time: t_start, end_time: t_end, quantity: item.quantity, in_cart: false)
+      service = CheckoutService.new(cart, user, workspace.id)
+
+      available = service.send(:capacity_available?, item, t_start, t_end, 1)
+      expect(available).to be false
+    end
+  end
 end

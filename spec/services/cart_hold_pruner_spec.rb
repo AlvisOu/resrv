@@ -121,4 +121,20 @@ RSpec.describe CartHoldPruner, type: :service do
       end
     end
   end
+
+  describe ".normalize_time" do
+    it "parses ISO8601 strings" do
+      iso = "2025-01-01T10:00:00Z"
+      expect(CartHoldPruner.normalize_time(iso)).to eq(Time.iso8601(iso))
+    end
+
+    it "falls back to Time.iso8601 when no to_time is available" do
+      wrapper = Class.new do
+        def initialize(str) = @str = str
+        def to_str = @str
+      end.new("2025-01-01T11:00:00Z")
+
+      expect(CartHoldPruner.normalize_time(wrapper)).to eq(Time.iso8601("2025-01-01T11:00:00Z"))
+    end
+  end
 end

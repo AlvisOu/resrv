@@ -98,5 +98,34 @@ RSpec.describe PenaltiesController, type: :controller do
       expect(penalty.appeal_state).to eq("none")
       expect(flash[:alert]).to include("Enter a positive number")
     end
+
+    it "blocks updates after resolution" do
+      penalty.update!(appeal_state: "resolved")
+
+      patch :shorten, params: { id: penalty.id, shorten_hours: 1 }
+
+      expect(response).to redirect_to(notifications_path)
+      expect(flash[:alert]).to include("already been handled")
+    end
+  end
+
+  describe "authorization guards" do
+    it "prevents non-members from appealing" do
+      session[:user_id] = owner.id
+
+      post :appeal, params: { id: penalty.id }
+
+      expect(response).to redirect_to(profile_path)
+      expect(flash[:alert]).to include("Not authorized to appeal")
+    end
+
+    it "blocks non-owners from shortening penalties" do
+      session[:user_id] = member.id
+
+      patch :shorten, params: { id: penalty.id, shorten_hours: 2 }
+
+      expect(response).to redirect_to(notifications_path)
+      expect(flash[:alert]).to include("Only workspace owners")
+    end
   end
 end

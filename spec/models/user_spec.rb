@@ -235,4 +235,17 @@ RSpec.describe User, type: :model do
       end
     end
   end
+
+  describe "#member_of?" do
+    it "returns true when the user is linked to the workspace" do
+      member = User.create!(name: "Member", email: "member@example.com", password: "password123", password_confirmation: "password123")
+      workspace = Workspace.create!(name: "Shared Space")
+
+      expect(member.member_of?(workspace)).to be false
+
+      UserToWorkspace.create!(user: member, workspace: workspace, role: "user")
+
+      expect(member.member_of?(workspace)).to be true
+    end
+  end
 end

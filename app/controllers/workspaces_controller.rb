@@ -35,15 +35,6 @@ class WorkspacesController < ApplicationController
     end
   end
 
-  def update
-    if @workspace.update(workspace_params)
-      redirect_to @workspace, notice: 'Workspace was successfully updated.'
-    else
-      # render errors so the feature can see "prohibited this workspace..."
-      render :edit, status: :unprocessable_entity
-    end
-  end
-
   def new
     @workspace = Workspace.new
   end
@@ -128,18 +119,12 @@ class WorkspacesController < ApplicationController
       .count
 
     # determine trend direction
-    @weekly_trend =
-      if @prev_week_count.zero? && @this_week_count.zero?
-        :flat
-      elsif @prev_week_count.zero? && @this_week_count > 0
-        :up
-      elsif @this_week_count > @prev_week_count
-        :up
-      elsif @this_week_count < @prev_week_count
-        :down
-      else
-        :flat
-      end
+    if @prev_week_count.zero? && @this_week_count.zero?
+      @weekly_trend = :flat
+    else
+      delta = @this_week_count <=> @prev_week_count
+      @weekly_trend = { -1 => :down, 0 => :flat, 1 => :up }[delta]
+    end
 
     if is_owner
       # Reservations that overlap the selected day, with users preloaded
@@ -249,15 +234,20 @@ class WorkspacesController < ApplicationController
     range = params[:range].presence || "7d"
     now = Time.zone.now
 
-    case range
-    when "7d"   then @start_date = now - 7.days
-    when "1m"   then @start_date = now - 1.month
-    when "3m"   then @start_date = now - 3.months
-    when "6m"   then @start_date = now - 6.months
-    when "1y"   then @start_date = now - 1.year
-    when "all"  then @start_date = @workspace.items.minimum(:created_at) || (now - 5.years)
-    else            @start_date = now - 7.days
-    end
+    offsets = {
+      "7d" => 7.days,
+      "1m" => 1.month,
+      "3m" => 3.months,
+      "6m" => 6.months,
+      "1y" => 1.year
+    }
+
+    @start_date =
+      if range == "all"
+        @workspace.items.minimum(:created_at) || (now - 5.years)
+      else
+        now - (offsets[range] || 7.days)
+      end
 
     @end_date = now
     @selected_range = range

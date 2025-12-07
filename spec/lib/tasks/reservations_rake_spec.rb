@@ -83,6 +83,15 @@ RSpec.describe "reservations:process_unreturned" do
     expect(output).not_to include("FAILED processing")
   end
 
+  it "prints a failure message when processing raises an error" do
+    Rake::Task["reservations:process_unreturned"].reenable
+    allow_any_instance_of(Reservation).to receive(:update_columns).and_raise("boom")
+
+    output = capture_stdout { Rake::Task["reservations:process_unreturned"].invoke }
+
+    expect(output).to include("FAILED processing Reservation ##{res_unreturned.id}: boom")
+  end
+
   def capture_stdout
     original_stdout = $stdout
     $stdout = StringIO.new

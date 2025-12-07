@@ -68,10 +68,7 @@ class Cart
     end
   end
 
-  def total_count
-    entries.sum { _1["quantity"].to_i }
-  end
-# Public: for the cart page
+  # Public: for the cart page
   def merged_segments_by_workspace
     # Hash: workspace => [segments...]
     entries_with_models

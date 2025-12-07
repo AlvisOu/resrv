@@ -72,4 +72,33 @@ RSpec.describe AvailabilityService, type: :service do
       end
     end
   end
+
+  describe "edge windows" do
+    it "treats missing start_time as beginning of day" do
+      item.update_columns(start_time: nil)
+      slots = AvailabilityService.new(item, 1).time_slots
+      expect(slots.first[:within_window]).to be true
+    end
+
+    it "treats missing end_time as end of day" do
+      item.update_columns(end_time: nil)
+      slots = AvailabilityService.new(item, 1).time_slots
+      last_slot = slots.find { |s| s[:start].hour == 23 && s[:start].min == 45 }
+      expect(last_slot[:within_window]).to be true
+    end
+
+    it "falls back to full day when end precedes start" do
+      inverted = Item.new(
+        name: "Inverted",
+        quantity: 1,
+        workspace: workspace,
+        start_time: tz.local(day.year, day.month, day.day, 18, 0, 0),
+        end_time:   tz.local(day.year, day.month, day.day, 9, 0, 0)
+      )
+      inverted.save(validate: false)
+
+      slots = AvailabilityService.new(inverted, 1).time_slots
+      expect(slots.any? { |s| s[:within_window] }).to be true
+    end
+  end
 end

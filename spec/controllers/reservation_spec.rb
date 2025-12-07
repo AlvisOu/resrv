@@ -221,6 +221,25 @@ RSpec.describe ReservationsController, type: :controller do
       expect(flash[:alert]).to include("Failed to update status")
     end
 
+    it "creates a missing report when nothing is returned" do
+      expect {
+        patch :return_items, params: { id: reservation.id, quantity_to_return: 0 }
+      }.to change(MissingReport, :count).by(1)
+
+      reservation.reload
+      expect(reservation.returned_count).to eq(0)
+      expect(reservation.item.reload.quantity).to eq(item.quantity - reservation.quantity)
+      expect(flash[:notice]).to include("Missing report created")
+    end
+
+    it "handles zero return when everything was already returned" do
+      reservation.update!(returned_count: reservation.quantity)
+
+      patch :return_items, params: { id: reservation.id, quantity_to_return: 0 }
+
+      expect(flash[:notice]).to eq("Marked as nothing returned.")
+    end
+
     it "blocks non-owners" do
       allow(controller).to receive(:current_user_is_owner?).and_return(false)
 
@@ -261,6 +280,30 @@ RSpec.describe ReservationsController, type: :controller do
 
       patch :undo_return_items, params: { id: reservation.id, quantity_to_undo: 1 }
       expect(flash[:alert]).to include("Failed to update status")
+    end
+
+    it "restores inventory and removes penalties when undoing" do
+      reservation.update!(
+        quantity: 2,
+        returned_count: 2,
+        start_time: fixed_time - 3.hours,
+        end_time: fixed_time - 2.hours
+      )
+      missing = MissingReport.create!(
+        reservation: reservation,
+        item: reservation.item,
+        workspace: workspace,
+        quantity: 1,
+        resolved: false
+      )
+      Penalty.create!(user: user, reservation: reservation, workspace: workspace, reason: :late_return, expires_at: 1.day.from_now)
+
+      expect {
+        patch :undo_return_items, params: { id: reservation.id, quantity_to_undo: 1 }
+      }.to change { reservation.item.reload.quantity }.by(1)
+
+      expect(MissingReport.exists?(missing.id)).to be false
+      expect(Penalty.find_by(reservation: reservation, reason: "late_return")).to be_nil
     end
 
     it "blocks non-owners" do
@@ -318,6 +361,24 @@ RSpec.describe ReservationsController, type: :controller do
 
       expect(response).to redirect_to(workspace)
       expect(flash[:alert]).to eq("Not authorized.")
+    end
+
+    it "rescues and surfaces errors" do
+      allow_any_instance_of(Reservation).to receive(:destroy!).and_raise("kaboom")
+
+      patch :owner_cancel, params: { id: reservation.id }
+
+      expect(response).to redirect_to(workspace)
+      expect(flash[:alert]).to include("Failed to cancel reservation")
+    end
+  end
+
+  describe "private helpers" do
+    it "rounds up to the nearest 15 minutes" do
+      time = Time.zone.local(2025, 1, 1, 10, 7, 10)
+      rounded = controller.send(:ceil_to_15, time)
+      expect(rounded.min).to eq(15)
+      expect(rounded.sec).to eq(0)
     end
   end
 end

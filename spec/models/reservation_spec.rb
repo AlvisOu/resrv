@@ -220,6 +220,20 @@ RSpec.describe Reservation, type: :model do
         Reservation.notify_and_purge_expired_holds!
       }.not_to change(Reservation, :count)
     end
+
+    it "uses a fallback message when item/workspace data is missing" do
+      expired = Reservation.create!(
+        user: user, item: item_9_to_5, start_time: today_10am, end_time: today_11am,
+        in_cart: true, hold_expires_at: 5.minutes.ago
+      )
+
+      allow_any_instance_of(Reservation).to receive(:item).and_return(nil)
+
+      Reservation.notify_and_purge_expired_holds!
+
+      expect(Notification.last.message).to include("One of your held reservations expired")
+      expect(Reservation.exists?(expired.id)).to be false
+    end
   end
 
   # --- Capacity Validation ---

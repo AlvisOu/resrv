@@ -243,4 +243,171 @@ RSpec.describe WorkspacesController, type: :controller do
       end
     end
   end
+
+  describe "GET #show trend and filters" do
+    include ActiveSupport::Testing::TimeHelpers
+
+    let(:now) { Time.zone.local(2025, 1, 15, 12, 0, 0) }
+    let!(:owner_join) { UserToWorkspace.create!(user: user, workspace: workspace, role: "owner") }
+    let!(:item) do
+      Item.create!(
+        name: "Scope",
+        workspace: workspace,
+        quantity: 2,
+        start_time: now.beginning_of_day,
+        end_time: now.end_of_day
+      )
+    end
+
+    before do
+      allow(controller).to receive(:current_user).and_return(user)
+      allow_any_instance_of(Reservation).to receive(:auto_mark_missing_items)
+    end
+
+    around { |ex| travel_to(now) { ex.run } }
+
+    it "sets a flat trend when there is no history" do
+      get :show, params: { id: workspace.slug }
+      expect(assigns(:weekly_trend)).to eq(:flat)
+    end
+
+    it "detects upward and downward trends" do
+      Reservation.create!(user: user, item: item, start_time: now - 1.day, end_time: now - 1.day + 1.hour)
+      Reservation.create!(user: user, item: item, start_time: now - 2.days, end_time: now - 2.days + 1.hour)
+      Reservation.create!(user: user, item: item, start_time: now - 10.days, end_time: now - 10.days + 1.hour)
+
+      get :show, params: { id: workspace.slug }
+      expect(assigns(:weekly_trend)).to eq(:up)
+
+      Reservation.create!(user: user, item: item, start_time: now - 11.days, end_time: now - 11.days + 1.hour)
+      Reservation.create!(user: user, item: item, start_time: now - 12.days, end_time: now - 12.days + 1.hour)
+      get :show, params: { id: workspace.slug }
+      expect(assigns(:weekly_trend)).to eq(:down)
+    end
+
+    it "sweeps overdue reservations and respects filter params" do
+      overdue = Reservation.create!(user: user, item: item, start_time: now - 2.hours, end_time: now - 40.minutes)
+      future  = Reservation.create!(user: user, item: item, start_time: now + 2.hours, end_time: now + 3.hours)
+
+      expect_any_instance_of(Reservation).to receive(:auto_mark_missing_items).at_least(:once)
+
+      get :show, params: { id: workspace.slug, filter_day: "bad-date", filter_item_id: item.id }
+
+      expect(assigns(:filter_day)).to eq(Time.zone.today)
+      expect(assigns(:upcoming_reservations)).to include(future)
+      expect(assigns(:upcoming_reservations)).not_to include(overdue)
+    end
+  end
+
+  describe "GET #past_reservations" do
+    include ActiveSupport::Testing::TimeHelpers
+
+    let(:now) { Time.zone.local(2025, 1, 15, 12, 0, 0) }
+
+    around { |ex| travel_to(now) { ex.run } }
+
+    before do
+      UserToWorkspace.create!(user: user, workspace: workspace, role: "owner")
+      allow(controller).to receive(:current_user).and_return(user)
+      Item.create!(name: "Old Scope", workspace: workspace, quantity: 1, start_time: now.beginning_of_day, end_time: now.end_of_day)
+    end
+
+    it "lists past reservations in descending order" do
+      past = Reservation.create!(user: user, item: workspace.items.first, start_time: now - 2.hours, end_time: now - 1.hour)
+
+      get :past_reservations, params: { id: workspace.slug }
+
+      expect(assigns(:past_reservations)).to include(past)
+    end
+  end
+
+  describe "analytics and CSV exports" do
+    include ActiveSupport::Testing::TimeHelpers
+
+    let(:now) { Time.zone.local(2025, 1, 15, 12, 0, 0) }
+    let!(:owner_join) { UserToWorkspace.create!(user: user, workspace: workspace, role: "owner") }
+    let!(:item) do
+      Item.create!(
+        name: "Microscope",
+        workspace: workspace,
+        quantity: 2,
+        start_time: now.beginning_of_day,
+        end_time: now.end_of_day
+      )
+    end
+    let!(:untimed_item) do
+      Item.new(
+        name: "Untimed",
+        workspace: workspace,
+        quantity: 1
+      ).tap { |i| i.save(validate: false) }
+    end
+
+    around { |ex| travel_to(now) { ex.run } }
+
+    before do
+      allow(controller).to receive(:current_user).and_return(user)
+      Reservation.create!(user: user, item: item, start_time: now - 1.day, end_time: now - 1.day + 1.hour, quantity: 1)
+      Reservation.create!(user: user, item: item, start_time: now - 10.days, end_time: now - 10.days + 1.hour, quantity: 1, returned_count: 0)
+      MissingReport.create!(item: item, reservation: Reservation.last, workspace: workspace, quantity: 1, resolved: false, reported_at: now - 10.days)
+    end
+
+    it "builds analytics data" do
+      get :analytics, params: { id: workspace.slug, range: "1m", user_rank: "recency" }
+
+      expect(assigns(:utilization).first[:item]).to eq(item)
+      expect(assigns(:heatmap)[item.id].length).to eq(96)
+      expect(assigns(:behavior).first[:total_res]).to eq(2)
+      expect(assigns(:user_rankings)).not_to be_empty
+      expect(assigns(:selected_range)).to eq("1m")
+    end
+
+    it "exports utilization, behavior, and heatmap CSVs" do
+      get :analytics_utilization_csv, params: { id: workspace.slug, range: "all" }
+      expect(response.header["Content-Disposition"]).to include("utilization.csv")
+
+      get :analytics_behavior_csv, params: { id: workspace.slug }
+      expect(response.header["Content-Disposition"]).to include("behavior.csv")
+
+      get :analytics_heatmap_csv, params: { id: workspace.slug }
+      expect(response.header["Content-Disposition"]).to include("heatmap.csv")
+      expect(response.body).to include(item.name)
+    end
+  end
+
+  describe "POST #join_by_code" do
+    before do
+      allow(controller).to receive(:current_user).and_return(user)
+      UserToWorkspace.create!(user: user, workspace: workspace, role: "user")
+    end
+
+    it "rejects blank codes" do
+      post :join_by_code, params: { join_code: "" }
+      expect(response).to redirect_to(workspaces_path)
+      expect(flash[:alert]).to eq("Please enter a join code.")
+    end
+
+    it "handles already-joined users" do
+      workspace.update!(join_code: "ABC123")
+      post :join_by_code, params: { join_code: "ABC123" }
+
+      expect(response).to redirect_to(workspace)
+      expect(flash[:notice]).to include("already a member")
+    end
+
+    it "joins with a valid code" do
+      other_ws = Workspace.create!(name: "Other", join_code: "JOINME")
+      post :join_by_code, params: { join_code: "JOINME" }
+
+      expect(response).to redirect_to(other_ws)
+      expect(flash[:notice]).to include("Successfully joined")
+      expect(UserToWorkspace.find_by(user: user, workspace: other_ws)).not_to be_nil
+    end
+
+    it "rejects invalid codes" do
+      post :join_by_code, params: { join_code: "NOTREAL" }
+      expect(response).to redirect_to(workspaces_path)
+      expect(flash[:alert]).to eq("Invalid join code.")
+    end
+  end
 end

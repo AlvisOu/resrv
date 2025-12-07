@@ -169,6 +169,17 @@ RSpec.describe Cart, type: :service do
       cart = Cart.load(session, 1)
       cart.add!(item_id: 1, workspace_id: 1, start_time: "s", end_time: "e", quantity: 3)
       cart.add!(item_id: 2, workspace_id: 1, start_time: "s", end_time: "e", quantity: 4)
+      expect_any_instance_of(Cart).to receive(:total_count).and_call_original
+      expect(cart.total_count).to eq(7)
+    end
+
+    it "returns 0 for an empty cart" do
+      cart = Cart.load({}, 2)
+      expect(cart.total_count).to eq(0)
+    end
+
+    it "sums quantities on a raw cart instance" do
+      cart = Cart.new({ "entries" => [{ "quantity" => 5 }, { "quantity" => 2 }] })
       expect(cart.total_count).to eq(7)
     end
   end

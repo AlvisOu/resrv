@@ -75,6 +75,20 @@ RSpec.describe UsersController, type: :controller do
       get :show
       expect(assigns(:user)).to eq(user)
     end
+
+    it "groups penalties by workspace and rejects nil keys" do
+      real_workspace = Workspace.create!(name: "Penalty Workspace")
+      real_penalty = Penalty.create!(user: user, workspace: real_workspace, reason: "no_show", expires_at: 2.days.from_now)
+      orphan = instance_double(Penalty, workspace: nil, reservation: nil)
+
+      allow(user).to receive_message_chain(:penalties, :active, :includes).and_return([real_penalty, orphan])
+
+      get :show
+
+      grouped = assigns(:workspace_penalties)
+      expect(grouped.keys).to eq([real_workspace])
+      expect(grouped[real_workspace]).to include(real_penalty)
+    end
   end
 
   # -------------------------------------------------------

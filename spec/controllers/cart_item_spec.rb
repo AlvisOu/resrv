@@ -224,4 +224,39 @@ RSpec.describe CartItemsController, type: :controller do
       delete :remove_range, params: params_hash.merge(workspace_id: workspace.id.to_s), as: :json
     end
   end
+
+  describe "hold helpers" do
+    let(:start_time) { Time.zone.parse("2025-10-28 09:00:00") }
+    let(:end_time) { start_time + 1.hour }
+
+    it "accumulates quantity when a hold already exists" do
+      hold = Reservation.create!(
+        user: user,
+        item: item,
+        start_time: start_time,
+        end_time: end_time,
+        quantity: 1,
+        in_cart: true,
+        hold_expires_at: 10.minutes.from_now
+      )
+
+      controller.send(:upsert_hold!, user, {
+        item_id: item.id,
+        workspace_id: workspace.id,
+        start_time: start_time.iso8601,
+        end_time: end_time.iso8601,
+        quantity: 2
+      })
+
+      expect(hold.reload.quantity).to eq(3)
+    end
+
+    it "rescues errors when releasing holds" do
+      allow(Reservation).to receive(:where).and_raise(StandardError.new("boom"))
+
+      expect {
+        controller.send(:release_holds!, user_id: user.id, item_id: item.id, start_time: start_time, end_time: end_time)
+      }.not_to raise_error
+    end
+  end
 end
