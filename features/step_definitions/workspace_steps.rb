@@ -42,3 +42,20 @@ When /^I open the workspace "([^"]*)"$/ do |workspace_name|
     raise "Could not find 'View Workspace' or 'Manage Workspace' link for #{workspace_name}"
   end
 end
+
+Given /^a private workspace named "([^"]*)" exists with join code "([^"]*)"$/ do |name, code|
+  Workspace.create!(
+    name: name,
+    is_public: false,
+    join_code: code
+  )
+end
+
+Given /^I have joined the workspace "([^"]*)"$/ do |workspace_name|
+  workspace = Workspace.find_by!(name: workspace_name)
+  UserToWorkspace.create!(
+    user: @current_user,
+    workspace: workspace,
+    role: 'user' # Default to standard user
+  )
+end

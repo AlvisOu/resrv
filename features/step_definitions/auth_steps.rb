@@ -61,3 +61,23 @@ Given('a user named {string} exists') do |full_name|
     u.password = 'password'
   end
 end
+
+Given /^I am logged in as a new user named "([^"]*)"$/ do |name|
+  email = "#{name.downcase.gsub(' ', '.')}@example.com"
+  # Ensure unique email if user already exists from previous scenarios
+  if User.exists?(email: email)
+    @current_user = User.find_by(email: email)
+  else
+    @current_user = User.create!(
+      name: name,
+      email: email,
+      password: "password",
+      password_confirmation: "password"
+    )
+  end
+  
+  visit path_to('the login page')
+  fill_in "session[email]", :with => email
+  fill_in "session[password]", :with => "password"
+  click_button "commit"
+end

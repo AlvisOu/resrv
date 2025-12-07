@@ -143,3 +143,15 @@ end
 Then /^show me the page$/ do
   save_and_open_page
 end
+
+When(/^I click the "([^"]*)" link for "([^"]*)"$/) do |link_text, section_heading|
+  # Find the h3 with the section heading (partial match allowed)
+  section = find('h3', text: section_heading)
+  # Find the link inside that h3
+  section.find_link(link_text).click
+end
+
+Then(/^the response should contain "([^"]*)"$/) do |text|
+  expect(page.body).to include(text)
+end
+

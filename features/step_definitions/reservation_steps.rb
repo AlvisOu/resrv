@@ -20,7 +20,8 @@ end
 Given(/^I have a reservation in "([^"]*)" for "([^"]*)"$/) do |workspace_name, item_name|
   workspace = Workspace.find_by!(name: workspace_name)
   item = Item.find_by!(name: item_name, workspace: workspace)
-  user = User.find_or_create_by!(email: "user@example.com") do |u|
+  
+  user = @current_user || User.find_or_create_by!(email: "user@example.com") do |u|
     u.name = "Example User"
     u.password = "password"
   end
@@ -37,7 +38,8 @@ end
 Given(/^I have a reservation in "([^"]*)" for "([^"]*)" with (\d+) reserved items$/) do |workspace_name, item_name, quantity|
   workspace = Workspace.find_by!(name: workspace_name)
   item = Item.find_by!(name: item_name, workspace: workspace)
-  user = User.find_or_create_by!(email: "user@example.com") do |u|
+  
+  user = @current_user || User.find_or_create_by!(email: "user@example.com") do |u|
     u.name = "Example User"
     u.password = "password"
   end
@@ -73,6 +75,27 @@ Given("another user's reservation exists in {string} for {string}") do |workspac
     end_time: Time.zone.now.beginning_of_day + 13.hours,
     quantity: 1
   )
+end
+
+Given(/^I have an active reservation in "([^"]*)" for "([^"]*)"$/) do |workspace_name, item_name|
+  workspace = Workspace.find_by!(name: workspace_name)
+  item = Item.find_by!(name: item_name, workspace: workspace)
+  
+  user = @current_user || User.find_or_create_by!(email: "user@example.com") do |u|
+    u.name = "Example User"
+    u.password = "password"
+  end
+
+  @reservation = Reservation.create!(
+    user: user,
+    item: item,
+    start_time: 1.hour.ago,
+    end_time: 1.hour.from_now,
+    quantity: 1,
+    returned_count: 0
+  )
+  # Ensure current_user is set if not already
+  @current_user ||= user
 end
 
 When("I visit that reservation page") do
@@ -111,13 +134,23 @@ end
 When(/^I mark the reservation as a no-show$/) do
   page.driver.submit :patch, mark_no_show_reservation_path(@reservation), {}
 end
-When(/^I return (\d+) items from the reservation$/) do |qty|
+When(/^I return (-?\d+) items from the reservation$/) do |qty|
   page.driver.submit :patch,
     return_items_reservation_path(@reservation),
     { quantity_to_return: qty.to_i }
 end
-When(/^I undo return of (\d+) items from the reservation$/) do |qty|
+When(/^I undo return of (-?\d+) items from the reservation$/) do |qty|
   page.driver.submit :patch,
     undo_return_items_reservation_path(@reservation),
     { quantity_to_undo: qty.to_i }
 end
+
+When(/^I try to cancel the active reservation for "([^"]*)"$/) do |item_name|
+  page.driver.submit :delete, reservation_path(@reservation), {}
+end
+
+Then(/^a missing report should exist for the reservation$/) do
+  expect(MissingReport.where(reservation: @reservation).exists?).to be true
+end
+
+
