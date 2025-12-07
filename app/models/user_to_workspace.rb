@@ -6,13 +6,4 @@ class UserToWorkspace < ApplicationRecord
 
   validates :role, presence: true, inclusion: { in: ALLOWED_ROLES }
   validates :user_id, uniqueness: { scope: :workspace_id, message: "is already a member of this workspace" }
-
-  def owner?
-    role == 'owner'
-  end
-  
-  def user?
-    role == 'user'
-  end
-
 end

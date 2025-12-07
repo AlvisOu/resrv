@@ -82,30 +82,4 @@ RSpec.describe UserToWorkspace, type: :model do
       expect(join).to be_valid
     end
   end
-
-  # --- Helper Methods ---
-  describe "helper methods" do
-    let(:owner_join) { UserToWorkspace.new(role: "owner") }
-    let(:user_join) { UserToWorkspace.new(role: "user") }
-
-    describe "#owner?" do
-      it "returns true when role is 'owner'" do
-        expect(owner_join.owner?).to be true
-      end
-
-      it "returns false when role is not 'owner'" do
-        expect(user_join.owner?).to be false
-      end
-    end
-
-    describe "#user?" do
-      it "returns true when role is 'user'" do
-        expect(user_join.user?).to be true
-      end
-
-      it "returns false when role is not 'user'" do
-        expect(owner_join.user?).to be false
-      end
-    end
-  end
 end
