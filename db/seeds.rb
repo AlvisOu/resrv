@@ -93,10 +93,10 @@ puts "[Success] Created #{User.count} users."
 # ----------------------------
 # Workspaces
 # ----------------------------
-gym        = Workspace.create!(name: "Dodge Fitness Center", description: "Campus gym with modern equipment and facilities.")
-auditorium = Workspace.create!(name: "Roone Auditorium", description: "Main auditorium for events and lectures.")
-library    = Workspace.create!(name: "Butler Library", description: "Main library on campus.")
-broadway   = Workspace.create!(name: "Broadway Hall", description: "Junior and Senior Dorm rooms.")
+gym        = Workspace.create!(name: "Dodge Fitness Center", description: "Campus gym with modern equipment and facilities.", is_public: true)
+auditorium = Workspace.create!(name: "Roone Auditorium", description: "Main auditorium for events and lectures.", is_public: true)
+library    = Workspace.create!(name: "Butler Library", description: "Main library on campus.", is_public: true)
+broadway   = Workspace.create!(name: "Broadway Hall", description: "Junior and Senior Dorm rooms.", is_public: false)
 
 # NEW WORKSPACES
 makerspace = Workspace.create!(name: "Mudd Makerspace", description: "Engineering makerspace with tools for prototyping.")

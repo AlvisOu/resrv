@@ -16,8 +16,8 @@ class WorkspacesController < ApplicationController
   def index
     if params[:query].present?
       query = params[:query]
-      @workspaces = Workspace.where(id: query.to_i)
-                             .or(Workspace.where("LOWER(name) LIKE ?", "%#{query.downcase}%"))
+      @workspaces = Workspace.public_workspaces
+                             .where("id = ? OR LOWER(name) LIKE ?", query.to_i, "%#{query.downcase}%")
     else
       @owned_workspaces = current_user.owned_workspaces
       @joined_workspaces = current_user.joined_workspaces
@@ -490,7 +490,7 @@ class WorkspacesController < ApplicationController
   end
 
   def workspace_params
-    params.require(:workspace).permit(:name, :description)
+    params.require(:workspace).permit(:name, :description, :is_public)
   end
 
   def ceil_to_15(time)
