@@ -16,7 +16,7 @@ class WorkspacesController < ApplicationController
   def index
     if params[:query].present?
       query = params[:query]
-      @workspaces = Workspace.public_workspaces
+      @workspaces = Workspace.where("is_public = ? OR id IN (?)", true, current_user.workspaces.select(:id))
                              .where("id = ? OR LOWER(name) LIKE ?", query.to_i, "%#{query.downcase}%")
     else
       @owned_workspaces = current_user.owned_workspaces
@@ -475,6 +475,28 @@ class WorkspacesController < ApplicationController
     send_data csv, filename: "workspace_#{@workspace.id}_heatmap.csv"
   end
 
+  def join_by_code
+    code = params[:join_code].to_s.strip
+
+    if code.blank?
+      redirect_to workspaces_path, alert: "Please enter a join code."
+      return
+    end
+
+    workspace = Workspace.find_by(join_code: code)
+
+    if workspace
+      if current_user.member_of?(workspace)
+        redirect_to workspace, notice: "You are already a member of this workspace."
+      else
+        UserToWorkspace.create!(user: current_user, workspace: workspace, role: 'user')
+        redirect_to workspace, notice: "Successfully joined #{workspace.name}!"
+      end
+    else
+      redirect_to workspaces_path, alert: "Invalid join code."
+    end
+  end
+
   private
 
   def setup_range_for_csv
@@ -490,7 +512,7 @@ class WorkspacesController < ApplicationController
   end
 
   def workspace_params
-    params.require(:workspace).permit(:name, :description, :is_public)
+    params.require(:workspace).permit(:name, :description, :is_public, :join_code)
   end
 
   def ceil_to_15(time)

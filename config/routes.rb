@@ -16,6 +16,9 @@ Resrv::Application.routes.draw do
 
   # == Workspace Routes ==
   resources :workspaces, only: [:index, :new, :create, :show, :edit, :update] do
+    collection do
+      post :join_by_code
+    end
     member do
       get :past_reservations
       get :analytics

@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2025_12_07_183113) do
+ActiveRecord::Schema[8.0].define(version: 2025_12_07_184201) do
   create_table "items", force: :cascade do |t|
     t.string "name"
     t.integer "quantity"
@@ -115,6 +115,8 @@ ActiveRecord::Schema[8.0].define(version: 2025_12_07_183113) do
     t.string "slug"
     t.string "description"
     t.boolean "is_public", default: true
+    t.string "join_code"
+    t.index ["join_code"], name: "index_workspaces_on_join_code", unique: true
     t.index ["slug"], name: "index_workspaces_on_slug", unique: true
   end
 

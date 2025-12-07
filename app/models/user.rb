@@ -35,6 +35,10 @@ class User < ApplicationRecord
             .max
     end
 
+    def member_of?(workspace)
+        workspaces.exists?(workspace.id)
+    end
+
     private
 
     def downcase_email

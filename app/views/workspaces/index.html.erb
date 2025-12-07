@@ -11,7 +11,7 @@
 </div>
 
 <div class="search-bar mb-5">
-  <%= form_with(url: workspaces_path, method: :get, local: true, class: "form-inline justify-content-center") do |form| %>
+  <%= form_with(url: workspaces_path, method: :get, local: true, class: "form-inline justify-content-center mb-3") do |form| %>
     <div class="input-group w-100">
       <%= form.text_field :query, value: params[:query], class: "form-control form-control-lg border-0", placeholder: "Search workspaces by name or ID..." %>
       <div class="input-group-append">
@@ -19,6 +19,24 @@
       </div>
     </div>
   <% end %>
+
+  <div class="text-center">
+    <button class="btn btn-link text-muted" type="button" data-toggle="collapse" data-target="#joinCodeCollapse" aria-expanded="false" aria-controls="joinCodeCollapse">
+      Have a join code?
+    </button>
+  </div>
+  <div class="collapse mt-2" id="joinCodeCollapse">
+    <div class="card card-body bg-light border-0">
+      <%= form_with(url: join_by_code_workspaces_path, method: :post, local: true, class: "form-inline justify-content-center") do |form| %>
+        <div class="input-group">
+          <%= form.text_field :join_code, class: "form-control", placeholder: "Enter Join Code" %>
+          <div class="input-group-append">
+            <%= form.submit "Join", class: "btn btn-secondary" %>
+          </div>
+        </div>
+      <% end %>
+    </div>
+  </div>
 </div>
 
 <% if params[:query].present? %>

@@ -29,6 +29,14 @@
     </small>
   </div>
 
+  <div class="form-group mb-4">
+    <%= form.label :join_code, "Join Code (Optional)", class: "font-weight-bold" %>
+    <%= form.text_field :join_code, class: "form-control", placeholder: "e.g. CS101-2025" %>
+    <small class="form-text text-muted">
+      Users can join this workspace by entering this code, even if it is private. Leave blank to disable code joining.
+    </small>
+  </div>
+
   <div class="actions d-grid gap-2">
     <%= form.submit submit_text, class: "btn btn-primary btn-lg btn-block" %>
   </div>

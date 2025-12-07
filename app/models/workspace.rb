@@ -9,6 +9,7 @@ class Workspace < ApplicationRecord
     has_many :reservations, through: :items
 
     validates :name, presence: true
+    validates :join_code, uniqueness: true, allow_blank: true
 
     scope :public_workspaces, -> { where(is_public: true) }
 
