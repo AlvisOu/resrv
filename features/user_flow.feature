@@ -96,3 +96,15 @@ Scenario: Expired in-cart holds are purged by the job
   And an expired in-cart hold for "Mic" exists for "User User"
   When I run the PurgeExpiredHolds job
   Then the expired in-cart hold should be removed
+
+  Scenario: Search for a workspace
+    Given I am logged in as a standard user of "Lab"
+    When I go to the home page
+    And I fill in "query" with "Lab"
+    And I press "Search"
+    Then I should see "Lab"
+
+  Scenario: Visit workspace with specific date
+    Given I am logged in as a standard user of "Lab"
+    When I visit the workspace "Lab" page with date "2025-12-15"
+    Then the page should show availability for "2025-12-15"

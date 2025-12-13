@@ -155,3 +155,8 @@ Then(/^the response should contain "([^"]*)"$/) do |text|
   expect(page.body).to include(text)
 end
 
+When("I click {string} in the {string} section") do |link_text, section_title|
+  section = find("h3", text: section_title)
+  section.click_link(link_text)
+end
+

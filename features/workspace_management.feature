@@ -27,3 +27,14 @@ Feature: Workspace management
     And I fill in "workspace[name]" with ""
     And I press "Save Changes"
     Then I should see "prohibited this workspace from being saved"
+
+  Scenario: Owner creates an item with invalid times
+    Given I am logged in as a workspace owner of "Lab"
+    When I open the workspace "Lab"
+    And I click "Add Item"
+    And I fill in "e.g., Camera Kit" with "Broken Item"
+    And I fill in "10" with "5"
+    And I select "14" as the start hour
+    And I select "13" as the end hour
+    And I press "Confirm"
+    Then I should see "End time must be after the start time"

@@ -28,3 +28,15 @@ Feature: Analytics dashboards and capacity rebalancing
     When I trigger capacity rebalancing for workspace "Coverage Lab"
     Then one overbooked reservation should be canceled
     And a notification should be recorded for the canceled reservation
+
+  Scenario: Owner downloads all analytics CSVs
+    Given I am logged in as a workspace owner of "Lab"
+    When I visit the workspace "Lab" analytics page
+    And I click "Download CSV" in the "Utilization" section
+    Then the response content type should be "text/csv"
+    When I visit the workspace "Lab" analytics page
+    And I click "Download CSV" in the "Behavior Metrics" section
+    Then the response content type should be "text/csv"
+    When I visit the workspace "Lab" analytics page
+    And I click "Download CSV" in the "Heatmap" section
+    Then the response content type should be "text/csv"

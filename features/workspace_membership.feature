@@ -30,3 +30,8 @@ Feature: Workspace Membership
       And I should be on the home page
       When I go to my owned/bookmarked workspaces
       Then I should not see "Lerner Auditorium"
+
+  Scenario: User joins a workspace they are already in
+    Given I am logged in as a standard user of "Lab"
+    When I send a POST request to join the workspace "Lab"
+    Then I should see "You are already a member of this workspace."

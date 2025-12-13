@@ -151,7 +151,7 @@ end
 
 Given("I have an active penalty in {string}") do |workspace_name|
   workspace = Workspace.find_or_create_by!(name: workspace_name)
-  Penalty.create!(
+  @penalty = Penalty.create!(
     user: @current_user,
     workspace: workspace,
     reason: "no_show",

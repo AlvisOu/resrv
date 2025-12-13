@@ -73,3 +73,7 @@ Then(/^the JSON response should include "([^"]+)" "([^"]+)"$/) do |key, val|
   json = JSON.parse(@last_json)
   expect(json[key]).to eq(val)
 end
+
+Then("the response content type should be {string}") do |content_type|
+  expect(page.response_headers['Content-Type']).to include(content_type)
+end

@@ -1,3 +1,13 @@
+<% if @item.errors.any? %>
+  <div id="error_explanation" style="color: red; margin-bottom: 1rem;">
+    <ul>
+      <% @item.errors.full_messages.each do |message| %>
+        <li><%= message %></li>
+      <% end %>
+    </ul>
+  </div>
+<% end %>
+
 <%= form_with model: [@workspace, @item], local: true, html: { class: "styled-form", id: "item-form" } do |f| %>
   <div class="field">
     <%= f.label :name, "Item Name", class: "form-label" %>

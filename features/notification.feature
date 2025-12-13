@@ -67,3 +67,11 @@ Feature: Notification
     And I fill in "appeal_message" with "Please review my case"
     And I press "Appeal Penalty"
     Then I should see "Appeal sent to the workspace owner."
+
+  Scenario: Clear all notifications
+    Given I am logged in as a standard user of "Lab"
+    And I have 2 unread notifications
+    When I visit the notifications page
+    And I press "Clear All"
+    Then I should see "All notifications deleted."
+    And I should see "No notifications"

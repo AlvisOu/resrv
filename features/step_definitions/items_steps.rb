@@ -27,3 +27,11 @@ When(/^(?:|I )change the name, start time, end time, and quantity$/) do
   select "17", from: "item_end_time_4i"
   select "00", from: "item_end_time_5i"
 end
+
+When("I select {string} as the start hour") do |hour|
+  select hour, from: "item_start_time_4i"
+end
+
+When("I select {string} as the end hour") do |hour|
+  select hour, from: "item_end_time_4i"
+end

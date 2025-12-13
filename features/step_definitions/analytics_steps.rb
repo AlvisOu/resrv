@@ -97,3 +97,8 @@ end
 def fixed_time
   @fixed_time ||= Time.zone.parse("2099-01-01 12:00:00")
 end
+
+When("I visit the workspace {string} analytics page") do |workspace_name|
+  workspace = Workspace.find_by!(name: workspace_name)
+  visit analytics_workspace_path(workspace)
+end

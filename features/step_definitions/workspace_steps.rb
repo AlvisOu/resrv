@@ -59,3 +59,19 @@ Given /^I have joined the workspace "([^"]*)"$/ do |workspace_name|
     role: 'user' # Default to standard user
   )
 end
+
+When("I send a POST request to join the workspace {string}") do |workspace_name|
+  workspace = Workspace.find_by!(name: workspace_name)
+  page.driver.submit :post, workspace_user_to_workspace_path(workspace), {}
+end
+
+When("I visit the workspace {string} page with date {string}") do |workspace_name, date|
+  workspace = Workspace.find_by!(name: workspace_name)
+  visit workspace_path(workspace, day: date)
+end
+
+Then("the page should show availability for {string}") do |date|
+  parsed_date = Date.parse(date)
+  formatted_date = parsed_date.strftime("%B %-d") # e.g. December 15
+  expect(page).to have_content(formatted_date)
+end
