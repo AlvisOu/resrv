@@ -75,3 +75,35 @@ Then("the page should show availability for {string}") do |date|
   formatted_date = parsed_date.strftime("%B %-d") # e.g. December 15
   expect(page).to have_content(formatted_date)
 end
+
+When("I visit the workspace {string} with query parameters {string}") do |workspace_name, query|
+  workspace = Workspace.find_by!(name: workspace_name)
+  
+  if query.include?("ITEM_ID")
+    item = workspace.items.first
+    query = query.sub("ITEM_ID", item.id.to_s) if item
+  end
+
+  visit "/workspaces/#{workspace.slug}?#{query}"
+end
+
+When("I visit the analytics page for workspace {string} with query parameters {string}") do |workspace_name, query|
+  workspace = Workspace.find_by!(name: workspace_name)
+  visit "/workspaces/#{workspace.slug}/analytics?#{query}"
+end
+
+Given("a reservation exists for {string}") do |item_name|
+  item = Item.find_by!(name: item_name)
+  Reservation.create!(
+    item: item,
+    user: @current_user || User.first,
+    start_time: Time.zone.now + 1.hour,
+    end_time: Time.zone.now + 2.hours,
+    quantity: 1
+  )
+end
+
+When("I send a DELETE request to leave the workspace {string}") do |workspace_name|
+  workspace = Workspace.find_by!(name: workspace_name)
+  page.driver.submit :delete, workspace_user_to_workspace_path(workspace), {}
+end

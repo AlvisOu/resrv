@@ -75,3 +75,8 @@ Feature: Notification
     And I press "Clear All"
     Then I should see "All notifications deleted."
     And I should see "No notifications"
+
+  Scenario: Unauthenticated user cannot view notifications
+    When I click "Log Out"
+    And I go to the notifications page
+    Then I should be on the login page

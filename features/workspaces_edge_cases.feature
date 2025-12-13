@@ -55,3 +55,50 @@ Feature: Workspaces Edge Cases
     And I click the "Download CSV" link for "Heatmap"
     Then the response should contain "Item,12:00 AM"
 
+  Scenario: Workspace show page handles invalid date
+    Given I am logged in as a standard user of "Edge Workspace"
+    When I visit the workspace "Edge Workspace" with query parameters "day=invalid-date"
+    Then I should see "Edge Workspace"
+    And I should see "Available"
+
+  Scenario: Owner views workspace with invalid filter_day
+    When I visit the workspace "Edge Workspace" with query parameters "filter_day=invalid-date"
+    Then I should see "Edge Workspace"
+
+  Scenario: Owner views workspace with valid filter_day and filter_item_id
+    Given a workspace item named "Test Item" exists in "Edge Workspace"
+    And a reservation exists for "Test Item"
+    When I visit the workspace "Edge Workspace" with query parameters "filter_day=2025-01-01&filter_item_id=ITEM_ID"
+    Then I should see "Edge Workspace"
+
+  Scenario: Owner views analytics with range=all
+    When I visit the analytics page for workspace "Edge Workspace" with query parameters "range=all"
+    Then I should see "Analytics – Edge Workspace"
+
+  Scenario: Owner views analytics with range=1m
+    When I visit the analytics page for workspace "Edge Workspace" with query parameters "range=1m"
+    Then I should see "Analytics – Edge Workspace"
+
+  Scenario: Owner views analytics with range=3m
+    When I visit the analytics page for workspace "Edge Workspace" with query parameters "range=3m"
+    Then I should see "Analytics – Edge Workspace"
+
+  Scenario: Owner views analytics with range=6m
+    When I visit the analytics page for workspace "Edge Workspace" with query parameters "range=6m"
+    Then I should see "Analytics – Edge Workspace"
+
+  Scenario: Owner views analytics with range=1y
+    When I visit the analytics page for workspace "Edge Workspace" with query parameters "range=1y"
+    Then I should see "Analytics – Edge Workspace"
+
+  Scenario: Owner downloads CSVs with items present
+    Given a workspace item named "Test Item" exists in "Edge Workspace"
+    When I visit the analytics page for workspace "Edge Workspace"
+    And I click the "Download CSV" link for "Utilization"
+    Then the response should contain "Test Item"
+    When I visit the analytics page for workspace "Edge Workspace"
+    And I click the "Download CSV" link for "Behavior Metrics"
+    Then the response should contain "Test Item"
+    When I visit the analytics page for workspace "Edge Workspace"
+    And I click the "Download CSV" link for "Heatmap"
+    Then the response should contain "Test Item"
